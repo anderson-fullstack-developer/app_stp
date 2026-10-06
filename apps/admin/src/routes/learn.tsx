@@ -62,7 +62,7 @@ function Learn() {
               </div>
               <span className="rounded-xl bg-primary-foreground/15 px-3 py-1 font-display font-extrabold">Nível {lvl.level}</span>
             </div>
-            <div className="mt-3 flex items-center gap-3"><ProgressBar value={lvl.progress} tone="light" /><span className="text-sm font-bold">{lvl.progress}%</span></div>
+            <div className="mt-3 flex items-center gap-3"><ProgressBar value={lvl.progress} tone="light" /><span className="shrink-0 whitespace-nowrap text-sm font-bold">{lvl.progress}%</span></div>
             <p className="mt-1.5 text-xs opacity-80">Faltam {lvl.toNext} XP para o nível {lvl.level + 1}</p>
           </div>
 

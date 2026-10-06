@@ -126,10 +126,34 @@
 }
 @utility safe-top { padding-top: max(env(safe-area-inset-top), 0.75rem); }
 @utility safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+/*
+ * Camada decorativa (sol + anéis + luz suave) desenhada num ::before, por cima do fundo
+ * do elemento e por baixo do conteúdo. Não toca em background-image/size do próprio
+ * elemento, por isso combina com qualquer bg-* (bg-forest, bg-cocoa, bg-ocean-grad…)
+ * sem os repetir em mosaico.
+ */
 @utility pattern-leaf {
-  background-image: radial-gradient(circle at 20% 20%, oklch(1 0 0 / 12%) 0 2px, transparent 3px),
-    radial-gradient(circle at 70% 60%, oklch(1 0 0 / 8%) 0 1.5px, transparent 2.5px);
-  background-size: 28px 28px, 22px 22px;
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image:
+      /* anéis finos do "sol" no canto superior direito */
+      radial-gradient(circle at 92% 8%, transparent 0 46px, oklch(1 0 0 / 14%) 47px 48.5px, transparent 49.5px),
+      radial-gradient(circle at 92% 8%, transparent 0 82px, oklch(1 0 0 / 8%) 83px 84.5px, transparent 85.5px),
+      /* brilho quente do sol */
+      radial-gradient(circle at 92% 8%, oklch(0.86 0.16 88 / 30%), transparent 42%),
+      /* luz suave no canto inferior esquerdo */
+      radial-gradient(ellipse at 0% 100%, oklch(1 0 0 / 12%), transparent 55%),
+      /* reflexo diagonal subtil */
+      linear-gradient(135deg, oklch(1 0 0 / 7%), transparent 45%);
+    background-repeat: no-repeat;
+  }
 }
 
 @keyframes pop-in { 0% { transform: scale(0.6); opacity: 0 } 70% { transform: scale(1.08) } 100% { transform: scale(1); opacity: 1 } }
