@@ -1,24 +1,49 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
-<!-- LOVABLE:END -->
+# Língua STP — regras do monorepo
 
-- Mock data lives only in `src/mocks/` (one file per area; demo people only in `users.ts`, placeholder question text only in `questions.ts`, others derive from them); routes/components never import mocks or `src/admin/store.ts` directly — only services. Handoff doc: `docs/HANDOFF.md`.
-- All app data goes through `src/services/` (mock-backed now); swap bodies for API calls later, keep signatures — keeps UI decoupled from the future NestJS backend.
-- App name/tagline live only in `src/config/app.ts` — renaming must be a one-line change.
-- Every mobile app screen renders inside `PhoneFrame` (`src/layouts/AppShell.tsx`); tab screens use `TabLayout` with the bottom nav — the product must feel like a mobile app, not a website.
-- Product values (prices, rewards, lives, goals) and feature flags live only in `src/config/app.ts`; gate unfinished features with `isEnabled()`.
-- Client gamification state (XP, coins, streak, daily) lives in `src/hooks/use-game.ts`; reward animations render globally via `RewardLayer` in `__root.tsx`.
-- Ads only via `AdSlot`/`RewardedAdCard`; never render them inside lessons, countdowns or multiplayer screens.
-- Future integrations (Clerk, NestJS, R2, Socket.IO, RevenueCat, Stripe, AdMob, PostHog, Sentry) are mapped in `src/services/integrations.ts`; only public keys in VITE_ vars.
-- Admin panel lives under `/admin` (`src/admin/*` + `src/routes/admin.*`), desktop-first with `AdminShell`, never `PhoneFrame`; admin data goes through `src/services/admin.ts` over the mock store in `src/admin/store.ts`.
-- Admin role permissions live only in `src/admin/permissions.ts`; content status transitions only via `src/admin/workflow.ts` (only APPROVED content may reach the app; AI output is always DRAFT).
-- API URLs live only in `src/config/api.ts`; services call the backend only via `src/services/http.ts` — no URLs in components.
-- Multiplayer is server-authoritative: `src/types/game-contract.ts` defines the game API; the client never decides lives, score, winner, correct answer or official time (local engine is a mock stand-in).
-- Ad policy (placements allowlist + blocked contexts) lives only in src/config/ads.ts; screens with questions/countdowns/multiplayer/lessons call useBlockAds — keeps the no-ads rule in one place.
+Antes de trabalhar, ler: `documentation.md` (requisitos), `docs/PLANO_DE_ENGENHARIA.md` (plano, ADRs, passo atual) e o `AGENTS.md` da app em que vais mexer.
+
+## Regras absolutas
+- **Nunca inventar** palavras, traduções ou pronúncias em Forro/Angolar/Lung'Ie. Só placeholders rotulados até existir conteúdo `APPROVED`.
+- Só conteúdo `APPROVED` chega à app; IA gera sempre `DRAFT`; quem cria não aprova.
+- **Servidor autoritativo:** o cliente nunca decide XP, moedas, streak, vidas, pontuação, resposta correta, tempo oficial ou vencedor.
+- Sem segredos no repositório (é público). Só chaves públicas nos `.env.example`.
+- Sem anúncios em perguntas, contagens, matchmaking, multiplayer e lições.
+- Não reescrever histórico já enviado (sem force push, rebase ou amend de commits publicados).
+
+## Estrutura
+| Pasta | Conteúdo |
+|---|---|
+| `apps/admin` | Protótipo web do Lovable (painel admin + ecrãs da app como referência visual) |
+| `apps/mobile` | App Expo / React Native |
+| `packages/types` | `@stp/types` — tipos de domínio, multiplayer, contrato do jogo |
+| `packages/config` | `@stp/config` — valores de produto e feature flags (fonte única) |
+| `packages/game-engine` | `@stp/game-engine` — regras puras da Arena (o servidor vai usá-las) |
+| `packages/tsconfig` | `@stp/tsconfig` — configuração TypeScript estrita partilhada |
+
+Os pacotes são consumidos como código-fonte TypeScript (sem build próprio).
+
+## Comandos (pnpm + Turborepo)
+```bash
+pnpm install
+pnpm dev:admin      # http://localhost:8080
+pnpm dev:mobile     # Expo
+pnpm typecheck      # todos os pacotes
+pnpm test
+pnpm build
+pnpm lint
+```
+Adicionar dependências: `pnpm --filter @stp/<pacote> add <dep>`; no mobile usar `pnpm --filter @stp/mobile exec expo install <dep>`.
+
+## Fluxo
+- Cada alteração: commit pequeno (Conventional Commits, em português) e push para `main` depois de typecheck/testes verdes.
+
+<!-- BEGIN:turborepo-agent-rules -->
+
+# This is NOT the Turborepo you know
+
+Turborepo configuration, task behavior, and CLI commands can vary between installed versions and may differ from your training data. Resolve the `turbo` package from this file's directory or relevant workspace; in monorepos, it may not be visible from the repository root. For example, run `node -p "require.resolve('turbo/package.json')"` from a workspace that depends on `turbo`.
+
+Read `docs/README.md` inside that installed package first, then read the relevant pages from its `docs/` directory before changing Turborepo configuration or commands. Heed deprecation notices. These bundled docs match the installed package version and are available without network access.
+
+This block is written and re-added by `turbo` before repository-scoped commands when an AI agent is detected. In the Turborepo source repository, its template is defined in `crates/turborepo-cli/src/cli/agent_guidance.rs`. Removing the managed block while updates are enabled means a later qualifying invocation will add it again. Set `"agentGuidance": false` in the root `turbo.json` or `turbo.jsonc` to opt out; this does not remove an existing block. Keep the block committed with your work to avoid an uncommitted change on the next agent invocation.
+<!-- END:turborepo-agent-rules -->

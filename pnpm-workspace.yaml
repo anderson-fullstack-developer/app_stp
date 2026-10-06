@@ -1,0 +1,15 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Proteção da cadeia de fornecimento: não instalar versões publicadas há menos de 24h (em minutos).
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - "@lovable.dev/*"
+
+overrides:
+  # Uma única versão de React no monorepo (a exigida pelo Expo) — evita "Invalid hook call".
+  react: 19.2.3
+  react-dom: 19.2.3
+  # Herdado do protótipo Lovable (compatibilidade do Vite 8).
+  rolldown: 1.2.1

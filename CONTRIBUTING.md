@@ -1,31 +1,37 @@
 # Contribuir — Língua STP
 
-Guia curto para quem continua o projeto (developer ou Claude Code). Detalhes completos em `docs/HANDOFF.md` e `README.md`.
+Guia curto para quem continua o projeto (developer ou Claude Code). Detalhes em `AGENTS.md`, `docs/PLANO_DE_ENGENHARIA.md` e `docs/HANDOFF.md`.
 
 ## Regras absolutas
 - **Nunca inventar** palavras, traduções ou pronúncias em Forro/Angolar/Lung'Ie. Usar placeholders rotulados até existir conteúdo aprovado no Admin.
-- Só conteúdo `APPROVED` chega à app; sugestões de IA são sempre `DRAFT`.
-- Sem segredos no frontend: apenas variáveis públicas `VITE_*` (ver `.env.example`).
-- Anúncios nunca durante perguntas, countdowns, matchmaking, multiplayer ou lições (`src/config/ads.ts`).
-- Multiplayer é server-authoritative (`src/types/game-contract.ts`).
+- Só conteúdo `APPROVED` chega à app; sugestões de IA são sempre `DRAFT`; quem cria não aprova.
+- Sem segredos no repositório (é público): apenas variáveis públicas nos `.env.example`.
+- Anúncios nunca durante perguntas, countdowns, matchmaking, multiplayer ou lições (`apps/admin/src/config/ads.ts`).
+- Multiplayer é server-authoritative (`@stp/types/game-contract`).
 - Modos de jogo aprovados (Sobrevivência, 1v1, 2v2, Sala Privada, Espectador): não redesenhar sem necessidade técnica.
 
 ## Onde mexer
 | Precisa de… | Ficheiro |
 |---|---|
-| Valores/flags | `src/config/app.ts` |
-| URLs da API | `src/config/api.ts` |
-| Dados | `src/services/*` (nunca importar `src/mocks/` em ecrãs) |
-| Tipos partilhados | `src/types/` |
-| Permissões admin | `src/admin/permissions.ts` |
-| Workflow de conteúdo | `src/admin/workflow.ts` |
+| Valores de produto / flags | `packages/config/src/index.ts` (`@stp/config`) |
+| Tipos de domínio | `packages/types/src/` (`@stp/types`) |
+| Regras da Arena | `packages/game-engine/src/index.ts` (`@stp/game-engine`) |
+| URLs da API (web) | `apps/admin/src/config/api.ts` |
+| Dados (web) | `apps/admin/src/services/*` (nunca importar `src/mocks/` em ecrãs) |
+| Permissões admin | `apps/admin/src/admin/permissions.ts` |
+| Workflow de conteúdo | `apps/admin/src/admin/workflow.ts` |
 
 ## Comandos
 ```bash
-bun install
-bun run dev        # http://localhost:8080
-bunx vitest run    # testes
+pnpm install
+pnpm dev:admin     # http://localhost:8080
+pnpm dev:mobile    # Expo
+pnpm typecheck && pnpm test && pnpm build
 ```
 
+## Dependências
+- `pnpm` com `minimumReleaseAge` de 24h (proteção contra pacotes comprometidos). Se uma versão for recusada por ser recente, usar a versão anterior em vez de desligar a proteção.
+- Uma única versão de React no monorepo (`overrides` em `pnpm-workspace.yaml`), alinhada com o Expo.
+
 ## Commits
-Mensagens curtas no imperativo (ex.: `feat(lessons): ligar lessonService à API`). Um tema por PR.
+Mensagens curtas no imperativo, estilo Conventional Commits (ex.: `feat(api): adicionar módulo de progresso`). Um tema por commit.
