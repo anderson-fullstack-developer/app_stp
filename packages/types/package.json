@@ -1,0 +1,15 @@
+{
+  "name": "@stp/types",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./multiplayer": "./src/multiplayer.ts",
+    "./game-contract": "./src/game-contract.ts",
+    "./async": "./src/async.ts"
+  },
+  "scripts": { "typecheck": "tsc --noEmit" },
+  "dependencies": {},
+  "devDependencies": { "@stp/tsconfig": "workspace:*", "typescript": "^5.8.3" }
+}

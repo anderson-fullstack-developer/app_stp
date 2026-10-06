@@ -91,7 +91,7 @@ Prioridade: **P0** bloqueia / risco alto · **P1** corrigir durante a migração
 | P-08 | P1 | Níveis lineares (`xpPerLevel: 800`); a especificação pede curva configurável (0/100/250/500/900…). | `src/config/app.ts`, `use-game.ts` | Tabela `level_thresholds` (ou fórmula parametrizada) no servidor. |
 | P-09 | P1 | Documentação diz `IN_REVIEW`; código usa `UNDER_REVIEW`. | `README.md`, `docs/HANDOFF.md` | Padronizar em `UNDER_REVIEW` (igual à especificação). |
 | P-10 | P1 | Streak sem fuso horário do utilizador (diáspora em PT/FR/UK). | `use-game.ts` | Guardar `timezone` no utilizador; o servidor calcula o "dia" nesse fuso. |
-| P-11 | P1 | Dois gestores de pacotes: `bun.lock` na raiz, `package-lock.json` em `apps/mobile`. Bun não está instalado nesta máquina. | raiz, `apps/mobile` | Um só gestor para o monorepo (ADR-05). |
+| P-11 | — | ~~Dois gestores de pacotes~~ **Resolvido no passo 0.3** (pnpm). Era: `bun.lock` na raiz, `package-lock.json` em `apps/mobile`. Bun não está instalado nesta máquina. | raiz, `apps/mobile` | Um só gestor para o monorepo (ADR-05). |
 | P-12 | P1 | Autor/revisor guardados como **nomes** (strings), não ids. | `src/admin/types.ts` (`ContentBase`) | Na BD: `createdById`, `reviewedById` (FK `User`), `approvedAt`, `version`. |
 | P-13 | P2 | `SURVIVAL_MAX_PLAYERS = 16` mas o modo público é 8. | `src/config/app.ts` | Configuração por modo (`game_mode_configs`) no servidor. |
 | P-14 | — | ~~Testes não verificados.~~ **Verificado no passo 0.2 (2026-10-06):** 23/23 testes passam (6 ficheiros), typecheck sem erros, build OK. | `src/test/*` | Resolvido. |
@@ -111,7 +111,7 @@ Cada decisão fica registada com o motivo. Alterar uma decisão = novo ADR, não
 | ADR-02 | **Mobile: React Native + Expo (SDK atual) + Expo Router + NativeWind.** Ecrãs reescritos a partir do Lovable. | Aceite (especificação) | Requisito do produto; acesso nativo a áudio, haptics, notificações, Play Billing, AdMob. | Reescrever ~35 ecrãs. Reaproveitar tokens visuais com NativeWind. |
 | ADR-03 | **Admin: manter o painel do Lovable (TanStack Start + Tailwind + shadcn) em `apps/admin`**, em vez de Next.js. | Proposto (desvio da especificação) | O painel já existe e funciona; reescrever em Next.js não acrescenta valor ao utilizador. | Deploy em Vercel ou Cloudflare (o build atual já usa Nitro). |
 | ADR-04 | **Auth: Clerk** (app + admin). O NestJS valida o JWT do Clerk; utilizadores sincronizados por webhook; papéis numa tabela própria `user_roles`. | Aceite (handoff) | Evita implementar hashing, refresh tokens, Google Sign-In, verificação de email e brute-force à mão. | Custo por utilizador ativo a partir de certo volume; confirmar conformidade RGPD (região dos dados). A especificação original (JWT próprio) fica substituída. |
-| ADR-05 | **Monorepo com pnpm workspaces + Turborepo.** | Proposto | Combinação mais testada com Expo + NestJS + Prisma; cache de builds e tarefas por package. | Remover `bun.lock` e `package-lock.json`; um único `pnpm-lock.yaml`. (Alternativa aceitável: bun workspaces — decidir uma vez.) |
+| ADR-05 | **Monorepo com pnpm workspaces + Turborepo.** | Aceite (2026-10-06) | Combinação mais testada com Expo + NestJS + Prisma; cache de builds e tarefas por package. | Remover `bun.lock` e `package-lock.json`; um único `pnpm-lock.yaml`. (Alternativa aceitável: bun workspaces — decidir uma vez.) |
 | ADR-06 | **Base de dados: Neon PostgreSQL + Prisma.** | Aceite (handoff) | PostgreSQL gerido, *branching* por ambiente/PR. | Usar URL com *pooling* para a app e URL direta para migrações. |
 | ADR-07 | **API: NestJS em Railway** (processo de longa duração). | Aceite | Socket.IO precisa de ligações persistentes (não serve em funções *serverless*). | Uma instância no MVP; múltiplas instâncias só com Redis (ADR-08). |
 | ADR-08 | **Redis (Upstash) só quando necessário.** MVP da Arena corre numa instância sem Redis; o estado de jogo fica em memória atrás de uma interface (`GameStateStore`). | Proposto | A especificação pede para começar sem Redis; evita infraestrutura prematura. | Ao escalar: trocar a implementação para Redis + Socket.IO Redis Adapter sem mudar a lógica. |
@@ -284,12 +284,13 @@ Dimensão do esforço: **S** (≤2 dias) · **M** (≤1 semana) · **L** (1–3 
 - Instalar dependências, correr `typecheck`, `test`, `build`. Registar resultados (P-14).
 - *Feito quando:* sabemos exatamente o que passa e o que falha.
 
-**Passo 0.3 — Monorepo** · M
+**Passo 0.3 — Monorepo** · M · ✅ **Concluído (2026-10-06)**
 - pnpm workspaces + Turborepo (ADR-05).
 - Mover o Lovable para `apps/admin` (o painel e, temporariamente, as rotas da app como referência).
 - Extrair `packages/types`, `packages/config`, `packages/game-engine` (com os testes respetivos).
-- Recriar `apps/mobile` limpo (Expo SDK atual + Expo Router + NativeWind + TanStack Query + Zustand).
-- *Feito quando:* `pnpm turbo lint typecheck test build` passa na raiz.
+- ~~Recriar `apps/mobile` limpo~~ → **adiado para o passo 3.1**: o protótipo Expo mantém-se como demo até o design system (NativeWind + TanStack Query + Zustand) ser criado; evita trabalho duplicado.
+- *Feito quando:* `pnpm typecheck test build` passa na raiz. ✅ 5/5 typecheck, 23/23 testes (7 motor + 16 admin), build OK, as duas apps arrancam. O lint fica para o passo 0.4 (P-16).
+- Notas: `pnpm` com `minimumReleaseAge` de 24h e `node-linker=hoisted`; React fixado em 19.2.3 em todo o monorepo (exigido pelo Expo); versões Expo do mobile em `~57.0.0` para respeitar a proteção de 24h.
 
 **Passo 0.4 — Qualidade e CI** · S
 - ESLint + Prettier partilhados; GitHub Actions com lint/typecheck/test/build.
@@ -492,7 +493,7 @@ O desenvolvimento pode estar pronto e a app continuar vazia. Para evitar isso:
 |---|---|---|
 | D-01 | ~~Congelar o Lovable e passar a trabalhar só no repositório (ADR-01)?~~ | **Decidido (2026-10-06):** sim; a interface é terminada aqui. |
 | D-02 | Manter o admin do Lovable em vez de Next.js (ADR-03)? | Sim. |
-| D-03 | pnpm ou bun para o monorepo (ADR-05)? | pnpm. |
+| D-03 | ~~pnpm ou bun para o monorepo (ADR-05)?~~ | **Decidido (2026-10-06):** pnpm. |
 | D-04 | Só R2 no início, sem Cloudinary (ADR-09)? | Sim. |
 | D-05 | Público-alvo inclui menores de 13/16 anos? | Definir já: muda regras de registo, anúncios e analytics. |
 | D-06 | Vidas nas lições (P-15) existem no MVP? | Não; não bloquear a aprendizagem (secção 32 da especificação). |

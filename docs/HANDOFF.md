@@ -1,5 +1,7 @@
 # Língua STP — HANDOFF
 
+> **Nota (2026-10-06, passo 0.3):** o projeto passou a monorepo. Os caminhos `src/...` deste documento estão agora em `apps/admin/src/...`, exceto: `src/types/*` → `packages/types/src/` (`@stp/types`), `src/config/app.ts` → `packages/config/src/index.ts` (`@stp/config`), `src/lib/multiplayer/engine.ts` → `packages/game-engine/src/index.ts` (`@stp/game-engine`). Comandos: `pnpm install`, `pnpm dev:admin`, `pnpm test`.
+
 Documento de handoff para o próximo developer / Claude Code.
 Estado: protótipo completo do frontend (app mobile + painel admin), todo mock-backed.
 Sem backend real, sem auth real, sem pagamentos, sem sockets, sem base de dados. **Zero segredos no frontend.**
