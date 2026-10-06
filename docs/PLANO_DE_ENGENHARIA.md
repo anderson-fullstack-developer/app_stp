@@ -105,7 +105,7 @@ Cada decisão fica registada com o motivo. Alterar uma decisão = novo ADR, não
 
 | ADR | Decisão | Estado | Motivo | Consequência |
 |---|---|---|---|---|
-| ADR-01 | **Congelar o Lovable.** O repositório Git passa a ser a única fonte de verdade; o Lovable fica como referência visual. | Proposto | Reestruturar em monorepo quebra a sincronização com o Lovable; ter duas fontes de verdade gera conflitos. | Alterações de design futuras: fazer no código, ou prototipar no Lovable num projeto à parte e portar à mão. |
+| ADR-01 | **Congelar o Lovable.** O repositório Git passa a ser a única fonte de verdade; o Lovable fica como referência visual. **Toda a interface (app e admin) é terminada neste repositório.** | Aceite (2026-10-06) | Reestruturar em monorepo quebra a sincronização com o Lovable; ter duas fontes de verdade gera conflitos. | Alterações de design futuras: fazer no código, ou prototipar no Lovable num projeto à parte e portar à mão. |
 | ADR-02 | **Mobile: React Native + Expo (SDK atual) + Expo Router + NativeWind.** Ecrãs reescritos a partir do Lovable. | Aceite (especificação) | Requisito do produto; acesso nativo a áudio, haptics, notificações, Play Billing, AdMob. | Reescrever ~35 ecrãs. Reaproveitar tokens visuais com NativeWind. |
 | ADR-03 | **Admin: manter o painel do Lovable (TanStack Start + Tailwind + shadcn) em `apps/admin`**, em vez de Next.js. | Proposto (desvio da especificação) | O painel já existe e funciona; reescrever em Next.js não acrescenta valor ao utilizador. | Deploy em Vercel ou Cloudflare (o build atual já usa Nitro). |
 | ADR-04 | **Auth: Clerk** (app + admin). O NestJS valida o JWT do Clerk; utilizadores sincronizados por webhook; papéis numa tabela própria `user_roles`. | Aceite (handoff) | Evita implementar hashing, refresh tokens, Google Sign-In, verificação de email e brute-force à mão. | Custo por utilizador ativo a partir de certo volume; confirmar conformidade RGPD (região dos dados). A especificação original (JWT próprio) fica substituída. |
@@ -229,7 +229,33 @@ Segredos só nos painéis da Railway/Vercel/EAS. Nunca no repositório. Chaves d
 
 Prioridade dos testes (secção 47 da especificação): Auth, XP, Streak, Progresso, Subscrições, Pontuação de jogo, Salas, Permissões admin.
 
-### 6.5 Definition of Done (para cada passo)
+### 6.5 Interface (UI/UX)
+
+A interface é terminada neste repositório (ADR-01). O Lovable é só referência visual.
+
+**Princípios**
+- Identidade própria inspirada em São Tomé e Príncipe (verde floresta, cacau, amarelo sol, azul oceano, coral). **Não copiar o Duolingo.**
+- Mobile-first: desenhar para 360 px e testar em 360/390/412/430 px; tablets mais tarde.
+- Moderna, simples, colorida, jovem e divertida: cartões arredondados, micro-animações, barras de progresso, feedback visual e háptico, animações de XP.
+- Arena com tema próprio (escuro, tensão, velocidade) sem perder o foco educativo.
+- PT europeu em toda a UI; textos preparados para tradução (EN/FR) — nada de texto fixo nos componentes.
+
+**Quando se trata a interface**
+1. **Passo 3.1** — design system primeiro (tokens, componentes, estados, animações). Nenhum ecrã antes disto.
+2. **Cada ecrã (passos 3.2–4.3)** — feito já com o design final e testado em Android.
+3. **Revisão de design no fim de cada fase** — percorrer todos os ecrãs da fase e corrigir inconsistências.
+4. **Passo 6.1** — polimento final (detalhes de animação, desempenho, acessibilidade).
+
+**Checklist por ecrã**
+- [ ] Usa só componentes e tokens do design system (sem cores/tamanhos soltos).
+- [ ] Estados: carregamento, erro, vazio, offline (e bloqueado quando aplicável).
+- [ ] Funciona em 360 px sem cortes nem scroll horizontal; texto grande do sistema não parte o layout.
+- [ ] Áreas de toque ≥ 44 px; contraste legível; leitor de ecrã com rótulos.
+- [ ] Feedback em cada ação (animação, háptico, som quando fizer sentido).
+- [ ] Sem anúncios em perguntas, contagens, matchmaking, multiplayer e lições.
+- [ ] Testado num telemóvel Android real ou emulador.
+
+### 6.6 Definition of Done (para cada passo)
 
 - [ ] Código revisto e juntado em `main` via PR.
 - [ ] Lint, typecheck, testes e build verdes no CI.
@@ -462,7 +488,7 @@ O desenvolvimento pode estar pronto e a app continuar vazia. Para evitar isso:
 
 | # | Pergunta | Recomendação |
 |---|---|---|
-| D-01 | Congelar o Lovable e passar a trabalhar só no repositório (ADR-01)? | Sim. |
+| D-01 | ~~Congelar o Lovable e passar a trabalhar só no repositório (ADR-01)?~~ | **Decidido (2026-10-06):** sim; a interface é terminada aqui. |
 | D-02 | Manter o admin do Lovable em vez de Next.js (ADR-03)? | Sim. |
 | D-03 | pnpm ou bun para o monorepo (ADR-05)? | pnpm. |
 | D-04 | Só R2 no início, sem Cloudinary (ADR-09)? | Sim. |
