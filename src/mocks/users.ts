@@ -1,0 +1,51 @@
+/**
+ * Single source of demo people. Friends, rankings, rooms, bots and admin
+ * users are all derived from this list — never redefine a player elsewhere.
+ * Names are fictional demo profiles.
+ */
+import type { AvatarColor, Friend, User } from "@/types";
+
+export interface DemoPerson {
+  id: string;
+  name: string;
+  username: string;
+  color: AvatarColor;
+  country: string;
+  level: number;
+  streak: number;
+  weeklyXp: number;
+  /** Total XP shown in rankings. */
+  xp: number;
+  /** Relationship to the current user in the social screens. */
+  relation: Friend["status"] | "none";
+  /** Bot-only probability of answering correctly (mock multiplayer). */
+  skill: number;
+}
+
+const STP = "São Tomé e Príncipe";
+
+export const currentUser: User = {
+  id: "u1", name: "Anderson", username: "anderson", email: "anderson@exemplo.st", country: STP,
+  avatarColor: "forest", level: 4, levelProgress: 65, xp: 2940, weeklyXp: 1250, coins: 320, streak: 7,
+  longestStreak: 32, lessonsCompleted: 27, wordsLearned: 186, accuracy: 91, wins: 18, achievementsCount: 12, isPremium: false,
+};
+
+export const people: DemoPerson[] = [
+  { id: "f1", name: "Maria", username: "maria.st", color: "coral", country: STP, level: 8, streak: 21, weeklyXp: 1540, xp: 3850, relation: "friend", skill: 0.86 },
+  { id: "f2", name: "João", username: "joao_p", color: "ocean", country: "Portugal", level: 6, streak: 12, weeklyXp: 1210, xp: 3430, relation: "friend", skill: 0.74 },
+  { id: "f4", name: "Carlos", username: "carlos.d", color: "cocoa", country: "Angola", level: 7, streak: 9, weeklyXp: 990, xp: 3100, relation: "friend", skill: 0.68 },
+  { id: "f3", name: "Ana", username: "ana.lima", color: "sun", country: STP, level: 5, streak: 4, weeklyXp: 860, xp: 2800, relation: "friend", skill: 0.7 },
+  { id: "f6", name: "Edson", username: "edson.stp", color: "ocean", country: STP, level: 9, streak: 40, weeklyXp: 2100, xp: 2450, relation: "suggestion", skill: 0.66 },
+  { id: "f5", name: "Inês", username: "ines_r", color: "forest", country: "Portugal", level: 3, streak: 2, weeklyXp: 310, xp: 2010, relation: "request", skill: 0.62 },
+  { id: "f7", name: "Djamila", username: "djamila", color: "coral", country: "Cabo Verde", level: 2, streak: 1, weeklyXp: 120, xp: 1720, relation: "suggestion", skill: 0.6 },
+  { id: "p8", name: "Paulo", username: "paulo", color: "forest", country: STP, level: 4, streak: 3, weeklyXp: 400, xp: 1500, relation: "none", skill: 0.6 },
+  { id: "p9", name: "Sofia", username: "sofia", color: "coral", country: "Portugal", level: 5, streak: 6, weeklyXp: 520, xp: 1450, relation: "none", skill: 0.64 },
+  { id: "p10", name: "Miguel", username: "miguel", color: "ocean", country: STP, level: 3, streak: 2, weeklyXp: 280, xp: 1300, relation: "none", skill: 0.58 },
+  { id: "p11", name: "Rui", username: "rui", color: "coral", country: "Portugal", level: 2, streak: 1, weeklyXp: 150, xp: 1100, relation: "none", skill: 0.55 },
+  { id: "p12", name: "Telma", username: "telma", color: "ocean", country: STP, level: 4, streak: 5, weeklyXp: 380, xp: 1050, relation: "none", skill: 0.63 },
+  { id: "p13", name: "Nuno", username: "nuno", color: "cocoa", country: "Angola", level: 2, streak: 0, weeklyXp: 90, xp: 900, relation: "none", skill: 0.57 },
+  { id: "p14", name: "Lara", username: "lara", color: "sun", country: STP, level: 3, streak: 4, weeklyXp: 260, xp: 850, relation: "none", skill: 0.61 },
+  { id: "p15", name: "Tiago", username: "tiago", color: "forest", country: "Portugal", level: 3, streak: 2, weeklyXp: 210, xp: 800, relation: "none", skill: 0.59 },
+];
+
+export const personById = (id: string) => people.find((p) => p.id === id);

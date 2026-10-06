@@ -1,0 +1,10 @@
+{
+  "name": "Língua STP",
+  "short_name": "Língua STP",
+  "description": "Aprende. Joga. Preserva.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f3ea",
+  "theme_color": "#1f7a55",
+  "icons": [{ "src": "/favicon.ico", "sizes": "64x64", "type": "image/x-icon" }]
+}

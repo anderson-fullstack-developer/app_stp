@@ -1,0 +1,14 @@
+import type { Achievement } from "@/types";
+
+export const achievements: Achievement[] = [
+  { id: "a1", title: "Primeira Lição", description: "Completa a tua primeira lição", icon: "🌱", unlocked: true },
+  { id: "a2", title: "7 Dias", description: "Sequência de 7 dias", icon: "🔥", unlocked: true },
+  { id: "a3", title: "30 Dias", description: "Sequência de 30 dias", icon: "🌋", unlocked: false, progress: 23 },
+  { id: "a4", title: "100 Respostas", description: "Responde a 100 perguntas", icon: "🎯", unlocked: true },
+  { id: "a5", title: "1000 Respostas", description: "Responde a 1000 perguntas", icon: "🏹", unlocked: false, progress: 41 },
+  { id: "a6", title: "Primeira Vitória", description: "Ganha um duelo", icon: "⚔️", unlocked: true },
+  { id: "a7", title: "10 Vitórias", description: "Ganha 10 jogos", icon: "🏆", unlocked: true },
+  { id: "a10", title: "Top 3", description: "Fica no top 3 numa partida", icon: "🥉", unlocked: true },
+  { id: "a8", title: "Nível 10", description: "Chega ao nível 10", icon: "💎", unlocked: false, progress: 40 },
+  { id: "a9", title: "Explorador", description: "Completa 3 unidades", icon: "🧭", unlocked: false, progress: 33 },
+];
