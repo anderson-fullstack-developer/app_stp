@@ -94,7 +94,9 @@ Prioridade: **P0** bloqueia / risco alto · **P1** corrigir durante a migração
 | P-11 | P1 | Dois gestores de pacotes: `bun.lock` na raiz, `package-lock.json` em `apps/mobile`. Bun não está instalado nesta máquina. | raiz, `apps/mobile` | Um só gestor para o monorepo (ADR-05). |
 | P-12 | P1 | Autor/revisor guardados como **nomes** (strings), não ids. | `src/admin/types.ts` (`ContentBase`) | Na BD: `createdById`, `reviewedById` (FK `User`), `approvedAt`, `version`. |
 | P-13 | P2 | `SURVIVAL_MAX_PLAYERS = 16` mas o modo público é 8. | `src/config/app.ts` | Configuração por modo (`game_mode_configs`) no servidor. |
-| P-14 | P2 | A afirmação "23+ testes passam" não foi verificada nesta máquina (dependências não instaladas; contei ~21 casos). | `src/test/*` | Correr na fase 0 e registar o resultado. |
+| P-14 | — | ~~Testes não verificados.~~ **Verificado no passo 0.2 (2026-10-06):** 23/23 testes passam (6 ficheiros), typecheck sem erros, build OK. | `src/test/*` | Resolvido. |
+| P-16 | P1 | Lint falha: 2004 problemas. 1987 são só formatação (Prettier, corrigíveis com `--fix`); 2 erros reais `react-hooks/rules-of-hooks` (hooks chamados na função `component` da rota); 13 avisos (fast refresh, deps de hooks). | `src/routes/achievements.tsx:18`, `src/routes/notifications.tsx:18`, outros | Correr `eslint --fix` num commit só de formatação; corrigir os 2 erros extraindo o componente com nome em maiúscula. Lint passa a ser obrigatório no CI (passo 0.4). |
+| P-17 | P2 | O README refere a rota `/play`, que não existe (404). Os modos estão em `/play/survival`, `/play/duel`, etc. | `README.md`, `src/routes/` | Corrigir a documentação ou criar o ecrã `/play` (hub da área Jogar) ao migrar para mobile. |
 | P-15 | P2 | Sistema de "vidas" nas lições (`maxLives: 5`) não está na especificação e pode bloquear a aprendizagem. | `src/config/app.ts` | Decisão de produto (ver secção 13). |
 
 ---
