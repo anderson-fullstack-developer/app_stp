@@ -33,14 +33,14 @@ function Profile() {
             <div className="flex items-center gap-4">
               <Avatar name={u.name} color="sun" size={80} />
               <div>
-                <h1 className="font-display text-2xl font-extrabold">{u.name}</h1>
+                <h1 className="font-display text-2xl font-bold">{u.name}</h1>
                 <p className="text-sm opacity-80">@{u.username}</p>
                 <p className="mt-1 inline-flex items-center gap-1 text-xs font-bold"><Languages className="size-3.5" />Forro / Santomé</p>
                 <CoinBadge value={g.coins} className="mt-2 bg-primary-foreground/90" />
               </div>
             </div>
             <div className="mt-4 flex items-center gap-3">
-              <span className="font-display font-extrabold">Nível {lvl.level}</span>
+              <span className="font-display font-bold">Nível {lvl.level}</span>
               <ProgressBar value={lvl.progress} tone="light" />
             </div>
           </div>

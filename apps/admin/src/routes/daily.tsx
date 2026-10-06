@@ -32,7 +32,7 @@ function Daily() {
         {!data ? <LoadingState /> : (
           <div className="animate-rise overflow-hidden rounded-[2rem] bg-sun p-6 text-accent-foreground">
             <div className="grid size-16 place-items-center rounded-3xl bg-surface/50 animate-float"><Zap className="size-8 fill-current" /></div>
-            <h1 className="mt-4 font-display text-3xl font-extrabold">Desafio do Dia</h1>
+            <h1 className="mt-4 font-display text-3xl font-bold">Desafio do Dia</h1>
             <p className="font-semibold opacity-80">{data.questions} perguntas · {g.dailyDone ? "✓ Concluído" : "Completa hoje"}</p>
             <div className="mt-4 flex gap-2">
               <span className="rounded-xl bg-surface/60 px-3 py-1 font-bold">+{data.xpReward} XP</span>
@@ -40,7 +40,7 @@ function Daily() {
             </div>
             <p className="mt-4 flex items-center gap-1.5 text-sm font-semibold"><Users className="size-4" />{data.participants} pessoas já participaram hoje.</p>
             {g.dailyDone ? (
-              <div className="mt-5 flex h-14 items-center justify-center gap-2 rounded-2xl bg-surface/70 font-display font-extrabold text-success"><CheckCircle2 />Concluído — volta amanhã</div>
+              <div className="mt-5 flex h-14 items-center justify-center gap-2 rounded-2xl bg-surface/70 font-display font-bold text-success"><CheckCircle2 />Concluído — volta amanhã</div>
             ) : (
               <Link to="/lesson/$lessonId" params={{ lessonId: "l3" }} search={{ daily: true }} className="mt-5 block"><AppButton>Jogar</AppButton></Link>
             )}

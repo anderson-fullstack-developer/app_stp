@@ -36,15 +36,15 @@ function Quiz() {
     <PhoneFrame className="bg-primary-deep text-primary-foreground">
       <div className="flex items-center justify-between px-4 pt-3 safe-top">
         <BackButton close />
-        <span className="font-display font-extrabold">Pergunta 4/10</span>
-        <span className={cn("inline-flex items-center gap-1 rounded-xl px-3 py-1 font-display text-lg font-extrabold", time <= 3 ? "bg-destructive" : "bg-primary-foreground/15")}>
+        <span className="font-display font-bold">Pergunta 4/10</span>
+        <span className={cn("inline-flex items-center gap-1 rounded-xl px-3 py-1 font-display text-lg font-bold", time <= 3 ? "bg-destructive" : "bg-primary-foreground/15")}>
           <Timer className="size-5" />{String(time).padStart(2, "0")}
         </span>
       </div>
       <main className="flex-1 px-5 pb-8 pt-6">
         <div className="rounded-3xl bg-surface p-5 text-foreground">
           <p className="text-xs font-bold uppercase text-muted-foreground">O que significa?</p>
-          <p className="font-display text-2xl font-extrabold">Palavra em Forro</p>
+          <p className="font-display text-2xl font-bold">Palavra em Forro</p>
         </div>
         <div className="mt-4 space-y-3 text-foreground">
           {["A", "B", "C", "D"].map((l, i) => (
@@ -58,7 +58,7 @@ function Quiz() {
             <ol className="space-y-2">
               {ranking.map((p, i) => (
                 <li key={p.id} className={cn("flex items-center gap-3 rounded-2xl px-3 py-2", p.isHost ? "bg-accent text-accent-foreground" : "bg-primary-foreground/10")}>
-                  <span className="w-5 font-display font-extrabold">{i + 1}</span>
+                  <span className="w-5 font-display font-bold">{i + 1}</span>
                   <Avatar name={p.name} color={p.avatarColor} size={34} />
                   <span className="flex-1 font-semibold">{p.name}</span>
                   <span className="font-display font-bold">{p.score}</span>

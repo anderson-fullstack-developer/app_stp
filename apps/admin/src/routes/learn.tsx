@@ -39,7 +39,7 @@ function Learn() {
           <Link to="/profile">{user && <Avatar name={user.name} color={user.avatarColor} size={42} />}</Link>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-muted-foreground">Olá,</p>
-            <p className="-mt-0.5 truncate font-display text-lg font-extrabold">{user?.name ?? "…"}</p>
+            <p className="-mt-0.5 truncate font-display text-lg font-bold">{user?.name ?? "…"}</p>
           </div>
           <Link to="/notifications" aria-label="Notificações" className="relative grid size-10 place-items-center rounded-full bg-surface ring-2 ring-border">
             <Bell className="size-5" /><span className="absolute right-2 top-2 size-2 rounded-full bg-destructive" />
@@ -58,9 +58,9 @@ function Learn() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-widest opacity-75">A aprender</p>
-                <p className="font-display text-lg font-extrabold">Forro / Santomé</p>
+                <p className="font-display text-lg font-bold">Forro / Santomé</p>
               </div>
-              <span className="rounded-xl bg-primary-foreground/15 px-3 py-1 font-display font-extrabold">Nível {lvl.level}</span>
+              <span className="rounded-xl bg-primary-foreground/15 px-3 py-1 font-display font-bold">Nível {lvl.level}</span>
             </div>
             <div className="mt-3 flex items-center gap-3"><ProgressBar value={lvl.progress} tone="light" /><span className="shrink-0 whitespace-nowrap text-sm font-bold">{lvl.progress}%</span></div>
             <p className="mt-1.5 text-xs opacity-80">Faltam {lvl.toNext} XP para o nível {lvl.level + 1}</p>
@@ -69,12 +69,12 @@ function Learn() {
           <div className="mt-3"><StreakCard streak={g.streak} longest={g.longestStreak} week={g.week} todayIndex={g.todayIndex} /></div>
 
           {daily && (
-            <Link to="/daily" className={cn("pressable mt-3 flex items-center gap-3 overflow-hidden rounded-3xl p-4", g.dailyDone ? "border-2 border-success bg-success-soft" : "bg-sun text-accent-foreground")}>
+            <Link to="/daily" className={cn("pressable mt-3 flex items-center gap-3 overflow-hidden rounded-3xl p-4", g.dailyDone ? "border-[1.5px] border-success bg-success-soft" : "bg-sun text-accent-foreground")}>
               <div className="grid size-12 place-items-center rounded-2xl bg-surface/50">
                 {g.dailyDone ? <CheckCircle2 className="size-6 text-success" /> : <Zap className="size-6 fill-current" />}
               </div>
               <div className="flex-1">
-                <p className="font-display font-extrabold uppercase tracking-wide">Desafio do dia</p>
+                <p className="font-display font-bold">Desafio do dia</p>
                 <p className="text-xs font-semibold opacity-80">{daily.questions} perguntas · +{daily.xpReward} XP · +{daily.coinReward} moedas</p>
               </div>
               <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-bold", g.dailyDone ? "bg-success text-primary-foreground" : "bg-surface/60")}>
@@ -104,7 +104,7 @@ function Learn() {
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-widest opacity-80">Unidade {unit.index}</p>
-                      <h2 className="font-display text-2xl font-extrabold">{unit.title}</h2>
+                      <h2 className="font-display text-2xl font-bold">{unit.title}</h2>
                       <p className="text-sm opacity-85">{unit.description}</p>
                     </div>
                     <span className="rounded-xl bg-surface/20 px-2.5 py-1 text-xs font-bold">{doneCount}/{unit.lessons.length}</span>

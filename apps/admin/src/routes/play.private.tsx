@@ -52,10 +52,10 @@ function PrivateRoomPage() {
       {step === "choose" && (
         <main className="flex flex-1 flex-col gap-4 px-4 pb-6">
           <button type="button" onClick={() => setStep("setup")} className="pressable rounded-[1.75rem] bg-ocean-grad p-6 text-left text-ocean-foreground pattern-leaf">
-            <Plus className="size-9" /><p className="mt-2 font-display text-2xl font-extrabold">Criar sala</p><p className="opacity-85">Tu és o host e escolhes as regras.</p>
+            <Plus className="size-9" /><p className="mt-2 font-display text-2xl font-bold">Criar sala</p><p className="opacity-85">Tu és o host e escolhes as regras.</p>
           </button>
           <Link to="/play/join" className="pressable block rounded-[1.75rem] bg-cocoa p-6 text-secondary-foreground pattern-leaf">
-            <KeyRound className="size-9" /><p className="mt-2 font-display text-2xl font-extrabold">Entrar com código</p><p className="opacity-85">Recebeste um código? Entra aqui.</p>
+            <KeyRound className="size-9" /><p className="mt-2 font-display text-2xl font-bold">Entrar com código</p><p className="opacity-85">Recebeste um código? Entra aqui.</p>
           </Link>
         </main>
       )}
@@ -130,7 +130,7 @@ function Lobby({ room }: { room: PrivateRoom }) {
         )}
       </div>
       <Modal open={inviteOpen} onClose={() => setInviteOpen(false)}>
-        <p className="mb-3 font-display text-xl font-extrabold">Convidar amigos</p>
+        <p className="mb-3 font-display text-xl font-bold">Convidar amigos</p>
         <div className="space-y-2">
           {listInvitableFriends().map((f) => (
             <div key={f.id} className="flex items-center gap-3">

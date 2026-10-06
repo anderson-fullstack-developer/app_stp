@@ -66,7 +66,7 @@ function LessonPage() {
       </div>
       <div className="px-5 pt-4">
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{lesson.title} · Exercício {i + 1} de {total}</p>
-        <h1 className="mt-1 font-display text-2xl font-extrabold">{ex.prompt}</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold">{ex.prompt}</h1>
       </div>
       <div key={ex.id} className="animate-rise flex-1 px-5 pb-40 pt-5">
         <ExerciseRenderer exercise={ex} checked={checked} onReady={(r, c) => { setReady(r); setCorrect(c); }} />
@@ -80,7 +80,7 @@ function LessonPage() {
         <div className="flex items-start gap-3">
           {correct ? <CheckCircle2 className="size-9 text-success animate-pop" /> : <XCircle className="size-9 text-destructive animate-pop" />}
           <div className="flex-1">
-            <p className={correct ? "font-display text-2xl font-extrabold text-success" : "font-display text-2xl font-extrabold text-destructive"}>{correct ? "Boa!" : "Quase!"}</p>
+            <p className={correct ? "font-display text-2xl font-bold text-success" : "font-display text-2xl font-bold text-destructive"}>{correct ? "Boa!" : "Quase!"}</p>
             {correct ? <p className="animate-pop font-bold text-success">+{APP_CONFIG.rewards.correctAnswerXp} XP</p> : (
               <p className="text-sm font-semibold text-destructive">Resposta correta: <span className="font-bold">{correctLabel}</span></p>
             )}

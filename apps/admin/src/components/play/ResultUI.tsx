@@ -32,8 +32,8 @@ export function GameResultStats({ items }: { items: [string, string | number][] 
   return (
     <div className="grid grid-cols-2 gap-2">
       {items.map(([l, v]) => (
-        <div key={l} className="rounded-2xl border-2 border-border bg-surface p-3 text-center">
-          <p className="font-display text-2xl font-extrabold">{v}</p>
+        <div key={l} className="rounded-2xl card p-3 text-center">
+          <p className="font-display text-2xl font-bold">{v}</p>
           <p className="text-sm font-semibold text-muted-foreground">{l}</p>
         </div>
       ))}
@@ -45,7 +45,7 @@ export function TeamScore({ a, b, labelA = "Equipa A", labelB = "Equipa B" }: { 
   const total = a + b || 1;
   return (
     <div>
-      <div className="flex justify-between font-display text-sm font-extrabold">
+      <div className="flex justify-between font-display text-sm font-bold">
         <span className="text-primary">{labelA} · {a}</span><span className="text-destructive">{b} · {labelB}</span>
       </div>
       <div className="mt-1 flex h-3 overflow-hidden rounded-full bg-muted">

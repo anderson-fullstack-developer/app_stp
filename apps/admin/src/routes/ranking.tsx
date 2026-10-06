@@ -41,7 +41,7 @@ function Ranking() {
               </div>
             ))}
           </div>
-          <p className="mt-3 text-center font-display text-xl font-extrabold">Liga {league.tier}</p>
+          <p className="mt-3 text-center font-display text-xl font-bold">Liga {league.tier}</p>
           <p className="text-center text-sm opacity-80">Termina em {league.endsIn}</p>
           <div className="mt-3 flex justify-center gap-4 text-xs font-bold">
             <span className="inline-flex items-center gap-1 text-accent"><ArrowUp className="size-4" />Top {league.promoteTop} sobem</span>

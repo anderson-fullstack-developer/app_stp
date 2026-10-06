@@ -35,10 +35,10 @@ function Result() {
     <PhoneFrame className="bg-forest pattern-leaf">
       <div className="flex flex-1 flex-col items-center px-6 pt-16 text-center text-primary-foreground safe-top">
         <div className="animate-pop text-7xl">🎉</div>
-        <h1 className="animate-rise mt-4 font-display text-3xl font-extrabold">{daily ? "DESAFIO CONCLUÍDO!" : "LIÇÃO CONCLUÍDA!"}</h1>
+        <h1 className="animate-rise mt-4 font-display text-3xl font-bold">{daily ? "Desafio concluído!" : "Lição concluída!"}</h1>
         <div className="mt-6 flex gap-3">
-          <span className="animate-pop inline-flex items-center gap-1.5 rounded-2xl bg-sun px-4 py-2 font-display text-xl font-extrabold text-accent-foreground" style={{ animationDelay: ".3s" }}><Star className="size-5 fill-current" />+{xp} XP</span>
-          <span className="animate-pop inline-flex items-center gap-1.5 rounded-2xl bg-primary-foreground px-4 py-2 font-display text-xl font-extrabold text-secondary" style={{ animationDelay: ".45s" }}><Coins className="size-5" />+{coins}</span>
+          <span className="animate-pop inline-flex items-center gap-1.5 rounded-2xl bg-sun px-4 py-2 font-display text-xl font-bold text-accent-foreground" style={{ animationDelay: ".3s" }}><Star className="size-5 fill-current" />+{xp} XP</span>
+          <span className="animate-pop inline-flex items-center gap-1.5 rounded-2xl bg-primary-foreground px-4 py-2 font-display text-xl font-bold text-secondary" style={{ animationDelay: ".45s" }}><Coins className="size-5" />+{coins}</span>
         </div>
         <div className="mt-8 grid w-full grid-cols-3 gap-3">
           {[
@@ -49,7 +49,7 @@ function Result() {
             <div key={label} className="animate-rise rounded-2xl bg-primary-foreground/12 p-3 ring-1 ring-primary-foreground/20" style={{ animationDelay: `${0.5 + k * 0.1}s` }}>
               <I className="mx-auto size-5 text-accent" />
               <p className="mt-1 text-[11px] font-bold uppercase tracking-wider opacity-80">{label}</p>
-              <p className="font-display text-lg font-extrabold">{v}</p>
+              <p className="font-display text-lg font-bold">{v}</p>
             </div>
           ))}
         </div>

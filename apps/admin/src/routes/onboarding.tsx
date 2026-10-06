@@ -40,7 +40,7 @@ function Onboarding() {
           <img src={island} alt="Ilha tropical com cacau" className="h-full w-full object-cover" width={816} height={816} />
         </div>
         <div className="flex flex-1 flex-col px-6 pt-8 safe-bottom pb-6">
-          <h1 className="animate-rise font-display text-3xl font-extrabold leading-tight">Aprende as línguas de São Tomé e Príncipe</h1>
+          <h1 className="animate-rise font-display text-3xl font-bold leading-tight">Aprende as línguas de São Tomé e Príncipe</h1>
           <p className="animate-rise mt-3 text-muted-foreground" style={{ animationDelay: ".1s" }}>Descobre a língua, a cultura e compete com os teus amigos.</p>
           <div className="mt-auto space-y-3 pt-6">
             <AppButton onClick={() => setStep(1)}>Começar</AppButton>
@@ -62,13 +62,13 @@ function Onboarding() {
       <div key={step} className="animate-rise flex flex-1 flex-col px-5 pt-6">
         {step === 1 && (
           <>
-            <h1 className="font-display text-2xl font-extrabold">Qual língua queres aprender?</h1>
+            <h1 className="font-display text-2xl font-bold">Qual língua queres aprender?</h1>
             <div className="mt-6 space-y-3">
               {langs?.map((l) => (
-                <div key={l.id} className={cn("flex items-center gap-4 rounded-3xl border-2 p-4", l.available ? "border-primary bg-primary/5" : "border-border bg-surface opacity-60")}>
-                  <div className={cn("grid size-14 place-items-center rounded-2xl font-display text-xl font-extrabold", l.available ? "bg-forest text-primary-foreground" : "bg-muted text-muted-foreground")}>{l.name.charAt(0)}</div>
+                <div key={l.id} className={cn("flex items-center gap-4 rounded-3xl border-[1.5px] p-4", l.available ? "border-primary bg-primary/5" : "border-border bg-surface opacity-60")}>
+                  <div className={cn("grid size-14 place-items-center rounded-2xl font-display text-xl font-bold", l.available ? "bg-forest text-primary-foreground" : "bg-muted text-muted-foreground")}>{l.name.charAt(0)}</div>
                   <div className="flex-1">
-                    <p className="font-display font-extrabold">{l.name}</p>
+                    <p className="font-display font-bold">{l.name}</p>
                     <p className="text-xs text-muted-foreground">{l.region}</p>
                   </div>
                   {l.available ? <span className="rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold uppercase text-success">Disponível</span> : <SoonBadge />}
@@ -79,14 +79,14 @@ function Onboarding() {
         )}
         {step === 2 && (
           <>
-            <h1 className="font-display text-2xl font-extrabold">Porque queres aprender?</h1>
+            <h1 className="font-display text-2xl font-bold">Porque queres aprender?</h1>
             <p className="mt-1 text-sm text-muted-foreground">Podes escolher mais do que uma.</p>
             <div className="mt-6 grid grid-cols-2 gap-3">
               {REASONS.map((r, i) => {
                 const on = reasons.includes(r);
                 return (
                   <button key={r} onClick={() => setReasons(on ? reasons.filter((x) => x !== r) : [...reasons, r])} aria-pressed={on}
-                    className={cn("pressable relative flex flex-col items-start gap-2 rounded-3xl border-2 p-4 text-left font-bold", on ? "border-primary bg-primary/5" : "border-border bg-surface")}>
+                    className={cn("pressable relative flex flex-col items-start gap-2 rounded-3xl border-[1.5px] p-4 text-left font-bold", on ? "border-primary bg-primary/5" : "border-border bg-surface")}>
                     <span className="text-3xl">{REASON_ICONS[i]}</span>{r}
                     {on && <Check className="absolute right-3 top-3 size-5 rounded-full bg-primary p-0.5 text-primary-foreground" />}
                   </button>
@@ -97,11 +97,11 @@ function Onboarding() {
         )}
         {step === 3 && (
           <>
-            <h1 className="font-display text-2xl font-extrabold">Quanto tempo queres praticar por dia?</h1>
+            <h1 className="font-display text-2xl font-bold">Quanto tempo queres praticar por dia?</h1>
             <div className="mt-6 space-y-3">
               {MINUTES.map(({ m, l }) => (
                 <button key={m} onClick={() => setMinutes(m)} aria-pressed={minutes === m}
-                  className={cn("pressable flex w-full items-center justify-between rounded-2xl border-2 p-4 font-bold", minutes === m ? "border-primary bg-primary/5" : "border-border bg-surface")}>
+                  className={cn("pressable flex w-full items-center justify-between rounded-2xl border-[1.5px] p-4 font-bold", minutes === m ? "border-primary bg-primary/5" : "border-border bg-surface")}>
                   <span>{m} minutos</span><span className="text-sm text-muted-foreground">{l}</span>
                 </button>
               ))}
@@ -126,7 +126,7 @@ function Register({ onDone }: { onDone: () => void }) {
   };
   return (
     <form onSubmit={submit} className="flex flex-1 flex-col">
-      <h1 className="font-display text-2xl font-extrabold">Cria a tua conta</h1>
+      <h1 className="font-display text-2xl font-bold">Cria a tua conta</h1>
       <div className="mt-6 space-y-3">
         <Field name="name" label="Nome" />
         <Field name="username" label="Username" />
@@ -146,7 +146,7 @@ export function Field({ label, ...p }: { label: string } & React.InputHTMLAttrib
   return (
     <label className="block">
       <span className="sr-only">{label}</span>
-      <input required placeholder={label} {...p} className="h-14 w-full rounded-2xl border-2 border-border bg-surface px-4 font-semibold outline-none transition focus:border-primary" />
+      <input required placeholder={label} {...p} className="h-14 w-full rounded-2xl card px-4 font-semibold outline-none transition focus:border-primary" />
     </label>
   );
 }

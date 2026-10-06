@@ -30,13 +30,13 @@ function Schools() {
     <PhoneFrame>
       <AppHeader left={<BackButton />} title="Para Escolas" right={isFeatureOn("schoolMode") ? undefined : <SoonBadge />} />
       <main className="flex-1 px-5 pb-8">
-        <h1 className="font-display text-2xl font-extrabold">Leva as línguas de São Tomé e Príncipe para a sala de aula</h1>
+        <h1 className="font-display text-2xl font-bold">Leva as línguas de São Tomé e Príncipe para a sala de aula</h1>
         <div className="mt-6 flex flex-col items-center">
           {STEPS.map(({ icon: I, t, d, cls }, i) => (
             <div key={t} className="flex w-full flex-col items-center">
-              <div className="flex w-full items-center gap-4 rounded-3xl border-2 border-border bg-surface p-4">
+              <div className="flex w-full items-center gap-4 rounded-3xl card p-4">
                 <div className={`grid size-12 place-items-center rounded-2xl ${cls}`}><I /></div>
-                <div><p className="font-display font-extrabold">{t}</p><p className="text-xs text-muted-foreground">{d}</p></div>
+                <div><p className="font-display font-bold">{t}</p><p className="text-xs text-muted-foreground">{d}</p></div>
               </div>
               {i < STEPS.length - 1 && <ArrowDown className="my-2 size-5 text-muted-foreground" />}
             </div>

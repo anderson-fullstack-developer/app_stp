@@ -32,7 +32,7 @@ function Login() {
     <PhoneFrame>
       <div className="bg-forest pattern-leaf rounded-b-[3rem] px-6 pb-10 pt-14 text-center safe-top">
         <LogoMark size={72} className="mx-auto animate-pop" />
-        <h1 className="mt-4 font-display text-3xl font-extrabold text-primary-foreground">Bem-vindo de volta</h1>
+        <h1 className="mt-4 font-display text-3xl font-bold text-primary-foreground">Bem-vindo de volta</h1>
         <p className="mt-1 text-sm text-primary-foreground/80">A tua sequência está à tua espera 🔥</p>
       </div>
       <form onSubmit={submit} className="flex flex-1 flex-col px-5 pt-8">

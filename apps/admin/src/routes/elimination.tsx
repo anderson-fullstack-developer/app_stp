@@ -32,18 +32,18 @@ function Elimination() {
   const last = ROUNDS[round - 1];
   return (
     <PhoneFrame className="bg-cocoa text-secondary-foreground">
-      <div className="flex items-center px-4 pt-3 safe-top"><BackButton close /><span className="flex-1 text-center font-display font-extrabold">💀 Eliminação</span><span className="w-10" /></div>
+      <div className="flex items-center px-4 pt-3 safe-top"><BackButton close /><span className="flex-1 text-center font-display font-bold">💀 Eliminação</span><span className="w-10" /></div>
       <main className="flex flex-1 flex-col items-center px-5 pt-6 text-center">
         {finished ? (
           <div className="animate-pop mt-10">
             <p className="text-6xl">🏆</p>
             <p className="mt-2 text-xs font-bold uppercase tracking-widest text-accent">Final</p>
             <Avatar name="Anderson" color="forest" size={96} className="mx-auto mt-4 ring-4 ring-accent" />
-            <h1 className="mt-3 font-display text-3xl font-extrabold">Anderson venceu!</h1>
+            <h1 className="mt-3 font-display text-3xl font-bold">Anderson venceu!</h1>
           </div>
         ) : (
           <>
-            <p className="font-display text-5xl font-extrabold">{PLAYERS.length - eliminated.length}</p>
+            <p className="font-display text-5xl font-bold">{PLAYERS.length - eliminated.length}</p>
             <p className="font-semibold opacity-80">jogadores restantes</p>
             <p className="mt-4 rounded-xl bg-secondary-foreground/10 px-4 py-1 font-display font-bold">Pergunta {ROUNDS[round]?.q}</p>
             {last && <p className="animate-rise mt-3 inline-flex items-center gap-1.5 font-bold text-destructive"><Skull className="size-4" />{last.out.length} jogadores eliminados</p>}

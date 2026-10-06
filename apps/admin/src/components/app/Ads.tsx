@@ -14,8 +14,9 @@ export function AdSlot({ placement }: { placement: AdPlacement }) {
   const blocked = useAdsBlocked();
   if (blocked || !isEnabled("adsEnabled") || !adsService.canShow(placement)) return null;
   return (
-    <div className="flex h-20 items-center justify-center rounded-2xl border-2 border-dashed border-border bg-muted/50 text-xs font-bold uppercase tracking-wider text-muted-foreground" data-ad-placement={placement}>
-      Espaço publicitário · {placement}
+    <div className="relative flex h-20 items-center justify-center rounded-2xl border border-border/70 bg-muted/40 text-xs font-medium text-muted-foreground/80" data-ad-placement={placement}>
+      <span className="absolute left-3 top-2 rounded-md bg-surface px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground ring-1 ring-border/70">Publicidade</span>
+      Espaço reservado para anúncio
     </div>
   );
 }
@@ -32,10 +33,10 @@ export function RewardedAdCard() {
     setState("done");
   };
   return (
-    <div className="flex items-center gap-3 rounded-3xl border-2 border-border bg-surface p-4">
+    <div className="card flex items-center gap-3 rounded-3xl p-4">
       <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-ocean-grad text-ocean-foreground"><PlayCircle /></div>
       <div className="flex-1">
-        <p className="font-display font-extrabold">Anúncio recompensado</p>
+        <p className="font-display font-bold">Anúncio recompensado</p>
         <p className="text-xs text-muted-foreground">Vê um vídeo e ganha +{coins} moedas</p>
       </div>
       <AppButton size="sm" variant={state === "done" ? "secondary" : "primary"} disabled={state !== "idle"} onClick={watch}>

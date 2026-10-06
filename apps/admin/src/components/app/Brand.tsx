@@ -16,7 +16,7 @@ export function Logo({ light, className }: { light?: boolean; className?: string
   return (
     <div className={cn("flex flex-col items-center", className)}>
       <LogoMark size={88} />
-      <h1 className={cn("mt-4 font-display text-4xl font-extrabold", light ? "text-primary-foreground" : "text-foreground")}>{APP_CONFIG.name}</h1>
+      <h1 className={cn("mt-4 font-display text-4xl font-bold", light ? "text-primary-foreground" : "text-foreground")}>{APP_CONFIG.name}</h1>
       <p className={cn("mt-1 text-sm font-semibold", light ? "text-primary-foreground/80" : "text-muted-foreground")}>{APP_CONFIG.tagline}</p>
     </div>
   );
