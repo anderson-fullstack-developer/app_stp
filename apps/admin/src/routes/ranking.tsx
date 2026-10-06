@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDown, ArrowUp, Shield } from "lucide-react";
+import { ArrowDown, ArrowUp, Shield, Crown } from "lucide-react";
 import { useState } from "react";
 import { Avatar } from "@/components/app/Badges";
 import { LeaderboardCard } from "@/components/app/Cards";
@@ -33,7 +33,7 @@ function Ranking() {
   return (
     <TabLayout header={<AppHeader title="Ranking" />}>
       {league && (
-        <div className="rounded-3xl bg-primary-deep p-4 text-primary-foreground">
+        <div className="rounded-3xl bg-forest p-4 text-primary-foreground shadow-raised pattern-leaf">
           <div className="flex justify-center gap-3">
             {TIERS.map((t) => (
               <div key={t} className={cn("grid size-12 place-items-center rounded-2xl", tierCls[t], t === league.tier ? "scale-115 ring-4 ring-primary-foreground/40" : "opacity-35")}>
@@ -55,15 +55,21 @@ function Ranking() {
           <div className="mt-6 flex items-end justify-center gap-3">
             {podium.map((e) => {
               const h = { 1: "h-28", 2: "h-20", 3: "h-14" }[e.rank as 1 | 2 | 3];
-              const medal = { 1: "🥇", 2: "🥈", 3: "🥉" }[e.rank as 1 | 2 | 3];
-              const bg = { 1: "bg-gold", 2: "bg-silver", 3: "bg-bronze" }[e.rank as 1 | 2 | 3];
+              const bg = {
+                1: "bg-[linear-gradient(180deg,oklch(0.87_0.14_88),oklch(0.74_0.15_72))] shadow-[0_14px_30px_-14px_oklch(0.72_0.15_75/80%)]",
+                2: "bg-[linear-gradient(180deg,oklch(0.9_0.01_250),oklch(0.76_0.015_250))] shadow-[0_14px_30px_-14px_oklch(0.6_0.02_250/60%)]",
+                3: "bg-[linear-gradient(180deg,oklch(0.76_0.09_55),oklch(0.62_0.1_45))] shadow-[0_14px_30px_-14px_oklch(0.55_0.1_45/60%)]",
+              }[e.rank as 1 | 2 | 3];
               return (
                 <div key={e.userId} className="animate-rise flex w-24 flex-col items-center">
-                  <span className="text-2xl">{medal}</span>
+                  <span className={cn("mb-1 h-6", e.rank === 1 ? "text-accent-deep" : "invisible")}><Crown className="size-6 fill-current" /></span>
                   <Avatar name={e.name} color={e.avatarColor} size={e.rank === 1 ? 64 : 52} />
                   <p className="mt-1 text-sm font-bold">{e.name}</p>
                   <p className="text-xs text-muted-foreground">{e.xp.toLocaleString("pt-PT")} XP</p>
-                  <div className={cn("mt-2 w-full rounded-t-2xl", h, bg)} />
+                  <div className={cn("relative mt-2 grid w-full place-items-start justify-center overflow-hidden rounded-t-[20px] pt-2", h, bg)}>
+                    <span className="absolute inset-x-0 top-0 h-px bg-white/60" />
+                    <span className="font-display text-2xl font-bold text-white/85 drop-shadow-sm">{e.rank}</span>
+                  </div>
                 </div>
               );
             })}

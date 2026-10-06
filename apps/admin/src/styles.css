@@ -145,8 +145,9 @@
 @utility sheen {
   background-image: linear-gradient(to bottom, oklch(1 0 0 / 16%), oklch(1 0 0 / 0%) 60%);
 }
-@utility safe-top { padding-top: max(env(safe-area-inset-top), 0.75rem); }
-@utility safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+/* Só aplicam o mínimo quando o elemento não define o seu próprio padding (pt-N ou pb-N); antes anulavam esse espaçamento. */
+@utility safe-top { &:not([class*="pt-"]) { padding-top: max(env(safe-area-inset-top), 0.75rem); } }
+@utility safe-bottom { &:not([class*="pb-"]) { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); } }
 /*
  * Camada decorativa (sol + anéis + luz suave) desenhada num ::before, por cima do fundo
  * do elemento e por baixo do conteúdo. Não toca em background-image/size do próprio
