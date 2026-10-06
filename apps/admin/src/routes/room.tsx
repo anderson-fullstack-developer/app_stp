@@ -34,7 +34,7 @@ function Room() {
       <main className="flex-1 px-4 pb-32">
         <div className="rounded-[2rem] bg-ocean-grad p-6 text-center text-ocean-foreground pattern-leaf">
           <p className="text-xs font-bold uppercase tracking-widest opacity-80">Código da sala</p>
-          <p className="mt-1 font-display text-5xl font-extrabold tracking-[0.15em]">{room.code}</p>
+          <p className="mt-1 font-display text-5xl font-bold tracking-[0.15em]">{room.code}</p>
           <button onClick={() => { navigator.clipboard?.writeText(room.code); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
             className="pressable mx-auto mt-3 inline-flex items-center gap-1.5 rounded-xl bg-ocean-foreground/20 px-3 py-1.5 text-sm font-bold">
             {copied ? <><Check className="size-4" />Copiado</> : <><Copy className="size-4" />Copiar</>}
@@ -45,7 +45,7 @@ function Room() {
         <SectionTitle>Configurações</SectionTitle>
         <div className="grid grid-cols-3 gap-2 text-center">
           {[`${room.questions} perguntas`, `${room.secondsPerQuestion} segundos`, "Modo normal"].map((s) => (
-            <div key={s} className="rounded-2xl border-2 border-border bg-surface p-3 text-sm font-bold">{s}</div>
+            <div key={s} className="rounded-2xl card p-3 text-sm font-bold">{s}</div>
           ))}
         </div>
       </main>

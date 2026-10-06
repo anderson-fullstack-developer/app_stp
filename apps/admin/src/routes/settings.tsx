@@ -36,7 +36,7 @@ const Row = ({ label, value, to }: { label: string; value?: string; to?: "/premi
 const Group = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <section className="mt-5">
     <h2 className="mb-2 px-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</h2>
-    <div className="divide-y-2 divide-border overflow-hidden rounded-2xl border-2 border-border bg-surface">{children}</div>
+    <div className="divide-y divide-border overflow-hidden rounded-2xl card">{children}</div>
   </section>
 );
 
@@ -59,7 +59,7 @@ function Settings() {
           <Row label="Privacidade" /><Row label="Ajuda" /><Row label="Termos" /><Row label="Política de Privacidade" />
         </Group>
         <button onClick={async () => { await authService.signOut(); navigate({ to: "/login" }); }}
-          className="pressable mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-destructive/40 py-3.5 font-bold text-destructive">
+          className="pressable mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] border-destructive/40 py-3.5 font-bold text-destructive">
           <LogOut className="size-5" />Terminar sessão
         </button>
       </main>

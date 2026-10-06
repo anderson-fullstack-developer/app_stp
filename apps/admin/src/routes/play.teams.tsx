@@ -59,7 +59,7 @@ function Teams() {
       <AppHeader left={<BackButton />} title="2 vs 2" />
       <main className="flex flex-1 flex-col gap-3 px-4 pb-6">
         <TeamCard name="Equipa A" tone="forest" players={teams[0].players} />
-        <p className="text-center font-display text-2xl font-extrabold">VS</p>
+        <p className="text-center font-display text-2xl font-bold">VS</p>
         <TeamCard name="Equipa B" tone="coral" players={teams[1].players} />
         <p className="text-center text-sm font-semibold text-muted-foreground">Todos respondem individualmente. Cada resposta certa soma pontos para a equipa.</p>
         <div className="grid grid-cols-2 gap-2">

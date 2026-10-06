@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 export function PhoneFrame({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <div className="min-h-dvh w-full bg-muted sm:py-6">
-      <div className={cn("relative mx-auto flex min-h-dvh w-full max-w-[440px] flex-col overflow-hidden bg-background sm:min-h-[860px] sm:rounded-[2.5rem] sm:shadow-soft sm:ring-1 sm:ring-border", className)}>
+      <div className={cn("relative mx-auto flex min-h-dvh w-full max-w-[440px] flex-col overflow-hidden bg-background sm:min-h-[860px] sm:rounded-[2.5rem] sm:shadow-float sm:ring-1 sm:ring-border/70", className)}>
         <OfflineBanner />
         {children}
       </div>
@@ -28,17 +28,17 @@ const NAV = [
 export function BottomNavigation() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <nav className="sticky bottom-0 z-30 border-t-2 border-border bg-surface/95 backdrop-blur safe-bottom" aria-label="Navegação principal">
-      <ul className="grid grid-cols-5 px-1 pt-1.5">
+    <nav className="sticky bottom-0 z-30 border-t border-border/70 bg-surface/85 backdrop-blur-xl backdrop-saturate-150 safe-bottom" aria-label="Navegação principal">
+      <ul className="grid grid-cols-5 px-1 pt-2">
         {NAV.filter((n) => n.to !== "/challenges" || isFeatureOn("multiplayer")).map(({ to, label, icon: Icon }) => {
           const active = path.startsWith(to);
           return (
             <li key={to}>
-              <Link to={to} className="flex flex-col items-center gap-0.5 py-1" aria-current={active ? "page" : undefined}>
-                <span className={cn("grid h-9 w-14 place-items-center rounded-2xl transition-all", active ? "bg-primary text-primary-foreground scale-105" : "text-muted-foreground")}>
-                  <Icon className="size-[22px]" strokeWidth={active ? 2.6 : 2} />
+              <Link to={to} className="group flex flex-col items-center gap-1 py-1" aria-current={active ? "page" : undefined}>
+                <span className={cn("grid h-8 w-14 place-items-center rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]", active ? "bg-primary/12 text-primary" : "text-muted-foreground group-active:scale-90")}>
+                  <Icon className="size-[21px]" strokeWidth={active ? 2.4 : 1.9} />
                 </span>
-                <span className={cn("text-[10px] font-bold uppercase tracking-wide", active ? "text-primary" : "text-muted-foreground")}>{label}</span>
+                <span className={cn("text-[11px] font-semibold", active ? "text-primary" : "text-muted-foreground")}>{label}</span>
               </Link>
             </li>
           );
@@ -50,9 +50,9 @@ export function BottomNavigation() {
 
 export function AppHeader({ title, left, right }: { title?: ReactNode; left?: ReactNode; right?: ReactNode }) {
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center gap-2 bg-background/90 px-4 backdrop-blur safe-top box-content">
+    <header className="sticky top-0 z-20 flex h-14 items-center gap-2 bg-background/80 px-4 backdrop-blur-xl backdrop-saturate-150 safe-top box-content">
       <div className="flex min-w-10 items-center">{left}</div>
-      <div className="flex-1 truncate text-center font-display text-lg font-extrabold">{title}</div>
+      <div className="flex-1 truncate text-center font-display text-[17px] font-bold tracking-[-0.01em]">{title}</div>
       <div className="flex min-w-10 items-center justify-end gap-2">{right}</div>
     </header>
   );

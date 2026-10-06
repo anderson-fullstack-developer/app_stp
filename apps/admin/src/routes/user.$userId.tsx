@@ -30,7 +30,7 @@ function UserProfile() {
           <>
             <div className="flex flex-col items-center text-center">
               <Avatar name={u.name} color={u.avatarColor} size={104} />
-              <h1 className="mt-3 font-display text-2xl font-extrabold">{u.name}</h1>
+              <h1 className="mt-3 font-display text-2xl font-bold">{u.name}</h1>
               <p className="text-sm text-muted-foreground">{u.country}</p>
             </div>
             <div className="mt-6 grid grid-cols-2 gap-3">

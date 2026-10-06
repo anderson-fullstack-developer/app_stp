@@ -15,8 +15,8 @@ function StateShell({ title, text, icon, action, tone = "muted" }: Base) {
   const toneCls = { muted: "bg-muted text-muted-foreground", error: "bg-destructive-soft text-destructive", success: "bg-success-soft text-primary", locked: "bg-muted text-foreground" }[tone];
   return (
     <div className="flex flex-col items-center px-6 py-12 text-center" role={tone === "error" ? "alert" : "status"}>
-      <div className={cn("grid size-16 place-items-center rounded-full", toneCls)}>{icon}</div>
-      <p className="mt-3 font-display font-bold">{title}</p>
+      <div className={cn("grid size-16 place-items-center rounded-[22px]", toneCls)}>{icon}</div>
+      <p className="mt-4 font-display text-[17px] font-bold">{title}</p>
       {text && <p className="mt-1 max-w-xs text-sm text-muted-foreground">{text}</p>}
       {action && <div className="mt-5 w-full max-w-xs">{action}</div>}
     </div>
@@ -29,7 +29,7 @@ const RetryButton = ({ onRetry }: { onRetry?: (() => void) | undefined }) =>
 export function LoadingState({ rows = 3, label = "A carregar" }: { rows?: number; label?: string }) {
   return (
     <div className="space-y-3 p-4" aria-busy="true" aria-label={label}>
-      {Array.from({ length: rows }).map((_, i) => <div key={i} className="skeleton h-20 rounded-2xl" />)}
+      {Array.from({ length: rows }).map((_, i) => <div key={i} className="skeleton h-20 rounded-3xl" />)}
     </div>
   );
 }

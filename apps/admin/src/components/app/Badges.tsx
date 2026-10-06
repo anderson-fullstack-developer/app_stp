@@ -2,7 +2,7 @@ import { Coins, Flame, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AvatarColor } from "@/types";
 
-const pill = "inline-flex items-center gap-1 rounded-full px-2.5 h-8 text-sm font-bold font-display";
+const pill = "inline-flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-semibold font-display tabular-nums ring-1 ring-inset ring-black/[0.04]";
 
 export const StreakBadge = ({ value, className }: { value: number; className?: string }) => (
   <span className={cn(pill, "bg-destructive-soft text-destructive", className)} aria-label={`Sequência de ${value} dias`}>
@@ -31,7 +31,7 @@ const avatarBg: Record<AvatarColor, string> = {
 export function Avatar({ name, color, size = 44, className, dim }: { name: string; color: AvatarColor; size?: number; className?: string; dim?: boolean }) {
   return (
     <div
-      className={cn("grid place-items-center rounded-full font-display font-extrabold ring-2 ring-surface shrink-0", avatarBg[color], dim && "grayscale opacity-40", className)}
+      className={cn("grid place-items-center rounded-full font-display font-bold ring-2 ring-surface shrink-0", avatarBg[color], dim && "grayscale opacity-40", className)}
       style={{ width: size, height: size, fontSize: size * 0.42 }}
       aria-label={name}
     >
@@ -41,5 +41,5 @@ export function Avatar({ name, color, size = 44, className, dim }: { name: strin
 }
 
 export const SoonBadge = () => (
-  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Em breve</span>
+  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground ring-1 ring-border/70">Em breve</span>
 );

@@ -73,8 +73,8 @@
   --destructive: oklch(0.6 0.19 28);
   --destructive-soft: oklch(0.94 0.04 30);
   --destructive-foreground: oklch(0.985 0.01 30);
-  --border: oklch(0.9 0.018 85);
-  --input: oklch(0.9 0.018 85);
+  --border: oklch(0.915 0.014 85);
+  --input: oklch(0.9 0.016 85);
   --ring: oklch(0.5 0.12 158);
   --gold: oklch(0.8 0.15 85);
   --silver: oklch(0.8 0.01 250);
@@ -87,6 +87,11 @@
   --gradient-coral: linear-gradient(150deg, oklch(0.66 0.18 30), oklch(0.52 0.17 20));
   --shadow-pop: 0 4px 0 0 var(--primary-deep);
   --shadow-soft: 0 10px 30px -12px oklch(0.3 0.05 150 / 25%);
+  /* Elevação suave em camadas (tom quente, nunca preto puro) */
+  --shadow-card: 0 1px 2px oklch(0.35 0.04 70 / 5%), 0 6px 20px -10px oklch(0.35 0.04 70 / 16%);
+  --shadow-raised: 0 2px 4px oklch(0.35 0.04 70 / 6%), 0 14px 34px -14px oklch(0.35 0.04 70 / 24%);
+  --shadow-float: 0 4px 10px oklch(0.3 0.04 70 / 8%), 0 24px 48px -18px oklch(0.3 0.04 70 / 30%);
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .dark {
@@ -110,6 +115,9 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
 }
@@ -121,8 +129,21 @@
 @utility bg-coral { background-image: var(--gradient-coral); }
 @utility shadow-soft { box-shadow: var(--shadow-soft); }
 @utility pressable {
-  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms;
-  &:active { transform: translateY(3px) scale(0.98); }
+  transition: transform 220ms var(--ease-spring), box-shadow 220ms var(--ease-spring), background-color 160ms ease, border-color 160ms ease, filter 160ms ease;
+  &:active { transform: scale(0.975); transition-duration: 90ms; }
+}
+@utility shadow-card { box-shadow: var(--shadow-card); }
+@utility shadow-raised { box-shadow: var(--shadow-raised); }
+@utility shadow-float { box-shadow: var(--shadow-float); }
+/* Superfície padrão de cartão: borda fina + sombra suave */
+@utility card {
+  background-color: var(--surface);
+  border: 1px solid color-mix(in oklch, var(--border) 85%, transparent);
+  box-shadow: var(--shadow-card);
+}
+/* Brilho subtil no topo de superfícies coloridas (botões, chips) */
+@utility sheen {
+  background-image: linear-gradient(to bottom, oklch(1 0 0 / 16%), oklch(1 0 0 / 0%) 60%);
 }
 @utility safe-top { padding-top: max(env(safe-area-inset-top), 0.75rem); }
 @utility safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }

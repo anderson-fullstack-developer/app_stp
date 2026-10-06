@@ -36,12 +36,12 @@ function Results() {
   return (
     <PhoneFrame>
       <main className="flex flex-1 flex-col gap-5 px-5 pt-6 pb-8 safe-top">
-        <h1 className="text-center font-display text-sm font-extrabold uppercase tracking-widest text-muted-foreground">Resultados</h1>
+        <h1 className="text-center font-display text-sm font-bold text-muted-foreground">Resultados</h1>
         <Podium top={r.standings.slice(0, 3)} />
         <ul className="space-y-1.5">
           {r.standings.slice(3).map((s) => (
             <li key={s.id} className={cn("flex items-center gap-3 rounded-2xl bg-surface px-3 py-2", s.isMe && "ring-2 ring-primary")}>
-              <span className="w-6 text-center font-display font-extrabold text-muted-foreground">{s.place}</span>
+              <span className="w-6 text-center font-display font-bold text-muted-foreground">{s.place}</span>
               <Avatar name={s.name} color={s.color} size={32} />
               <span className="flex-1 font-bold">{s.name}{s.isMe && " (tu)"}</span>
               <span className="text-sm font-semibold text-muted-foreground">{s.detail}</span>
@@ -49,7 +49,7 @@ function Results() {
           ))}
         </ul>
         <div className="rounded-[1.75rem] bg-forest p-5 text-center text-primary-foreground">
-          <p className="font-display text-3xl font-extrabold">{r.myPlace === 1 ? "Venceste! 🏆" : `Ficaste em ${r.myPlace}.º!`}</p>
+          <p className="font-display text-3xl font-bold">{r.myPlace === 1 ? "Venceste! 🏆" : `Ficaste em ${r.myPlace}.º!`}</p>
           <div className="mt-3"><RewardRow reward={r.reward} /></div>
         </div>
         <GameResultStats items={[["Perguntas", r.stats.questions], ["Corretas", r.stats.correct], ["Erradas", r.stats.wrong + r.stats.timeouts], ["Precisão", `${r.stats.accuracy}%`]]} />

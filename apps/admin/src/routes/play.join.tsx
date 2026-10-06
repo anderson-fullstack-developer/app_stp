@@ -36,8 +36,8 @@ function Join() {
     <PhoneFrame>
       <AppHeader left={<BackButton />} title="Entrar com código" />
       <main className="flex flex-1 flex-col gap-4 px-5 pb-6">
-        <label htmlFor="room-code" className="mt-6 text-center font-display text-xl font-extrabold">Código da sala</label>
-        <div className={cn("mx-auto flex items-center rounded-2xl border-2 bg-surface px-4 font-display text-4xl font-extrabold tracking-[0.2em]", error ? "border-destructive animate-shake" : "border-border")}>
+        <label htmlFor="room-code" className="mt-6 text-center font-display text-xl font-bold">Código da sala</label>
+        <div className={cn("mx-auto flex items-center rounded-2xl border-[1.5px] bg-surface px-4 font-display text-4xl font-bold tracking-[0.2em]", error ? "border-destructive animate-shake" : "border-border")}>
           <span className="text-muted-foreground">STP</span>
           <input id="room-code" inputMode="numeric" autoFocus maxLength={3} value={digits} placeholder="___"
             onChange={(e) => { setDigits(e.target.value.replace(/\D/g, "").slice(0, 3)); setState("idle"); }}
