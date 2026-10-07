@@ -42,6 +42,7 @@ Verificações: `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm lint`.
 | [documentation.md](documentation.md) | Requisitos de produto |
 | [docs/PLANO_DE_ENGENHARIA.md](docs/PLANO_DE_ENGENHARIA.md) | Plano, ADRs, riscos, checklist Google Play |
 | [docs/BACKEND.md](docs/BACKEND.md) | Serviços, alojamento, ambientes e passos do backend |
+| [docs/MONETIZACAO.md](docs/MONETIZACAO.md) | Como a app gera receita: Premium, Família, Pack Viagem, anúncios, escolas, financiamento, patrocínios |
 | [docs/HANDOFF.md](docs/HANDOFF.md) | Mapa do protótipo Lovable |
 | [AGENTS.md](AGENTS.md) / [CONTRIBUTING.md](CONTRIBUTING.md) | Regras de trabalho |
 | [apps/admin/README.md](apps/admin/README.md) | Detalhes do protótipo web |
