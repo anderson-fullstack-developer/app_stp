@@ -1,3 +1,4 @@
+import { useAuth } from "@clerk/tanstack-react-start";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Logo } from "@/components/app/Brand";
@@ -26,14 +27,18 @@ export const Route = createFileRoute("/")({
 
 function Splash() {
   const navigate = useNavigate();
+  const { isLoaded, isSignedIn } = useAuth();
+  // Quem já tem sessão entra direto na app; os restantes vão para o onboarding.
+  const next = isSignedIn ? "/learn" : "/onboarding";
   useEffect(() => {
-    const t = setTimeout(() => navigate({ to: "/onboarding" }), 2200);
+    if (!isLoaded) return;
+    const t = setTimeout(() => navigate({ to: next }), 1600);
     return () => clearTimeout(t);
-  }, [navigate]);
+  }, [navigate, isLoaded, next]);
   return (
     <PhoneFrame className="bg-forest pattern-leaf">
       <button
-        onClick={() => navigate({ to: "/onboarding" })}
+        onClick={() => isLoaded && navigate({ to: next })}
         className="flex flex-1 flex-col items-center justify-center"
         aria-label="Entrar"
       >

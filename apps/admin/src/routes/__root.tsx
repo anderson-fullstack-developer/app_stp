@@ -1,3 +1,6 @@
+import { ClerkProvider } from "@clerk/tanstack-react-start";
+import { useTranslation } from "react-i18next";
+import { clerkAppearance, clerkLocalization } from "../lib/clerk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -108,14 +111,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const { i18n } = useTranslation();
   return (
     <html lang="pt-PT">
       <head>
         <HeadContent />
       </head>
       <body>
-        {children}
-        <Scripts />
+        <ClerkProvider appearance={clerkAppearance} localization={clerkLocalization(i18n.language)}>
+          {children}
+          <Scripts />
+        </ClerkProvider>
       </body>
     </html>
   );

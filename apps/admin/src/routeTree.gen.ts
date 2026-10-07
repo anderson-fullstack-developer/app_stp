@@ -63,6 +63,9 @@ import { Route as PlaySurvivalRouteImport } from './routes/play.survival'
 import { Route as PlayTeamsRouteImport } from './routes/play.teams'
 import { Route as PlayTournamentsRouteImport } from './routes/play.tournaments'
 import { Route as PracticeKrioluRouteImport } from './routes/practice.kriolu'
+import { Route as SettingsAccountRouteImport } from './routes/settings_.account'
+import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
+import { Route as SignUpSplatRouteImport } from './routes/sign-up.$'
 import { Route as UserUserIdRouteImport } from './routes/user.$userId'
 import { Route as AdminLessonsIndexRouteImport } from './routes/admin.lessons.index'
 import { Route as AdminLessonsLessonIdRouteImport } from './routes/admin.lessons.$lessonId'
@@ -337,6 +340,21 @@ const PracticeKrioluRoute = PracticeKrioluRouteImport.update({
   path: '/practice/kriolu',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsAccountRoute = SettingsAccountRouteImport.update({
+  id: '/settings_/account',
+  path: '/settings/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInSplatRoute = SignInSplatRouteImport.update({
+  id: '/sign-in/$',
+  path: '/sign-in/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignUpSplatRoute = SignUpSplatRouteImport.update({
+  id: '/sign-up/$',
+  path: '/sign-up/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UserUserIdRoute = UserUserIdRouteImport.update({
   id: '/user/$userId',
   path: '/user/$userId',
@@ -407,6 +425,9 @@ export interface FileRoutesByFullPath {
   '/play/teams': typeof PlayTeamsRoute
   '/play/tournaments': typeof PlayTournamentsRoute
   '/practice/kriolu': typeof PracticeKrioluRoute
+  '/settings/account': typeof SettingsAccountRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/sign-up/$': typeof SignUpSplatRoute
   '/user/$userId': typeof UserUserIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
@@ -465,6 +486,9 @@ export interface FileRoutesByTo {
   '/play/teams': typeof PlayTeamsRoute
   '/play/tournaments': typeof PlayTournamentsRoute
   '/practice/kriolu': typeof PracticeKrioluRoute
+  '/settings/account': typeof SettingsAccountRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/sign-up/$': typeof SignUpSplatRoute
   '/user/$userId': typeof UserUserIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
@@ -525,6 +549,9 @@ export interface FileRoutesById {
   '/play/teams': typeof PlayTeamsRoute
   '/play/tournaments': typeof PlayTournamentsRoute
   '/practice/kriolu': typeof PracticeKrioluRoute
+  '/settings_/account': typeof SettingsAccountRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/sign-up/$': typeof SignUpSplatRoute
   '/user/$userId': typeof UserUserIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
@@ -586,6 +613,9 @@ export interface FileRouteTypes {
     | '/play/teams'
     | '/play/tournaments'
     | '/practice/kriolu'
+    | '/settings/account'
+    | '/sign-in/$'
+    | '/sign-up/$'
     | '/user/$userId'
     | '/admin/'
     | '/admin/lessons/$lessonId'
@@ -644,6 +674,9 @@ export interface FileRouteTypes {
     | '/play/teams'
     | '/play/tournaments'
     | '/practice/kriolu'
+    | '/settings/account'
+    | '/sign-in/$'
+    | '/sign-up/$'
     | '/user/$userId'
     | '/admin'
     | '/admin/lessons/$lessonId'
@@ -703,6 +736,9 @@ export interface FileRouteTypes {
     | '/play/teams'
     | '/play/tournaments'
     | '/practice/kriolu'
+    | '/settings_/account'
+    | '/sign-in/$'
+    | '/sign-up/$'
     | '/user/$userId'
     | '/admin/'
     | '/admin/lessons/$lessonId'
@@ -744,6 +780,9 @@ export interface RootRouteChildren {
   PlayTeamsRoute: typeof PlayTeamsRoute
   PlayTournamentsRoute: typeof PlayTournamentsRoute
   PracticeKrioluRoute: typeof PracticeKrioluRoute
+  SettingsAccountRoute: typeof SettingsAccountRoute
+  SignInSplatRoute: typeof SignInSplatRoute
+  SignUpSplatRoute: typeof SignUpSplatRoute
   UserUserIdRoute: typeof UserUserIdRoute
 }
 
@@ -1127,6 +1166,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PracticeKrioluRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings_/account': {
+      id: '/settings_/account'
+      path: '/settings/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof SettingsAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in/$': {
+      id: '/sign-in/$'
+      path: '/sign-in/$'
+      fullPath: '/sign-in/$'
+      preLoaderRoute: typeof SignInSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-up/$': {
+      id: '/sign-up/$'
+      path: '/sign-up/$'
+      fullPath: '/sign-up/$'
+      preLoaderRoute: typeof SignUpSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/user/$userId': {
       id: '/user/$userId'
       path: '/user/$userId'
@@ -1238,6 +1298,9 @@ const rootRouteChildren: RootRouteChildren = {
   PlayTeamsRoute: PlayTeamsRoute,
   PlayTournamentsRoute: PlayTournamentsRoute,
   PracticeKrioluRoute: PracticeKrioluRoute,
+  SettingsAccountRoute: SettingsAccountRoute,
+  SignInSplatRoute: SignInSplatRoute,
+  SignUpSplatRoute: SignUpSplatRoute,
   UserUserIdRoute: UserUserIdRoute,
 }
 export const routeTree = rootRouteImport

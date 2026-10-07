@@ -1,4 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useClerk, useUser } from "@clerk/tanstack-react-start";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight, LogOut } from "lucide-react";
 import { BackButton } from "@/components/app/BackButton";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
@@ -8,7 +9,6 @@ import { useTranslation } from "react-i18next";
 import { LOCALES } from "@stp/i18n";
 import { useLanguages } from "@/hooks/use-service";
 import { sound } from "@/lib/sound";
-import { authService } from "@/services";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -55,7 +55,15 @@ function Toggle({
     </button>
   );
 }
-const Row = ({ label, value, to }: { label: string; value?: string; to?: "/premium" }) => {
+const Row = ({
+  label,
+  value,
+  to,
+}: {
+  label: string;
+  value?: string | undefined;
+  to?: "/premium" | "/settings/account";
+}) => {
   const inner = (
     <span className="flex w-full items-center justify-between px-4 py-3.5 font-semibold">
       {label}
@@ -147,13 +155,18 @@ function LearningRow() {
 
 function Settings() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   return (
     <PhoneFrame>
       <AppHeader left={<BackButton />} title={t("settings.title")} />
       <main className="flex-1 px-4 pb-10">
         <Group title={t("settings.general")}>
-          <Row label={t("settings.account")} value="@anderson" />
+          <Row
+            label={t("settings.account")}
+            value={user?.primaryEmailAddress?.emailAddress}
+            to="/settings/account"
+          />
           <LanguageRow />
           <LearningRow />
           <Row label={t("settings.premium")} value={t("settings.free")} to="/premium" />
@@ -171,10 +184,7 @@ function Settings() {
           <Row label={t("settings.privacyPolicy")} />
         </Group>
         <button
-          onClick={async () => {
-            await authService.signOut();
-            navigate({ to: "/login" });
-          }}
+          onClick={() => void signOut({ redirectUrl: "/" })}
           className="pressable mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] border-destructive/40 py-3.5 font-bold text-destructive"
         >
           <LogOut className="size-5" />
