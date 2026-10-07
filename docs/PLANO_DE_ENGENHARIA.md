@@ -293,10 +293,12 @@ Dimensão do esforço: **S** (≤2 dias) · **M** (≤1 semana) · **L** (1–3 
 - *Feito quando:* `pnpm typecheck test build` passa na raiz. ✅ 5/5 typecheck, 23/23 testes (7 motor + 16 admin), build OK, as duas apps arrancam. O lint fica para o passo 0.4 (P-16).
 - Notas: `pnpm` com `minimumReleaseAge` de 24h e `node-linker=hoisted`; React fixado em 19.2.3 em todo o monorepo (exigido pelo Expo); versões Expo do mobile em `~57.0.0` para respeitar a proteção de 24h.
 
-**Passo 0.4 — Qualidade e CI** · S
+**Passo 0.4 — Qualidade e CI** · S · ✅ **Concluído (2026-10-07)**
 - ESLint + Prettier partilhados; GitHub Actions com lint/typecheck/test/build.
 - Corrigir P-09 (nomes de estados) na documentação.
-- *Feito quando:* um PR de teste corre o CI verde.
+- *Feito quando:* um PR de teste corre o CI verde. ✅ Workflow `.github/workflows/ci.yml` verde no GitHub (execução 37605933325): lint com zero avisos, typecheck 5/5, 28 testes, build. P-09 e P-16 resolvidos; P-18 registado.
+
+> **Fase 0 concluída.** Próximo: documento de regras de negócio (`docs/REGRAS_DE_NEGOCIO.md`) e depois o passo 1.1 (NestJS).
 
 ### FASE 1 — Backend base
 
