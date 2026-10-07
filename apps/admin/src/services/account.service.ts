@@ -22,6 +22,16 @@ export interface AccountProfile {
   status: "ACTIVE" | "SUSPENDED" | "BANNED" | "DELETED";
   roles: { role: AccountRole; languageId: string | null }[];
   createdAt: string;
+  /** Calculado pelo servidor (docs/REGRAS_DE_NEGOCIO.md) — o cliente só mostra. */
+  progress: {
+    xpTotal: number;
+    level: { level: number; levelStartXp: number; nextLevelXp: number; progress: number };
+    coins: number;
+    streak: { current: number; longest: number; freezes: number; activeToday: boolean };
+    correctAnswers: number;
+    lessonsCompleted: number;
+    today: string;
+  };
 }
 
 export const accountService = {

@@ -13,6 +13,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { type PartOfSpeech, PrismaClient } from "../src/generated/prisma/client.js";
+import { DEFAULT_REWARD_RULES } from "../src/progress/rules/rewards.js";
 
 const url = process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"];
 if (!url) throw new Error("Defina DATABASE_URL/DIRECT_URL no apps/api/.env");
@@ -260,6 +261,24 @@ async function main() {
   }
   console.log(`  gravações: ${recordings.length}; palavras com áudio ligado agora: ${linked}`);
 
+  // Regras de recompensa: só cria as que faltam (não apaga ajustes feitos no admin).
+  const rules = await prisma.rewardRule.createMany({
+    data: DEFAULT_REWARD_RULES.map((r) => ({ ...r })),
+    skipDuplicates: true,
+  });
+  console.log(`  regras de recompensa novas: ${rules.count}`);
+
+  // Estatísticas para utilizadores criados antes da migração de progresso.
+  const stats = await prisma.userStats.createMany({
+    data: (await prisma.user.findMany({ where: { stats: null }, select: { id: true } })).map(
+      (u) => ({
+        userId: u.id,
+      }),
+    ),
+    skipDuplicates: true,
+  });
+  console.log(`  estatísticas criadas: ${stats.count}`);
+
   const counts = {
     países: await prisma.country.count(),
     línguas: await prisma.language.count(),
@@ -269,6 +288,7 @@ async function main() {
     aprovados: await prisma.vocabulary.count({ where: { status: "APPROVED" } }),
     áudios: await prisma.audioAsset.count(),
     palavrasComÁudio: await prisma.vocabulary.count({ where: { audioId: { not: null } } }),
+    regrasDeRecompensa: await prisma.rewardRule.count(),
   };
   console.log("Seed concluído:", counts);
 }

@@ -8,6 +8,7 @@ import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/configure-app.js";
 import { loadEnv } from "../src/config/env.js";
 import { PrismaService } from "../src/database/prisma.service.js";
+import { ProgressService } from "../src/progress/progress.service.js";
 
 /** Segredo fictício só para os testes (formato whsec_<base64>). */
 const SECRET = `whsec_${Buffer.from("segredo-de-teste-do-webhook").toString("base64")}`;
@@ -139,6 +140,33 @@ describe.skipIf(!dbUrl)("Webhook do Clerk → Neon (e2e, base de dados real)", (
       status: "ACTIVE",
     });
     expect(u.roles.map((r) => r.role)).toEqual(["USER"]);
+  });
+
+  it("o utilizador novo começa com progresso a zero, calculado no seu fuso", async () => {
+    const u = await prisma.user.findUniqueOrThrow({ where: { clerkId } });
+    const summary = await app.get(ProgressService).summary(u.id);
+    expect(summary).toMatchObject({
+      xpTotal: 0,
+      coins: 0,
+      level: { level: 1, nextLevelXp: 100 },
+      streak: { current: 0, longest: 0, freezes: 0, activeToday: false },
+    });
+    expect(summary.today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+    // Streak ativa ontem, nada hoje: continua visível; há 3 dias sem proteções: perdida.
+    const yesterday = new Date(Date.now() - 86_400_000);
+    await prisma.userStats.update({
+      where: { userId: u.id },
+      data: { currentStreak: 4, longestStreak: 4, lastActiveDate: yesterday, xpTotal: 260 },
+    });
+    const kept = await app.get(ProgressService).summary(u.id);
+    expect(kept.level.level).toBe(3);
+    expect([4, 0]).toContain(kept.streak.current); // 4, salvo à volta da meia-noite local
+    await prisma.userStats.update({
+      where: { userId: u.id },
+      data: { lastActiveDate: new Date(Date.now() - 3 * 86_400_000) },
+    });
+    expect((await app.get(ProgressService).summary(u.id)).streak.current).toBe(0);
   });
 
   it("user.updated atualiza a identidade sem apagar o perfil", async () => {
