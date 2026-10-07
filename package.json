@@ -10,7 +10,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "postinstall": "pnpm --filter @stp/api db:generate"
   },
   "devDependencies": {
     "prettier": "^3.7.3",

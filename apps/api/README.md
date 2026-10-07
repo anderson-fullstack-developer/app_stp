@@ -13,6 +13,21 @@ pnpm dev:api                             # http://localhost:3000/api/v1/health
 ```
 Documentação interativa (fora de produção): http://localhost:3000/api/docs
 
+## Base de dados (Neon + Prisma 7)
+```bash
+pnpm --filter @stp/api db:migrate   # cria/aplica migrações (usa DIRECT_URL)
+pnpm --filter @stp/api db:seed      # países, línguas, variantes e vocabulário Kriolu (DRAFT)
+pnpm --filter @stp/api db:studio    # explorar dados no navegador
+```
+O cliente Prisma é gerado em `src/generated/` (fora do Git) automaticamente no `pnpm install`.
+
+## Endpoints
+| Rota | O quê |
+|---|---|
+| `GET /api/v1/health` | Estado da API e da base de dados (503 se a base de dados falhar) |
+| `GET /api/v1/languages` | Países e línguas com o estado (ACTIVE, BETA, COMING_SOON) |
+| `GET /api/v1/languages/:id/vocabulary?locale=pt&take=50&cursor=` | Vocabulário visível: só APPROVED; em Beta inclui rascunhos marcados `reviewed: false` |
+
 ## Comandos
 | Comando | O quê |
 |---|---|

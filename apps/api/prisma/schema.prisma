@@ -1,0 +1,502 @@
+// Língua STP — modelo de dados (Prisma 7 + Neon PostgreSQL).
+// Migração 1: núcleo (países, línguas, utilizadores, papéis, conteúdo, revisão, auditoria).
+// Progresso, XP, streak, moedas e jogo entram na migração seguinte (depois de docs/REGRAS_DE_NEGOCIO.md).
+// Ligações à base de dados: prisma.config.ts (nunca neste ficheiro).
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────── Enums ─────────────────────────
+
+enum Role {
+  USER
+  MODERATOR
+  CONTENT_EDITOR
+  LINGUIST
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+  DELETED
+}
+
+/// Disponibilidade de uma língua na app. BETA = conteúdo ainda em revisão (ADR-14).
+enum LanguageStatus {
+  COMING_SOON
+  BETA
+  ACTIVE
+  INACTIVE
+}
+
+/// Fluxo de revisão linguística: só APPROVED chega à app (exceto línguas em BETA, ADR-14).
+enum ContentStatus {
+  DRAFT
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum ContentKind {
+  COURSE
+  UNIT
+  LESSON
+  EXERCISE
+  VOCABULARY
+  PHRASE
+  AUDIO
+}
+
+enum ReviewAction {
+  SUBMITTED
+  APPROVED
+  CHANGES_REQUESTED
+  REJECTED
+  ARCHIVED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum ExerciseType {
+  MULTIPLE_CHOICE
+  LISTEN_AND_CHOOSE
+  LISTEN_AND_TYPE
+  TRANSLATE
+  MATCH_WORDS
+  ORDER_WORDS
+  IMAGE_SELECT
+  PRONUNCIATION
+  TRUE_FALSE
+}
+
+enum PartOfSpeech {
+  NOUN
+  PROPER_NOUN
+  VERB
+  ADJECTIVE
+  ADVERB
+  PRONOUN
+  PREPOSITION
+  CONJUNCTION
+  INTERJECTION
+  NUMERAL
+  DETERMINER
+  ARTICLE
+  PARTICLE
+  PHRASE
+  OTHER
+}
+
+// ─────────────────── Países, línguas, variantes ───────────────────
+
+/// País/comunidade da plataforma (ADR-13). id = código curto ("st", "cv").
+model Country {
+  id        String     @id
+  name      String
+  order     Int        @default(0)
+  languages Language[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("countries")
+}
+
+/// Língua ensinada. id estável legível ("forro", "kabuverdianu").
+model Language {
+  id          String            @id
+  countryId   String
+  name        String
+  altName     String?
+  /// Código ISO 639-3 quando existe (ex.: "kea").
+  isoCode     String?
+  region      String?
+  /// Ortografia adotada (ex.: ALUPEC para o Kriolu).
+  orthography String?
+  status      LanguageStatus    @default(COMING_SOON)
+  country     Country           @relation(fields: [countryId], references: [id])
+  variants    LanguageVariant[]
+  courses     Course[]
+  vocabulary  Vocabulary[]
+  phrases     Phrase[]
+  exercises   Exercise[]
+  audio       AudioAsset[]
+  roles       UserRole[]
+  learners    User[]            @relation("LearningLanguage")
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([countryId])
+  @@map("languages")
+}
+
+/// Variante regional (ex.: Santiago, São Vicente, Sotavento no Kriolu).
+model LanguageVariant {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  languageId String
+  name       String
+  region     String?
+  language   Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  vocabulary Vocabulary[]
+  phrases    Phrase[]
+  audio      AudioAsset[]
+
+  @@unique([languageId, name])
+  @@map("language_variants")
+}
+
+// ─────────────────── Utilizadores e papéis ───────────────────
+
+model User {
+  id                 String        @id @default(uuid(7)) @db.Uuid
+  /// Identificador no Clerk (autenticação). Único quando existe.
+  clerkId            String?       @unique
+  email              String        @unique
+  username           String        @unique
+  name               String
+  avatarColor        String?
+  /// País onde vive (código de @stp/i18n COUNTRY_IDS).
+  countryCode        String?
+  /// Línguas que fala (ids de @stp/i18n SPOKEN_LANGUAGE_IDS).
+  spokenLanguages    String[]      @default([])
+  /// Idioma da interface (pt, en…).
+  uiLocale           String        @default("pt")
+  /// Fuso horário (IANA) — o "dia" da streak é calculado neste fuso.
+  timezone           String        @default("Europe/Lisbon")
+  learningLanguageId String?
+  status             AccountStatus @default(ACTIVE)
+  lastActiveAt       DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  deletedAt          DateTime?
+
+  learningLanguage Language?        @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
+  roles            UserRole[]       @relation("RoleHolder")
+  rolesGranted     UserRole[]       @relation("RoleGranter")
+  reviews          ContentReview[]
+  auditLogs        AdminAuditLog[]
+  createdVocab     Vocabulary[]     @relation("VocabCreatedBy")
+  reviewedVocab    Vocabulary[]     @relation("VocabReviewedBy")
+  createdPhrases   Phrase[]         @relation("PhraseCreatedBy")
+  reviewedPhrases  Phrase[]         @relation("PhraseReviewedBy")
+  createdExercises Exercise[]       @relation("ExerciseCreatedBy")
+  reviewedExercise Exercise[]       @relation("ExerciseReviewedBy")
+  createdLessons   Lesson[]         @relation("LessonCreatedBy")
+  createdAudio     AudioAsset[]     @relation("AudioCreatedBy")
+
+  @@index([status])
+  @@map("users")
+}
+
+/// Papéis numa tabela própria (nunca no perfil). languageId limita o papel a uma língua
+/// (ex.: LINGUIST de Kriolu). Sem languageId = papel global.
+model UserRole {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  userId      String   @db.Uuid
+  role        Role
+  languageId  String?
+  grantedById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+
+  user      User      @relation("RoleHolder", fields: [userId], references: [id], onDelete: Cascade)
+  grantedBy User?     @relation("RoleGranter", fields: [grantedById], references: [id])
+  language  Language? @relation(fields: [languageId], references: [id])
+
+  @@unique([userId, role, languageId])
+  @@index([role])
+  @@map("user_roles")
+}
+
+// ─────────────────── Fontes e licenças ───────────────────
+
+/// Origem de conteúdo externo (ex.: Wiktionary, CC BY-SA 4.0). Atribuição obrigatória.
+model Source {
+  id          String       @id @default(uuid(7)) @db.Uuid
+  name        String       @unique
+  url         String?
+  license     String
+  licenseUrl  String?
+  attribution String
+  notes       String?
+  vocabulary  Vocabulary[]
+  phrases     Phrase[]
+  createdAt   DateTime     @default(now())
+
+  @@map("sources")
+}
+
+// ─────────────────── Curso → Unidade → Lição → Exercício ───────────────────
+
+model Course {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  languageId  String
+  title       String
+  description String?
+  order       Int           @default(0)
+  status      ContentStatus @default(DRAFT)
+  language    Language      @relation(fields: [languageId], references: [id])
+  units       Unit[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([languageId, status])
+  @@map("courses")
+}
+
+model Unit {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  courseId    String        @db.Uuid
+  title       String
+  description String?
+  order       Int           @default(0)
+  status      ContentStatus @default(DRAFT)
+  course      Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([courseId, order])
+  @@map("units")
+}
+
+model Lesson {
+  id               String        @id @default(uuid(7)) @db.Uuid
+  unitId           String        @db.Uuid
+  title            String
+  description      String?
+  order            Int           @default(0)
+  difficulty       Difficulty    @default(EASY)
+  estimatedMinutes Int           @default(5)
+  status           ContentStatus @default(DRAFT)
+  createdById      String        @db.Uuid
+  unit             Unit          @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  createdBy        User          @relation("LessonCreatedBy", fields: [createdById], references: [id])
+  exercises        Exercise[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([unitId, order])
+  @@index([status])
+  @@map("lessons")
+}
+
+model Exercise {
+  id           String           @id @default(uuid(7)) @db.Uuid
+  languageId   String
+  lessonId     String?          @db.Uuid
+  type         ExerciseType
+  prompt       String
+  /// Dados específicos do tipo (pares, palavras a ordenar, ids de áudio…).
+  payload      Json?
+  difficulty   Difficulty       @default(EASY)
+  /// Onde pode ser usado: learning, daily, arena, duel…
+  usage        String[]         @default(["learning"])
+  order        Int              @default(0)
+  status       ContentStatus    @default(DRAFT)
+  version      Int              @default(1)
+  aiGenerated  Boolean          @default(false)
+  createdById  String           @db.Uuid
+  reviewedById String?          @db.Uuid
+  approvedAt   DateTime?
+  language     Language         @relation(fields: [languageId], references: [id])
+  lesson       Lesson?          @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  createdBy    User             @relation("ExerciseCreatedBy", fields: [createdById], references: [id])
+  reviewedBy   User?            @relation("ExerciseReviewedBy", fields: [reviewedById], references: [id])
+  options      ExerciseOption[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([languageId, status])
+  @@index([lessonId, order])
+  @@map("exercises")
+}
+
+/// Opção de resposta. isCorrect NUNCA é enviado ao cliente antes da resposta (anti-batota).
+model ExerciseOption {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  exerciseId String   @db.Uuid
+  text       String
+  isCorrect  Boolean  @default(false)
+  order      Int      @default(0)
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@index([exerciseId])
+  @@map("exercise_options")
+}
+
+// ─────────────────── Vocabulário e frases (com traduções por idioma) ───────────────────
+
+model Vocabulary {
+  id           String                  @id @default(uuid(7)) @db.Uuid
+  languageId   String
+  variantId    String?                 @db.Uuid
+  word         String
+  partOfSpeech PartOfSpeech            @default(OTHER)
+  category     String?
+  difficulty   Difficulty              @default(EASY)
+  notes        String?
+  sourceId     String?                 @db.Uuid
+  /// Referência na fonte (ex.: URL da entrada no Wiktionary).
+  sourceRef    String?
+  audioId      String?                 @db.Uuid
+  status       ContentStatus           @default(DRAFT)
+  version      Int                     @default(1)
+  aiGenerated  Boolean                 @default(false)
+  createdById  String                  @db.Uuid
+  reviewedById String?                 @db.Uuid
+  approvedAt   DateTime?
+  language     Language                @relation(fields: [languageId], references: [id])
+  variant      LanguageVariant?        @relation(fields: [variantId], references: [id])
+  source       Source?                 @relation(fields: [sourceId], references: [id])
+  audio        AudioAsset?             @relation(fields: [audioId], references: [id])
+  createdBy    User                    @relation("VocabCreatedBy", fields: [createdById], references: [id])
+  reviewedBy   User?                   @relation("VocabReviewedBy", fields: [reviewedById], references: [id])
+  translations VocabularyTranslation[]
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  @@unique([languageId, word, partOfSpeech])
+  @@index([languageId, status])
+  @@map("vocabulary")
+}
+
+/// Tradução de uma palavra num idioma de interface (pt, en, fr).
+/// isSuggestion = sugestão automática ou da fonte, ainda por confirmar pelo linguista.
+model VocabularyTranslation {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  vocabularyId String     @db.Uuid
+  locale       String
+  text         String
+  isSuggestion Boolean    @default(true)
+  /// "source" (veio da fonte), "machine" (tradução automática) ou "linguist".
+  origin       String     @default("linguist")
+  vocabulary   Vocabulary @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([vocabularyId, locale])
+  @@map("vocabulary_translations")
+}
+
+model Phrase {
+  id           String              @id @default(uuid(7)) @db.Uuid
+  languageId   String
+  variantId    String?             @db.Uuid
+  text         String
+  context      String?
+  explanation  String?
+  difficulty   Difficulty          @default(EASY)
+  sourceId     String?             @db.Uuid
+  sourceRef    String?
+  audioId      String?             @db.Uuid
+  status       ContentStatus       @default(DRAFT)
+  version      Int                 @default(1)
+  aiGenerated  Boolean             @default(false)
+  createdById  String              @db.Uuid
+  reviewedById String?             @db.Uuid
+  approvedAt   DateTime?
+  language     Language            @relation(fields: [languageId], references: [id])
+  variant      LanguageVariant?    @relation(fields: [variantId], references: [id])
+  source       Source?             @relation(fields: [sourceId], references: [id])
+  audio        AudioAsset?         @relation(fields: [audioId], references: [id])
+  createdBy    User                @relation("PhraseCreatedBy", fields: [createdById], references: [id])
+  reviewedBy   User?               @relation("PhraseReviewedBy", fields: [reviewedById], references: [id])
+  translations PhraseTranslation[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([languageId, status])
+  @@map("phrases")
+}
+
+model PhraseTranslation {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  phraseId     String   @db.Uuid
+  locale       String
+  text         String
+  isSuggestion Boolean  @default(true)
+  origin       String   @default("linguist")
+  phrase       Phrase   @relation(fields: [phraseId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([phraseId, locale])
+  @@map("phrase_translations")
+}
+
+// ─────────────────── Áudio ───────────────────
+
+/// Gravação de falante real (Cloudflare R2). Exige consentimento registado do falante.
+model AudioAsset {
+  id              String           @id @default(uuid(7)) @db.Uuid
+  languageId      String
+  variantId       String?          @db.Uuid
+  storageKey      String           @unique
+  url             String
+  mimeType        String
+  durationMs      Int?
+  speakerName     String?
+  region          String?
+  consentRecorded Boolean          @default(false)
+  status          ContentStatus    @default(DRAFT)
+  createdById     String           @db.Uuid
+  language        Language         @relation(fields: [languageId], references: [id])
+  variant         LanguageVariant? @relation(fields: [variantId], references: [id])
+  createdBy       User             @relation("AudioCreatedBy", fields: [createdById], references: [id])
+  vocabulary      Vocabulary[]
+  phrases         Phrase[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([languageId, status])
+  @@map("audio_assets")
+}
+
+// ─────────────────── Revisão e auditoria ───────────────────
+
+/// Histórico do fluxo de revisão de qualquer conteúdo (quem fez o quê e quando).
+model ContentReview {
+  id          String       @id @default(uuid(7)) @db.Uuid
+  contentKind ContentKind
+  contentId   String       @db.Uuid
+  action      ReviewAction
+  comment     String?
+  actorId     String       @db.Uuid
+  actor       User         @relation(fields: [actorId], references: [id])
+  createdAt   DateTime     @default(now())
+
+  @@index([contentKind, contentId])
+  @@map("content_reviews")
+}
+
+/// Registo de ações administrativas (obrigatório pela especificação).
+model AdminAuditLog {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  actorId    String?  @db.Uuid
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ip         String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
+}

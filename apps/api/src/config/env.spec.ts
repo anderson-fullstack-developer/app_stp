@@ -29,4 +29,10 @@ describe("loadEnv", () => {
       expect((e as InvalidEnvError).issues.some((i) => i.startsWith("PORT"))).toBe(true);
     }
   });
+
+  it("exige DATABASE_URL em staging e produção", () => {
+    expect(() => loadEnv({ NODE_ENV: "production" })).toThrow(/DATABASE_URL/);
+    expect(() => loadEnv({ NODE_ENV: "staging" })).toThrow(/DATABASE_URL/);
+    expect(loadEnv({ NODE_ENV: "development" }).DATABASE_URL).toBeUndefined();
+  });
 });

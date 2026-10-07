@@ -1,3 +1,4 @@
+import "dotenv/config";
 /**
  * Sentry (erros). Tem de ser importado antes de tudo o resto em main.ts.
  * Só ativa se SENTRY_DSN estiver definido — em desenvolvimento normalmente não está.

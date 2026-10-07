@@ -46,8 +46,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const body: ApiErrorBody = {
       statusCode: status,
-      code:
-        (fromResponse as { code?: string }).code ?? CODE_BY_STATUS[status] ?? "INTERNAL_ERROR",
+      code: (fromResponse as { code?: string }).code ?? CODE_BY_STATUS[status] ?? "INTERNAL_ERROR",
       message:
         status >= 500
           ? "Erro interno. Tenta novamente mais tarde."

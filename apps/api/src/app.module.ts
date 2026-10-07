@@ -4,7 +4,10 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { LoggerModule } from "nestjs-pino";
 import { AllExceptionsFilter } from "./common/all-exceptions.filter.js";
 import { ENV, type Env } from "./config/env.js";
+import { DatabaseModule } from "./database/database.module.js";
 import { HealthController } from "./health/health.controller.js";
+import { LanguagesController } from "./languages/languages.controller.js";
+import { LanguagesService } from "./languages/languages.service.js";
 
 /**
  * Módulo raiz. Recebe a configuração já validada (main.ts ou testes), para que cada
@@ -29,10 +32,12 @@ export class AppModule {
           },
         }),
         ThrottlerModule.forRoot([{ ttl: 60_000, limit: env.RATE_LIMIT_PER_MINUTE }]),
+        DatabaseModule,
       ],
-      controllers: [HealthController],
+      controllers: [HealthController, LanguagesController],
       providers: [
         { provide: ENV, useValue: env },
+        LanguagesService,
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_FILTER, useClass: AllExceptionsFilter },
       ],

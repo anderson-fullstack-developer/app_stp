@@ -40,3 +40,6 @@ dist-ssr
 # Monorepo
 .turbo
 .expo/
+
+# Cliente Prisma gerado (recriado por `prisma generate`, também no postinstall)
+apps/api/src/generated/
