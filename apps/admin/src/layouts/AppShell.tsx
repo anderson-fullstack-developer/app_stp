@@ -3,6 +3,7 @@ import { isFeatureOn } from "@stp/config";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { BookOpen, Swords, Trophy, User, Users } from "lucide-react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
@@ -24,14 +25,15 @@ export function PhoneFrame({ children, className }: { children: ReactNode; class
 }
 
 const NAV = [
-  { to: "/learn", label: "Aprender", icon: BookOpen },
-  { to: "/challenges", label: "Jogar", icon: Swords },
-  { to: "/friends", label: "Amigos", icon: Users },
-  { to: "/ranking", label: "Ranking", icon: Trophy },
-  { to: "/profile", label: "Perfil", icon: User },
+  { to: "/learn", label: "nav.learn", icon: BookOpen },
+  { to: "/challenges", label: "nav.play", icon: Swords },
+  { to: "/friends", label: "nav.friends", icon: Users },
+  { to: "/ranking", label: "nav.ranking", icon: Trophy },
+  { to: "/profile", label: "nav.profile", icon: User },
 ] as const;
 
 export function BottomNavigation() {
+  const { t } = useTranslation();
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
     <nav
@@ -66,7 +68,7 @@ export function BottomNavigation() {
                       active ? "text-primary" : "text-muted-foreground",
                     )}
                   >
-                    {label}
+                    {t(label)}
                   </span>
                 </Link>
               </li>

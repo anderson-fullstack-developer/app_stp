@@ -8,6 +8,7 @@ import { APP_CONFIG } from "@stp/config";
 import { game, useGame } from "@/hooks/use-game";
 import { AdSlot } from "@/components/app/Ads";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { sound } from "@/lib/sound";
 
 export const Route = createFileRoute("/lesson-result")({
@@ -31,6 +32,7 @@ export const Route = createFileRoute("/lesson-result")({
 });
 
 function Result() {
+  const { t: tr } = useTranslation();
   const { acc, t, daily } = Route.useSearch();
   const g = useGame();
   const r = APP_CONFIG.rewards;
@@ -52,7 +54,7 @@ function Result() {
       <div className="flex flex-1 flex-col items-center px-6 pt-16 text-center text-primary-foreground safe-top">
         <div className="animate-pop text-7xl">🎉</div>
         <h1 className="animate-rise mt-4 font-display text-3xl font-bold">
-          {daily ? "Desafio concluído!" : "Lição concluída!"}
+          {daily ? tr("result.challengeDone") : tr("result.lessonDone")}
         </h1>
         <div className="mt-6 flex gap-3">
           <span
@@ -70,9 +72,9 @@ function Result() {
         </div>
         <div className="mt-8 grid w-full grid-cols-3 gap-3">
           {[
-            { icon: Target, label: "Precisão", v: `${acc}%` },
-            { icon: Clock, label: "Tempo", v: formatDuration(t) },
-            { icon: Flame, label: "Streak", v: `${g.streak} dias` },
+            { icon: Target, label: tr("result.accuracy"), v: `${acc}%` },
+            { icon: Clock, label: tr("result.time"), v: formatDuration(t) },
+            { icon: Flame, label: tr("result.streak"), v: tr("result.days", { count: g.streak }) },
           ].map(({ icon: I, label, v }, k) => (
             <div
               key={label}
@@ -94,14 +96,14 @@ function Result() {
         )}
         <div className="mt-auto w-full space-y-3 pb-6 pt-8 safe-bottom">
           <Link to="/learn">
-            <AppButton variant="light">Continuar</AppButton>
+            <AppButton variant="light">{tr("common.continue")}</AppButton>
           </Link>
           <AppButton
             variant="ghost"
             className="text-primary-foreground hover:bg-primary-foreground/10"
             onClick={() => router.history.back()}
           >
-            {daily ? "Voltar" : "Repetir lição"}
+            {daily ? tr("common.back") : tr("result.repeat")}
           </AppButton>
         </div>
       </div>

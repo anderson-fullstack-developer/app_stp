@@ -2,6 +2,7 @@ import { useBlockAds } from "@/config/ads";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, Heart, XCircle } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { BackButton } from "@/components/app/BackButton";
 import { AppButton } from "@/components/app/Buttons";
 import { BottomSheet, ErrorState, LoadingState, ProgressBar } from "@/components/app/Primitives";
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/lesson/$lessonId")({
 });
 
 function LessonPage() {
+  const { t } = useTranslation();
   useBlockAds("lesson");
   const { lessonId } = Route.useParams();
   const { daily } = Route.useSearch();
@@ -52,7 +54,7 @@ function LessonPage() {
   if (!lesson)
     return (
       <PhoneFrame>
-        <ErrorState text="Lição não encontrada." />
+        <ErrorState text={t("lesson.notFound")} />
       </PhoneFrame>
     );
 
@@ -60,7 +62,7 @@ function LessonPage() {
   if (!ex)
     return (
       <PhoneFrame>
-        <ErrorState text="Lição sem exercícios." />
+        <ErrorState text={t("lesson.empty")} />
       </PhoneFrame>
     );
   const total = lesson.exercises.length;
@@ -99,7 +101,7 @@ function LessonPage() {
       </div>
       <div className="px-5 pt-4">
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          {lesson.title} · Exercício {i + 1} de {total}
+          {t("lesson.exerciseOf", { lesson: lesson.title, n: i + 1, total })}
         </p>
         <h1 className="mt-1 font-display text-2xl font-bold">{ex.prompt}</h1>
       </div>
@@ -124,7 +126,7 @@ function LessonPage() {
               else setLives((l) => Math.max(0, l - 1));
             }}
           >
-            Verificar
+            {t("lesson.check")}
           </AppButton>
         </div>
       )}
@@ -143,7 +145,7 @@ function LessonPage() {
                   : "font-display text-2xl font-bold text-destructive"
               }
             >
-              {correct ? "Boa!" : "Quase!"}
+              {correct ? t("lesson.good") : t("lesson.almost")}
             </p>
             {correct ? (
               <p className="animate-pop font-bold text-success">
@@ -151,13 +153,13 @@ function LessonPage() {
               </p>
             ) : (
               <p className="text-sm font-semibold text-destructive">
-                Resposta correta: <span className="font-bold">{correctLabel}</span>
+                {t("lesson.correctAnswer")} <span className="font-bold">{correctLabel}</span>
               </p>
             )}
           </div>
         </div>
         <AppButton className="mt-4" variant={correct ? "primary" : "danger"} onClick={next}>
-          Continuar
+          {t("common.continue")}
         </AppButton>
       </BottomSheet>
     </PhoneFrame>
