@@ -1,6 +1,7 @@
 import { Coins, Flame, Star } from "lucide-react";
 import { useEffect } from "react";
 import { game, useGameEvents } from "@/hooks/use-game";
+import { sound } from "@/lib/sound";
 import { AppButton } from "./Buttons";
 
 /** Global overlay for reward micro-interactions: +XP, +coins, streak kept, level up. */
@@ -9,6 +10,9 @@ export function RewardLayer() {
   const toasts = events.filter((e) => e.kind === "xp" || e.kind === "coins");
   const big = events.find((e) => e.kind === "levelUp") ?? events.find((e) => e.kind === "streak");
 
+  const coinIds = toasts.filter((t) => t.kind === "coins").map((t) => t.id).join(",");
+  useEffect(() => { if (coinIds) sound.play("coins"); }, [coinIds]);
+  useEffect(() => { if (big) sound.play(big.kind === "levelUp" ? "levelUp" : "streak"); }, [big?.id]);
   useEffect(() => {
     const timers = toasts.map((t) => setTimeout(() => game.dismissEvent(t.id), 1800));
     return () => timers.forEach(clearTimeout);

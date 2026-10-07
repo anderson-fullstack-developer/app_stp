@@ -10,6 +10,7 @@ import { useLesson } from "@/hooks/use-service";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { APP_CONFIG } from "@stp/config";
 import { game } from "@/hooks/use-game";
+import { sound } from "@/lib/sound";
 import { z } from "zod";
 
 export const Route = createFileRoute("/lesson/$lessonId")({
@@ -73,7 +74,7 @@ function LessonPage() {
       </div>
       {!checked && (
         <div className="absolute inset-x-0 bottom-0 border-t-2 border-border bg-background px-5 pt-4 safe-bottom pb-5">
-          <AppButton disabled={!ready} onClick={() => { setChecked(true); if (correct) game.addXp(APP_CONFIG.rewards.correctAnswerXp); else setLives((l) => Math.max(0, l - 1)); }}>Verificar</AppButton>
+          <AppButton disabled={!ready} onClick={() => { setChecked(true); sound.play(correct ? "correct" : "wrong"); if (correct) game.addXp(APP_CONFIG.rewards.correctAnswerXp); else setLives((l) => Math.max(0, l - 1)); }}>Verificar</AppButton>
         </div>
       )}
       <BottomSheet open={checked} tone={correct ? "success" : "error"}>

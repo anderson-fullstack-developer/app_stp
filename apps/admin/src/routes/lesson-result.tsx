@@ -8,6 +8,7 @@ import { APP_CONFIG } from "@stp/config";
 import { game, useGame } from "@/hooks/use-game";
 import { AdSlot } from "@/components/app/Ads";
 import { useEffect } from "react";
+import { sound } from "@/lib/sound";
 
 export const Route = createFileRoute("/lesson-result")({
   validateSearch: (s) => z.object({ daily: z.boolean().catch(false), acc: z.number().catch(92), t: z.number().catch(204) }).parse(s),
@@ -30,6 +31,7 @@ function Result() {
   const coins = daily ? r.dailyCoins : r.lessonCoins;
   const showAd = g.lessonsSinceAd >= APP_CONFIG.adEveryNLessons;
   useEffect(() => () => { if (showAd) game.resetAdCounter(); }, [showAd]);
+  useEffect(() => { sound.play("complete"); }, []);
   const router = useRouter();
   return (
     <PhoneFrame className="bg-forest pattern-leaf">

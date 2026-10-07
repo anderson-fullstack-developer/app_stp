@@ -10,6 +10,7 @@ import { listOpponents, opponentSkill } from "@/services/game.service";
 import { game } from "@/hooks/use-game";
 import { createRng, scoreAnswer } from "@stp/game-engine";
 import { session } from "@/lib/multiplayer/session-store";
+import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 import { multiplayerService } from "@/services/game.service";
 import type { MatchPlayerSeed } from "@stp/types/multiplayer";
@@ -76,6 +77,12 @@ export function ScoreMatch({ teams, questions: total, seconds, replayTo }: { tea
   const winner: 0 | 1 = a >= b ? 0 : 1;
   const won = winner === myTeam;
   const reward = won ? MULTIPLAYER_CONFIG.matchRewards.win : MULTIPLAYER_CONFIG.matchRewards.lose;
+
+  useEffect(() => {
+    if (s.phase === "reveal") sound.play(s.selected !== null && s.selected === qs.current[s.round - 1]?.correctIndex ? "correct" : "wrong");
+    if (s.phase === "result") sound.play(won ? "victory" : "defeat");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.phase]);
 
   useEffect(() => {
     if (s.phase === "result" && !m.current.rewarded) { m.current.rewarded = true; game.addXp(reward.xp); game.addCoins(reward.coins); session.setPending(null); }
