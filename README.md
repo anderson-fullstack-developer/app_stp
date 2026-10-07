@@ -14,10 +14,12 @@ Protótipo frontend completo (mock), a caminho do backend real. Plano, decisões
 apps/
   admin/          protótipo web: painel admin + ecrãs da app (referência visual)
   mobile/         app Expo / React Native
+  api/            API NestJS (/api/v1)
 packages/
   types/          @stp/types        — tipos de domínio e contrato do jogo
   config/         @stp/config       — valores de produto e feature flags
   game-engine/    @stp/game-engine  — regras puras da Arena
+  i18n/           @stp/i18n         — traduções da interface (pt, en)
   tsconfig/       @stp/tsconfig     — TypeScript estrito partilhado
 docs/             plano de engenharia, handoff
 documentation.md  requisitos de produto (+ Adendo A — Arena Online)
@@ -31,6 +33,7 @@ Requisitos: Node.js 20+ e pnpm 10.
 pnpm install
 pnpm dev:admin      # app web + /admin em http://localhost:8080
 pnpm dev:mobile     # Expo (prima "w" para web ou leia o QR code com o Expo Go)
+pnpm dev:api        # API em http://localhost:3000/api/v1/health
 ```
 
 Verificações: `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm lint`.

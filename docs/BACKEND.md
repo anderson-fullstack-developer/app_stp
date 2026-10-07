@@ -2,7 +2,7 @@
 
 > Complementa `docs/PLANO_DE_ENGENHARIA.md` (fases e ADRs). Este documento detalha **o que vamos usar, onde fica alojado e a ordem exata de construção** do backend.
 >
-> Estado (2026-10-07): fase 0 concluída (monorepo, CI verde). Backend ainda não existe.
+> Estado (2026-10-07): fase 0 concluída; **B1 concluído** — `apps/api` com NestJS 12 (ESM), configuração validada com Zod 4, `/api/v1/health`, Helmet, CORS, rate limiting, erros uniformes, logs Pino, Sentry opcional, Swagger e testes e2e. Próximo: regras de negócio → B2 (base de dados).
 
 ---
 
@@ -147,7 +147,7 @@ STRIPE_WEBHOOK_SECRET=
 | Passo | O quê | Entregáveis | Feito quando… | Depende de |
 |---|---|---|---|---|
 | **B0** | Contas e domínio | Criar contas (secção 7), comprar domínio, DNS na Cloudflare | Todas as contas da fase 1 criadas e chaves guardadas num gestor de senhas | — |
-| **B1** | Esqueleto NestJS | `apps/api` no monorepo, config validada, `/api/v1/health`, Helmet, CORS, rate limit, erros uniformes, logs, Sentry, Swagger, testes, CI | `pnpm --filter @stp/api test` verde e CI verde | B0 (Sentry) |
+| **B1** ✅ (2026-10-07) | Esqueleto NestJS | `apps/api` no monorepo, config validada, `/api/v1/health`, Helmet, CORS, rate limit, erros uniformes, logs, Sentry, Swagger, testes, CI | `pnpm --filter @stp/api test` verde e CI verde | B0 (Sentry) |
 | **B2** | Base de dados | `schema.prisma` do MVP (utilizadores, papéis, conteúdo, revisão, progresso, gamificação, social, auditoria; tabelas de jogo já criadas), migração inicial, seed com **placeholders rotulados**, branches Neon | Migração aplicada em `dev` e `staging`; diagrama do modelo em `docs/` | B1, **regras de negócio** |
 | **B3** | Deploy staging | Serviço na Railway, variáveis, health check, deploy automático de `main` | `https://api-staging.<domínio>/api/v1/health` responde | B2 |
 | **B4** | Autenticação | Guard Clerk, webhook → cria/atualiza `User`, papéis, `GET /me`, **eliminar conta** | Registo no Clerk aparece na BD; `/me` só responde autenticado | B3 |

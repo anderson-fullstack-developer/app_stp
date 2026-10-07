@@ -15,9 +15,11 @@ Antes de trabalhar, ler: `documentation.md` (requisitos), `docs/PLANO_DE_ENGENHA
 |---|---|
 | `apps/admin` | Protótipo web do Lovable (painel admin + ecrãs da app como referência visual) |
 | `apps/mobile` | App Expo / React Native |
+| `apps/api` | API NestJS 12 (ESM) — servidor autoritativo, `/api/v1` |
 | `packages/types` | `@stp/types` — tipos de domínio, multiplayer, contrato do jogo |
 | `packages/config` | `@stp/config` — valores de produto e feature flags (fonte única) |
 | `packages/game-engine` | `@stp/game-engine` — regras puras da Arena (o servidor vai usá-las) |
+| `packages/i18n` | `@stp/i18n` — traduções da interface (pt, en) |
 | `packages/tsconfig` | `@stp/tsconfig` — configuração TypeScript estrita partilhada |
 
 Os pacotes são consumidos como código-fonte TypeScript (sem build próprio).
@@ -27,6 +29,7 @@ Os pacotes são consumidos como código-fonte TypeScript (sem build próprio).
 pnpm install
 pnpm dev:admin      # http://localhost:8080
 pnpm dev:mobile     # Expo
+pnpm dev:api        # http://localhost:3000/api/v1/health
 pnpm typecheck      # todos os pacotes
 pnpm test
 pnpm build

@@ -5,6 +5,7 @@
   "scripts": {
     "dev:admin": "pnpm --filter @stp/admin dev",
     "dev:mobile": "pnpm --filter @stp/mobile start",
+    "dev:api": "pnpm --filter @stp/api dev",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
