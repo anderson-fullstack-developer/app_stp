@@ -119,27 +119,28 @@ model Country {
 
 /// Língua ensinada. id estável legível ("forro", "kabuverdianu").
 model Language {
-  id          String            @id
-  countryId   String
-  name        String
-  altName     String?
+  id              String            @id
+  countryId       String
+  name            String
+  altName         String?
   /// Código ISO 639-3 quando existe (ex.: "kea").
-  isoCode     String?
-  region      String?
+  isoCode         String?
+  region          String?
   /// Ortografia adotada (ex.: ALUPEC para o Kriolu).
-  orthography String?
-  status      LanguageStatus    @default(COMING_SOON)
-  country     Country           @relation(fields: [countryId], references: [id])
-  variants    LanguageVariant[]
-  courses     Course[]
-  vocabulary  Vocabulary[]
-  phrases     Phrase[]
-  exercises   Exercise[]
-  audio       AudioAsset[]
-  roles       UserRole[]
-  learners    User[]            @relation("LearningLanguage")
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  orthography     String?
+  status          LanguageStatus    @default(COMING_SOON)
+  country         Country           @relation(fields: [countryId], references: [id])
+  variants        LanguageVariant[]
+  courses         Course[]
+  dailyChallenges DailyChallenge[]
+  vocabulary      Vocabulary[]
+  phrases         Phrase[]
+  exercises       Exercise[]
+  audio           AudioAsset[]
+  roles           UserRole[]
+  learners        User[]            @relation("LearningLanguage")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   @@index([countryId])
   @@map("languages")
@@ -185,20 +186,20 @@ model User {
   updatedAt          DateTime      @updatedAt
   deletedAt          DateTime?
 
-  learningLanguage Language?         @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
-  roles            UserRole[]        @relation("RoleHolder")
-  rolesGranted     UserRole[]        @relation("RoleGranter")
+  learningLanguage Language?               @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
+  roles            UserRole[]              @relation("RoleHolder")
+  rolesGranted     UserRole[]              @relation("RoleGranter")
   reviews          ContentReview[]
   auditLogs        AdminAuditLog[]
-  createdVocab     Vocabulary[]      @relation("VocabCreatedBy")
-  reviewedVocab    Vocabulary[]      @relation("VocabReviewedBy")
-  createdPhrases   Phrase[]          @relation("PhraseCreatedBy")
-  reviewedPhrases  Phrase[]          @relation("PhraseReviewedBy")
-  createdExercises Exercise[]        @relation("ExerciseCreatedBy")
-  reviewedExercise Exercise[]        @relation("ExerciseReviewedBy")
-  createdLessons   Lesson[]          @relation("LessonCreatedBy")
-  reviewedLessons  Lesson[]          @relation("LessonReviewedBy")
-  createdAudio     AudioAsset[]      @relation("AudioCreatedBy")
+  createdVocab     Vocabulary[]            @relation("VocabCreatedBy")
+  reviewedVocab    Vocabulary[]            @relation("VocabReviewedBy")
+  createdPhrases   Phrase[]                @relation("PhraseCreatedBy")
+  reviewedPhrases  Phrase[]                @relation("PhraseReviewedBy")
+  createdExercises Exercise[]              @relation("ExerciseCreatedBy")
+  reviewedExercise Exercise[]              @relation("ExerciseReviewedBy")
+  createdLessons   Lesson[]                @relation("LessonCreatedBy")
+  reviewedLessons  Lesson[]                @relation("LessonReviewedBy")
+  createdAudio     AudioAsset[]            @relation("AudioCreatedBy")
   stats            UserStats?
   xpEvents         XpEvent[]
   coinTransactions CoinTransaction[]
@@ -206,6 +207,7 @@ model User {
   lessonProgress   LessonProgress[]
   lessonAttempts   LessonAttempt[]
   achievements     UserAchievement[]
+  dailyAttempts    DailyChallengeAttempt[]
 
   @@index([status])
   @@map("users")
@@ -745,4 +747,48 @@ model RewardRule {
   updatedAt   DateTime @updatedAt
 
   @@map("reward_rules")
+}
+
+/// Desafio do dia (docs/REGRAS_DE_NEGOCIO.md §9): as mesmas perguntas para todos nesse dia UTC.
+model DailyChallenge {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  languageId  String
+  /// Dia UTC do desafio.
+  date        DateTime @db.Date
+  exerciseIds String[] @db.Uuid
+  createdAt   DateTime @default(now())
+
+  language Language                @relation(fields: [languageId], references: [id])
+  attempts DailyChallengeAttempt[]
+
+  @@unique([languageId, date])
+  @@map("daily_challenges")
+}
+
+/// Uma só tentativa por pessoa e desafio (ranking justo). Uma resposta por pergunta.
+model DailyChallengeAttempt {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  challengeId String        @db.Uuid
+  userId      String        @db.Uuid
+  status      AttemptStatus @default(IN_PROGRESS)
+  locale      String        @default("pt")
+  /// Perguntas geradas pelo servidor, com a resposta certa.
+  questions   Json
+  /// Respostas dadas: [{ exerciseId, optionId, correct }].
+  answers     Json          @default("[]")
+  total       Int
+  correct     Int           @default(0)
+  /// Tempo do servidor entre começar e concluir.
+  durationMs  Int?
+  flagged     Boolean       @default(false)
+  result      Json?
+  startedAt   DateTime      @default(now())
+  completedAt DateTime?
+
+  challenge DailyChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, userId])
+  @@index([challengeId, status, correct, durationMs])
+  @@map("daily_challenge_attempts")
 }
