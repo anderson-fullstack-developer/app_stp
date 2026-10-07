@@ -18,7 +18,11 @@ async function bootstrap() {
     throw e;
   }
 
-  const app = await NestFactory.create(AppModule.register(env), { bufferLogs: true });
+  const app = await NestFactory.create(AppModule.register(env), {
+    bufferLogs: true,
+    // Corpo original disponível para verificar assinaturas de webhooks.
+    rawBody: true,
+  });
   app.useLogger(app.get(Logger));
   configureApp(app, env);
   await app.listen(env.PORT);

@@ -27,6 +27,19 @@ O cliente Prisma é gerado em `src/generated/` (fora do Git) automaticamente no 
 | `GET /api/v1/health` | Estado da API e da base de dados (503 se a base de dados falhar) |
 | `GET /api/v1/languages` | Países e línguas com o estado (ACTIVE, BETA, COMING_SOON) |
 | `GET /api/v1/languages/:id/vocabulary?locale=pt&take=50&cursor=` | Vocabulário visível: só APPROVED; em Beta inclui rascunhos marcados `reviewed: false` |
+| `GET /api/v1/me` | Perfil do utilizador autenticado (`Authorization: Bearer <token do Clerk>`), com os papéis |
+| `POST /api/v1/webhooks/clerk` | Eventos do Clerk (`user.created/updated/deleted`), assinatura verificada |
+
+## Autenticação (Clerk)
+- O cliente envia o token de sessão do Clerk (`getToken()`) em `Authorization: Bearer`.
+- `ClerkAuthGuard` valida o token (`CLERK_SECRET_KEY`, origem em `CLERK_AUTHORIZED_PARTIES`), carrega o
+  utilizador da Neon e, se o webhook ainda não chegou, sincroniza-o na hora. Contas não ativas → 403.
+- Papéis: `@Roles("ADMIN", ...)` numa rota com o guard; `SUPER_ADMIN` passa sempre. Todos começam com `USER`.
+- Webhook: criar o endpoint no painel do Clerk (Webhooks → Add endpoint → `https://<api>/api/v1/webhooks/clerk`,
+  eventos `user.*`) e pôr o *signing secret* em `CLERK_WEBHOOK_SIGNING_SECRET`. Em desenvolvimento:
+  `clerk webhooks listen --forward-to http://localhost:3000/api/v1/webhooks/clerk`.
+- Conta eliminada no Clerk → linha anonimizada (sem email, nome, país nem papéis), estado `DELETED`.
+- O perfil da app (país, línguas, língua a aprender) vem do onboarding só na criação; depois é gerido pela API.
 
 ## Comandos
 | Comando | O quê |
