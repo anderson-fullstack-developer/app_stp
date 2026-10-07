@@ -19,6 +19,7 @@ import { useLocaleSync } from "../hooks/use-locale-sync";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { APP_NAME } from "@stp/config";
 
 function NotFoundComponent() {
   return (
@@ -85,9 +86,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#1f7a55" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { title: "Língua STP — Aprende. Joga. Preserva." },
+      { title: `${APP_NAME} — Aprende. Joga. Preserva.` },
       { name: "description", content: "Aprende as línguas de São Tomé e Príncipe." },
-      { property: "og:title", content: "Língua STP" },
+      { property: "og:title", content: `${APP_NAME}` },
       { property: "og:description", content: "Aprende as línguas de São Tomé e Príncipe." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -6,6 +6,7 @@ import { AppButton } from "@/components/app/Buttons";
 import { cn } from "@/lib/utils";
 import type { AvatarColor } from "@/types";
 import type { LobbyMember, MatchPlayerSeed } from "@stp/types/multiplayer";
+import { APP_NAME } from "@stp/config";
 
 export function GameModeCard({
   icon: Icon,
@@ -144,7 +145,7 @@ export function RoomCode({ code }: { code: string }) {
     setTimeout(() => setCopied(false), 1500);
   };
   const share = () => {
-    const text = `Junta-te à minha sala no Língua STP: ${code}`;
+    const text = `Junta-te à minha sala no ${APP_NAME}: ${code}`;
     if (navigator.share) navigator.share({ text }).catch(() => {});
     else copy();
   };

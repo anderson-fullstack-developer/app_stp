@@ -5,7 +5,7 @@ import { BackButton } from "@/components/app/BackButton";
 import { AppButton } from "@/components/app/Buttons";
 import { TeamCard } from "@/components/play/LobbyUI";
 import { ScoreMatch, type ScoreTeam } from "@/components/play/ScoreMatch";
-import { MULTIPLAYER_CONFIG } from "@stp/config";
+import { MULTIPLAYER_CONFIG, APP_NAME } from "@stp/config";
 import { listOpponents, opponentSkill } from "@/services/game.service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { session } from "@/lib/multiplayer/session-store";
@@ -15,12 +15,12 @@ import type { MatchPlayerSeed } from "@stp/types/multiplayer";
 export const Route = createFileRoute("/play/teams")({
   head: () => ({
     meta: [
-      { title: "2 vs 2 — Língua STP" },
+      { title: `2 vs 2 — ${APP_NAME}` },
       {
         name: "description",
         content: "Joga em equipa: cada resposta certa soma pontos para a tua equipa.",
       },
-      { property: "og:title", content: "2 vs 2 — Língua STP" },
+      { property: "og:title", content: `2 vs 2 — ${APP_NAME}` },
       { property: "og:description", content: "Equipa A contra Equipa B." },
     ],
   }),

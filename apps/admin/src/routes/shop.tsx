@@ -10,16 +10,17 @@ import { game, useGame } from "@/hooks/use-game";
 import { useShop } from "@/hooks/use-service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/shop")({
   head: () => ({
     meta: [
-      { title: "Loja — Língua STP" },
+      { title: `Loja — ${APP_NAME}` },
       {
         name: "description",
         content: "Troca moedas por avatares, molduras, badges, Streak Freeze e temas.",
       },
-      { property: "og:title", content: "Loja — Língua STP" },
+      { property: "og:title", content: `Loja — ${APP_NAME}` },
       { property: "og:description", content: "Gasta as tuas moedas na loja." },
     ],
   }),

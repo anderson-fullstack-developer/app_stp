@@ -22,7 +22,7 @@ export function configureApp(app: INestApplication, env: Env): void {
   // Documentação interativa da API — nunca exposta em produção.
   if (env.NODE_ENV !== "production") {
     const config = new DocumentBuilder()
-      .setTitle("Língua STP — API")
+      .setTitle("Fala Neto — API")
       .setDescription("API REST da plataforma (servidor autoritativo).")
       .setVersion(env.APP_VERSION ?? "dev")
       .addBearerAuth()

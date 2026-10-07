@@ -10,13 +10,14 @@ import { session } from "@/lib/multiplayer/session-store";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Neto } from "@/components/app/Neto";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/play/results")({
   head: () => ({
     meta: [
-      { title: "Resultados — Língua STP" },
+      { title: `Resultados — ${APP_NAME}` },
       { name: "description", content: "Classificação final da partida, XP e moedas ganhas." },
-      { property: "og:title", content: "Resultados — Língua STP" },
+      { property: "og:title", content: `Resultados — ${APP_NAME}` },
       { property: "og:description", content: "Vê o pódio da partida." },
     ],
   }),

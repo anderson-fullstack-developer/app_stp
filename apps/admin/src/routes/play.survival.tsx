@@ -16,7 +16,7 @@ import {
   WinnerOverlay,
   type OptionState,
 } from "@/components/play/MatchUI";
-import { MULTIPLAYER_CONFIG } from "@stp/config";
+import { MULTIPLAYER_CONFIG, APP_NAME } from "@stp/config";
 import { listOpponents, opponentSkill } from "@/services/game.service";
 import { game } from "@/hooks/use-game";
 import { PhoneFrame } from "@/layouts/AppShell";
@@ -45,13 +45,13 @@ import type {
 export const Route = createFileRoute("/play/survival")({
   head: () => ({
     meta: [
-      { title: "Sobrevivência Online — Língua STP" },
+      { title: `Sobrevivência Online — ${APP_NAME}` },
       {
         name: "description",
         content:
           "Responde ao mesmo quiz que todos. Perde vidas ao errar. O último sobrevivente vence.",
       },
-      { property: "og:title", content: "Sobrevivência Online — Língua STP" },
+      { property: "og:title", content: `Sobrevivência Online — ${APP_NAME}` },
       { property: "og:description", content: "Sê o último sobrevivente." },
     ],
   }),

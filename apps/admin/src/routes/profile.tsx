@@ -17,13 +17,14 @@ import { useAchievements, useMe } from "@/hooks/use-service";
 import { levelInfo, useGame } from "@/hooks/use-game";
 import { CoinBadge } from "@/components/app/Badges";
 import { AppHeader, TabLayout } from "@/layouts/AppShell";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
-      { title: "Perfil — Língua STP" },
+      { title: `Perfil — ${APP_NAME}` },
       { name: "description", content: "As tuas estatísticas, sequência e conquistas." },
-      { property: "og:title", content: "Perfil — Língua STP" },
+      { property: "og:title", content: `Perfil — ${APP_NAME}` },
       { property: "og:description", content: "O teu progresso em Forro / Santomé." },
     ],
   }),

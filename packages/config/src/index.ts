@@ -6,7 +6,7 @@
 // =============================================================================
 
 /** Nome e slogan do produto (a única fonte — renomear é mudar aqui). */
-export const APP_NAME = "Língua STP";
+export const APP_NAME = "Fala Neto";
 export const APP_TAGLINE = "Aprende. Joga. Preserva.";
 
 /** Idioma inicial da app (ids definidos em src/mocks/languages.ts). */

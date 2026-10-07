@@ -4,19 +4,19 @@ import { BackButton } from "@/components/app/BackButton";
 import { SoonBadge } from "@/components/app/Badges";
 import { AppButton } from "@/components/app/Buttons";
 import { LoadingState } from "@/components/app/Primitives";
-import { isEnabled } from "@stp/config";
+import { isEnabled, APP_NAME } from "@stp/config";
 import { useTravel } from "@/hooks/use-service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 
 export const Route = createFileRoute("/travel")({
   head: () => ({
     meta: [
-      { title: "Pack Viagem STP — Língua STP" },
+      { title: `Pack Viagem STP — ${APP_NAME}` },
       {
         name: "description",
         content: "Expressões essenciais para visitar São Tomé e Príncipe. Em breve.",
       },
-      { property: "og:title", content: "Pack Viagem STP — Língua STP" },
+      { property: "og:title", content: `Pack Viagem STP — ${APP_NAME}` },
       { property: "og:description", content: "Prepara a tua viagem a São Tomé e Príncipe." },
     ],
   }),

@@ -7,6 +7,7 @@ import { RoomPlayer } from "@/components/app/Cards";
 import { LoadingState, SectionTitle } from "@/components/app/Primitives";
 import { useMe, useRoom } from "@/hooks/use-service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/room")({
   // Legacy prototype screen, superseded by /play/private. Kept (not deleted) but redirected so there is one flow.
@@ -15,9 +16,9 @@ export const Route = createFileRoute("/room")({
   },
   head: () => ({
     meta: [
-      { title: "Sala privada — Língua STP" },
+      { title: `Sala privada — ${APP_NAME}` },
       { name: "description", content: "Partilha o código e joga quizzes com amigos." },
-      { property: "og:title", content: "Sala privada — Língua STP" },
+      { property: "og:title", content: `Sala privada — ${APP_NAME}` },
       { property: "og:description", content: "Junta-te à sala e joga." },
     ],
   }),

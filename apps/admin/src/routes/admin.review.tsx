@@ -5,6 +5,7 @@ import { useAdminDB } from "@/services/admin";
 import type { ContentItem, ContentStatus } from "@/admin/types";
 import { DataTable, Drawer, PageHeader, StatusBadge, type Column } from "@/admin/ui";
 import { KIND_LABEL, contentTitle, contentTranslation, fmtDateTime } from "@/admin/format";
+import { APP_NAME } from "@stp/config";
 
 type S = Extract<ContentStatus, "UNDER_REVIEW" | "APPROVED" | "REJECTED">;
 export const Route = createFileRoute("/admin/review")({
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/admin/review")({
   }),
   head: () => ({
     meta: [
-      { title: "Fila de revisão — Admin Língua STP" },
+      { title: `Fila de revisão — Admin ${APP_NAME}` },
       { name: "description", content: "Rever, aprovar ou rejeitar conteúdo linguístico." },
     ],
   }),

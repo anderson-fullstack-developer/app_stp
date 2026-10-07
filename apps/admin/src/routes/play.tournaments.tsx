@@ -3,16 +3,17 @@ import { BackButton } from "@/components/app/BackButton";
 import { SoonBadge } from "@/components/app/Badges";
 import { AppButton } from "@/components/app/Buttons";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/play/tournaments")({
   head: () => ({
     meta: [
-      { title: "Torneios — Língua STP" },
+      { title: `Torneios — ${APP_NAME}` },
       {
         name: "description",
         content: "Torneios semanais com prémios em XP, moedas e badges. Em breve.",
       },
-      { property: "og:title", content: "Torneios — Língua STP" },
+      { property: "og:title", content: `Torneios — ${APP_NAME}` },
       { property: "og:description", content: "Torneios chegam em breve." },
     ],
   }),

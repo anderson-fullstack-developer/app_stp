@@ -1,4 +1,4 @@
-# Contribuir — Língua STP
+# Contribuir — Fala Neto
 
 Guia curto para quem continua o projeto (developer ou Claude Code). Detalhes em `AGENTS.md`, `docs/PLANO_DE_ENGENHARIA.md` e `docs/HANDOFF.md`.
 

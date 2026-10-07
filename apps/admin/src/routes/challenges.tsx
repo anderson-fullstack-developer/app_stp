@@ -3,19 +3,19 @@ import { useEffect } from "react";
 import { Coins, HeartPulse, KeyRound, Swords, Target, Trophy, Users } from "lucide-react";
 import { AdSlot } from "@/components/app/Ads";
 import { GameModeCard } from "@/components/play/LobbyUI";
-import { isEnabled, MULTIPLAYER_CONFIG } from "@stp/config";
+import { isEnabled, MULTIPLAYER_CONFIG, APP_NAME } from "@stp/config";
 import { AppHeader, TabLayout } from "@/layouts/AppShell";
 import { session } from "@/lib/multiplayer/session-store";
 
 export const Route = createFileRoute("/challenges")({
   head: () => ({
     meta: [
-      { title: "Jogar — Língua STP" },
+      { title: `Jogar — ${APP_NAME}` },
       {
         name: "description",
         content: "Sobrevivência online, duelos 1v1, 2v2, salas privadas e torneios.",
       },
-      { property: "og:title", content: "Jogar — Língua STP" },
+      { property: "og:title", content: `Jogar — ${APP_NAME}` },
       { property: "og:description", content: "Compete com amigos e jogadores de todo o mundo." },
     ],
   }),

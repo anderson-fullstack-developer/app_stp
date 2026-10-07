@@ -17,11 +17,12 @@ import {
 } from "@/admin/ui";
 import { cn } from "@/lib/utils";
 import { adminRewardService } from "@/services/admin";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/daily")({
   head: () => ({
     meta: [
-      { title: "Desafio diário — Admin Língua STP" },
+      { title: `Desafio diário — Admin ${APP_NAME}` },
       { name: "description", content: "Agendar desafios diários com perguntas aprovadas." },
     ],
   }),

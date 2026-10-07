@@ -13,13 +13,14 @@ import { useTranslation } from "react-i18next";
 import { LOCALES } from "@stp/i18n";
 import { useLanguages } from "@/hooks/use-service";
 import { sound } from "@/lib/sound";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Definições — Língua STP" },
+      { title: `Definições — ${APP_NAME}` },
       { name: "description", content: "Conta, idioma, som, notificações e privacidade." },
-      { property: "og:title", content: "Definições — Língua STP" },
+      { property: "og:title", content: `Definições — ${APP_NAME}` },
       { property: "og:description", content: "Personaliza a tua experiência." },
     ],
   }),

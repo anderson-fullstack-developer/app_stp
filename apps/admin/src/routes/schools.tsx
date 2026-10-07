@@ -1,4 +1,4 @@
-import { isFeatureOn } from "@stp/config";
+import { isFeatureOn, APP_NAME } from "@stp/config";
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDown, BarChart3, GraduationCap, School, Users } from "lucide-react";
 import { BackButton } from "@/components/app/BackButton";
@@ -9,9 +9,9 @@ import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 export const Route = createFileRoute("/schools")({
   head: () => ({
     meta: [
-      { title: "Para Escolas — Língua STP" },
+      { title: `Para Escolas — ${APP_NAME}` },
       { name: "description", content: "Professores, turmas e progresso dos alunos. Em breve." },
-      { property: "og:title", content: "Para Escolas — Língua STP" },
+      { property: "og:title", content: `Para Escolas — ${APP_NAME}` },
       { property: "og:description", content: "Leva as línguas de STP para a sala de aula." },
     ],
   }),

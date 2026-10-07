@@ -4,7 +4,7 @@ import { useState } from "react";
 import { BackButton } from "@/components/app/BackButton";
 import { AppButton } from "@/components/app/Buttons";
 import { Modal } from "@/components/app/Primitives";
-import { APP_CONFIG } from "@stp/config";
+import { APP_CONFIG, APP_NAME } from "@stp/config";
 import { usePlans } from "@/hooks/use-service";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
@@ -12,9 +12,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/premium")({
   head: () => ({
     meta: [
-      { title: "Premium — Língua STP" },
+      { title: `Premium — ${APP_NAME}` },
       { name: "description", content: "Sem anúncios, mais exercícios e estatísticas avançadas." },
-      { property: "og:title", content: "Premium — Língua STP" },
+      { property: "og:title", content: `Premium — ${APP_NAME}` },
       { property: "og:description", content: "Aprende ainda mais com Premium." },
     ],
   }),

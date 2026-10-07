@@ -6,6 +6,7 @@ import { Avatar } from "@/components/app/Badges";
 import { AppButton } from "@/components/app/Buttons";
 import { PhoneFrame } from "@/layouts/AppShell";
 import type { AvatarColor } from "@/types";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/elimination")({
   // Legacy prototype screen, superseded by /play/survival. Kept (not deleted) but redirected so there is one flow.
@@ -14,9 +15,9 @@ export const Route = createFileRoute("/elimination")({
   },
   head: () => ({
     meta: [
-      { title: "Modo Eliminação — Língua STP" },
+      { title: `Modo Eliminação — ${APP_NAME}` },
       { name: "description", content: "Erra e és eliminado. O último a resistir ganha." },
-      { property: "og:title", content: "Modo Eliminação — Língua STP" },
+      { property: "og:title", content: `Modo Eliminação — ${APP_NAME}` },
       { property: "og:description", content: "Sobrevive até à final." },
     ],
   }),

@@ -6,11 +6,12 @@ import { useAdminDB } from "@/services/admin";
 import { Btn, Field, PageHeader, Panel, TextInput } from "@/admin/ui";
 import { Switch } from "@/components/ui/switch";
 import { adminRewardService } from "@/services/admin";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/ads")({
   head: () => ({
     meta: [
-      { title: "Anúncios — Admin Língua STP" },
+      { title: `Anúncios — Admin ${APP_NAME}` },
       { name: "description", content: "Locais permitidos para publicidade (futuro AdMob)." },
     ],
   }),

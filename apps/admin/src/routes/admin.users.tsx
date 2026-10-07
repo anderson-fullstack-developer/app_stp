@@ -18,11 +18,12 @@ import {
 } from "@/admin/ui";
 import { adminUserService } from "@/services/admin";
 import { fmtDate } from "@/admin/format";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/users")({
   head: () => ({
     meta: [
-      { title: "Utilizadores — Admin Língua STP" },
+      { title: `Utilizadores — Admin ${APP_NAME}` },
       { name: "description", content: "Gestão e moderação de utilizadores." },
     ],
   }),

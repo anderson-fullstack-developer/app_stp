@@ -5,13 +5,14 @@ import { AppButton } from "@/components/app/Buttons";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
 import { multiplayerService } from "@/services/game.service";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/play/join")({
   head: () => ({
     meta: [
-      { title: "Entrar com código — Língua STP" },
+      { title: `Entrar com código — ${APP_NAME}` },
       { name: "description", content: "Introduz o código da sala para jogar com amigos." },
-      { property: "og:title", content: "Entrar com código — Língua STP" },
+      { property: "og:title", content: `Entrar com código — ${APP_NAME}` },
       { property: "og:description", content: "Junta-te a uma sala privada." },
     ],
   }),

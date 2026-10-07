@@ -505,5 +505,5 @@ O desenvolvimento pode estar pronto e a app continuar vazia. Para evitar isso:
 | D-07 | Exercício de pronúncia (gravação) entra no MVP? | Não; evita pedir permissão de microfone no MVP. |
 | D-08 | Arena entra no MVP ou fica na Fase 2 (como diz a especificação)? | Fase 2; MVP focado em aprender + social básico. |
 | D-09 | Tabela de recompensas definitiva (lições, diário, Arena por posição)? | Definir uma vez em `RewardRule`; valores atuais são provisórios. |
-| D-10 | Nome final da app e `applicationId`? **Atenção (ADR-13): já não pode ser só "STP" — tem de servir vários países.** | Decidir antes da Fase 6 (o `applicationId` é permanente). |
+| D-10 | ~~Nome final da app~~ e `applicationId`? | **Nome decidido (2026-10-07): "Fala Neto"** — junta a mascote Neto (tartaruga marinha de São Tomé e Príncipe e Cabo Verde) com "fala"; na loja com subtítulo, ex.: "Fala Neto: Forro, Kriolu e mais". Pendente: pesquisa de marca (INPI PT/BR — atenção à confusão com "Felipe Neto"/"Nova Fala"), domínio (falaneto.com já registado; .app/.st/.cv aparentemente livres) e `applicationId` (decidir antes da Fase 6, é permanente). O nome vive só em `@stp/config` (`APP_NAME`). |
 | D-11 | Quem são os linguistas (criador + revisor) e quando começam? | Antes do fim da Fase 2. |

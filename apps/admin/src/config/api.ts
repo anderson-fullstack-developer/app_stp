@@ -5,7 +5,7 @@
  */
 const env = import.meta.env as Record<string, string | undefined>;
 
-/** Base URL of the future NestJS API, e.g. https://api.linguastp.st */
+/** Base URL of the future NestJS API, e.g. https://api.falaneto.app */
 export const API_BASE_URL = (env["VITE_API_URL"] ?? "").replace(/\/+$/, "");
 /** Socket.IO server for multiplayer. */
 export const SOCKET_URL = env["VITE_SOCKET_URL"] ?? "";

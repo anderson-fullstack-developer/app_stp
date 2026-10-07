@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useAdminDB } from "@/services/admin";
 import { Btn, PageHeader, Panel, Select, StatusBadge } from "@/admin/ui";
 import { adminCourseService } from "@/services/admin";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/courses")({
   head: () => ({
     meta: [
-      { title: "Estrutura do curso — Admin Língua STP" },
+      { title: `Estrutura do curso — Admin ${APP_NAME}` },
       { name: "description", content: "Editor hierárquico: língua, curso, unidade e lição." },
     ],
   }),

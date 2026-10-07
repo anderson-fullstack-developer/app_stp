@@ -1,4 +1,4 @@
-import { isFeatureOn } from "@stp/config";
+import { isFeatureOn, APP_NAME } from "@stp/config";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -27,7 +27,7 @@ import { fmtDate } from "@/admin/format";
 export const Route = createFileRoute("/admin/exercises")({
   head: () => ({
     meta: [
-      { title: "Exercícios — Admin Língua STP" },
+      { title: `Exercícios — Admin ${APP_NAME}` },
       { name: "description", content: "Editor de exercícios e sugestões de quiz com IA." },
     ],
   }),

@@ -11,7 +11,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { z } from "zod";
-import { APP_CONFIG } from "@stp/config";
+import { APP_CONFIG, APP_NAME } from "@stp/config";
 import { useBlockAds } from "@/config/ads";
 import { Neto } from "@/components/app/Neto";
 import { BackButton } from "@/components/app/BackButton";
@@ -39,7 +39,7 @@ import { sound } from "@/lib/sound";
  */
 export const Route = createFileRoute("/practice/kriolu")({
   validateSearch: (s) => z.object({ lesson: z.string().optional().catch(undefined) }).parse(s),
-  head: () => ({ meta: [{ title: "Kriolu (Beta) — Língua STP" }] }),
+  head: () => ({ meta: [{ title: `Kriolu (Beta) — ${APP_NAME}` }] }),
   component: KrioluLesson,
 });
 

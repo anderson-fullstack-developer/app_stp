@@ -15,11 +15,12 @@ import {
   TextInput,
 } from "@/admin/ui";
 import { adminLessonService } from "@/services/admin";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/lessons/$lessonId")({
   head: () => ({
     meta: [
-      { title: "Editor de lição — Admin Língua STP" },
+      { title: `Editor de lição — Admin ${APP_NAME}` },
       { name: "description", content: "Editar lição e exercícios associados." },
     ],
   }),

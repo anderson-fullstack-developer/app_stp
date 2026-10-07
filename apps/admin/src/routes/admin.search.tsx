@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useAdminDB } from "@/services/admin";
 import { PageHeader, Panel, StatusBadge } from "@/admin/ui";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/search")({
   validateSearch: (s: Record<string, unknown>): { q: string } => ({
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/admin/search")({
   }),
   head: () => ({
     meta: [
-      { title: "Pesquisa — Admin Língua STP" },
+      { title: `Pesquisa — Admin ${APP_NAME}` },
       { name: "description", content: "Pesquisa global no painel." },
     ],
   }),

@@ -5,11 +5,12 @@ import { adminAuth, resetDB, useAdminDB } from "@/services/admin";
 import type { RewardRules } from "@/admin/types";
 import { Btn, Field, PageHeader, Panel, TextInput } from "@/admin/ui";
 import { adminRewardService } from "@/services/admin";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/settings")({
   head: () => ({
     meta: [
-      { title: "Regras e recompensas — Admin Língua STP" },
+      { title: `Regras e recompensas — Admin ${APP_NAME}` },
       { name: "description", content: "Configuração de XP, moedas, vidas e tempos." },
     ],
   }),

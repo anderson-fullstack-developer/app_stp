@@ -7,16 +7,17 @@ import { LoadingState, Tabs } from "@/components/app/Primitives";
 import { useLeague, useRanking } from "@/hooks/use-service";
 import { AppHeader, TabLayout } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/ranking")({
   head: () => ({
     meta: [
-      { title: "Ranking — Língua STP" },
+      { title: `Ranking — ${APP_NAME}` },
       {
         name: "description",
         content: "Rankings de amigos, semanal, global e por país, com ligas.",
       },
-      { property: "og:title", content: "Ranking — Língua STP" },
+      { property: "og:title", content: `Ranking — ${APP_NAME}` },
       { property: "og:description", content: "Sobe de liga e chega ao topo." },
     ],
   }),

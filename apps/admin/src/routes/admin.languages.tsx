@@ -15,11 +15,12 @@ import {
   TextInput,
 } from "@/admin/ui";
 import { adminLanguageService } from "@/services/admin";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/languages")({
   head: () => ({
     meta: [
-      { title: "Línguas — Admin Língua STP" },
+      { title: `Línguas — Admin ${APP_NAME}` },
       { name: "description", content: "Gestão das línguas ensinadas na app." },
     ],
   }),

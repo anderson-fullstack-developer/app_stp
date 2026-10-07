@@ -4,7 +4,7 @@ import { z } from "zod";
 import { AppButton } from "@/components/app/Buttons";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { formatDuration } from "@/utils/format";
-import { APP_CONFIG } from "@stp/config";
+import { APP_CONFIG, APP_NAME } from "@stp/config";
 import { game, useGame } from "@/hooks/use-game";
 import { AdSlot } from "@/components/app/Ads";
 import { useEffect } from "react";
@@ -23,9 +23,9 @@ export const Route = createFileRoute("/lesson-result")({
       .parse(s),
   head: () => ({
     meta: [
-      { title: "Lição concluída — Língua STP" },
+      { title: `Lição concluída — ${APP_NAME}` },
       { name: "description", content: "Vê o teu XP, moedas, precisão e sequência." },
-      { property: "og:title", content: "Lição concluída — Língua STP" },
+      { property: "og:title", content: `Lição concluída — ${APP_NAME}` },
       { property: "og:description", content: "Mais uma lição concluída!" },
     ],
   }),

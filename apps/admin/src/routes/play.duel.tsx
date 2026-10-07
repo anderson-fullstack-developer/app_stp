@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ScoreMatch, type ScoreTeam } from "@/components/play/ScoreMatch";
-import { MULTIPLAYER_CONFIG } from "@stp/config";
+import { MULTIPLAYER_CONFIG, APP_NAME } from "@stp/config";
 import { listOpponents, opponentSkill } from "@/services/game.service";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { mePlayer } from "@/services/game.service";
@@ -9,9 +9,9 @@ import { mePlayer } from "@/services/game.service";
 export const Route = createFileRoute("/play/duel")({
   head: () => ({
     meta: [
-      { title: "Duelo 1v1 — Língua STP" },
+      { title: `Duelo 1v1 — ${APP_NAME}` },
       { name: "description", content: "Duelo de 10 perguntas: pontos por acerto e velocidade." },
-      { property: "og:title", content: "Duelo 1v1 — Língua STP" },
+      { property: "og:title", content: `Duelo 1v1 — ${APP_NAME}` },
       { property: "og:description", content: "Quem responde melhor e mais rápido?" },
     ],
   }),

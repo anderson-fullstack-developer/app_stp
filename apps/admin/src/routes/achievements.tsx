@@ -4,13 +4,14 @@ import { AchievementBadge } from "@/components/app/Cards";
 import { LoadingState } from "@/components/app/Primitives";
 import { useAchievements } from "@/hooks/use-service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/achievements")({
   head: () => ({
     meta: [
-      { title: "Conquistas — Língua STP" },
+      { title: `Conquistas — ${APP_NAME}` },
       { name: "description", content: "Todas as medalhas que podes desbloquear." },
-      { property: "og:title", content: "Conquistas — Língua STP" },
+      { property: "og:title", content: `Conquistas — ${APP_NAME}` },
       { property: "og:description", content: "Desbloqueia medalhas ao aprender." },
     ],
   }),
