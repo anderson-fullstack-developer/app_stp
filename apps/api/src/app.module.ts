@@ -3,6 +3,10 @@ import { APP_FILTER, APP_GUARD } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { LoggerModule } from "nestjs-pino";
 import { ClerkService } from "./auth/clerk.service.js";
+import { ReviewController } from "./content/review.controller.js";
+import { ReviewService } from "./content/review.service.js";
+import { CoursesController } from "./courses/courses.controller.js";
+import { CoursesService } from "./courses/courses.service.js";
 import { AllExceptionsFilter } from "./common/all-exceptions.filter.js";
 import { ENV, type Env } from "./config/env.js";
 import { DatabaseModule } from "./database/database.module.js";
@@ -39,13 +43,22 @@ export class AppModule {
         ThrottlerModule.forRoot([{ ttl: 60_000, limit: env.RATE_LIMIT_PER_MINUTE }]),
         DatabaseModule,
       ],
-      controllers: [HealthController, LanguagesController, MeController, ClerkWebhookController],
+      controllers: [
+        HealthController,
+        LanguagesController,
+        MeController,
+        ClerkWebhookController,
+        CoursesController,
+        ReviewController,
+      ],
       providers: [
         { provide: ENV, useValue: env },
         LanguagesService,
         UsersService,
         ClerkService,
         ProgressService,
+        CoursesService,
+        ReviewService,
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_FILTER, useClass: AllExceptionsFilter },
       ],

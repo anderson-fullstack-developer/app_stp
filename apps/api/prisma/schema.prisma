@@ -197,6 +197,7 @@ model User {
   createdExercises Exercise[]        @relation("ExerciseCreatedBy")
   reviewedExercise Exercise[]        @relation("ExerciseReviewedBy")
   createdLessons   Lesson[]          @relation("LessonCreatedBy")
+  reviewedLessons  Lesson[]          @relation("LessonReviewedBy")
   createdAudio     AudioAsset[]      @relation("AudioCreatedBy")
   stats            UserStats?
   xpEvents         XpEvent[]
@@ -252,6 +253,8 @@ model Source {
 
 model Course {
   id          String        @id @default(uuid(7)) @db.Uuid
+  /// Identificador estável (ex.: "kriolu-beta") para o seed e links.
+  slug        String?       @unique
   languageId  String
   title       String
   description String?
@@ -268,6 +271,9 @@ model Course {
 
 model Unit {
   id          String        @id @default(uuid(7)) @db.Uuid
+  /// Identificador estável no curso (ex.: tema "numbers"); o título vem das traduções da interface.
+  slug        String?
+  icon        String?
   courseId    String        @db.Uuid
   title       String
   description String?
@@ -278,12 +284,15 @@ model Unit {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
+  @@unique([courseId, slug])
   @@index([courseId, order])
   @@map("units")
 }
 
 model Lesson {
   id               String           @id @default(uuid(7)) @db.Uuid
+  /// Identificador estável (ex.: "numbers-1").
+  slug             String?
   unitId           String           @db.Uuid
   title            String
   description      String?
@@ -291,15 +300,20 @@ model Lesson {
   difficulty       Difficulty       @default(EASY)
   estimatedMinutes Int              @default(5)
   status           ContentStatus    @default(DRAFT)
+  version          Int              @default(1)
   createdById      String           @db.Uuid
+  reviewedById     String?          @db.Uuid
+  approvedAt       DateTime?
   unit             Unit             @relation(fields: [unitId], references: [id], onDelete: Cascade)
   createdBy        User             @relation("LessonCreatedBy", fields: [createdById], references: [id])
+  reviewedBy       User?            @relation("LessonReviewedBy", fields: [reviewedById], references: [id])
   exercises        Exercise[]
   progress         LessonProgress[]
   attempts         LessonAttempt[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
+  @@unique([unitId, slug])
   @@index([unitId, order])
   @@index([status])
   @@map("lessons")
@@ -309,6 +323,8 @@ model Exercise {
   id           String                @id @default(uuid(7)) @db.Uuid
   languageId   String
   lessonId     String?               @db.Uuid
+  /// Palavra que o exercício pratica (exercícios de vocabulário).
+  vocabularyId String?               @db.Uuid
   type         ExerciseType
   prompt       String
   /// Dados específicos do tipo (pares, palavras a ordenar, ids de áudio…).
@@ -325,6 +341,7 @@ model Exercise {
   approvedAt   DateTime?
   language     Language              @relation(fields: [languageId], references: [id])
   lesson       Lesson?               @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  vocabulary   Vocabulary?           @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
   createdBy    User                  @relation("ExerciseCreatedBy", fields: [createdById], references: [id])
   reviewedBy   User?                 @relation("ExerciseReviewedBy", fields: [reviewedById], references: [id])
   options      ExerciseOption[]
@@ -334,6 +351,7 @@ model Exercise {
 
   @@index([languageId, status])
   @@index([lessonId, order])
+  @@index([vocabularyId])
   @@map("exercises")
 }
 
@@ -378,6 +396,7 @@ model Vocabulary {
   createdBy    User                    @relation("VocabCreatedBy", fields: [createdById], references: [id])
   reviewedBy   User?                   @relation("VocabReviewedBy", fields: [reviewedById], references: [id])
   translations VocabularyTranslation[]
+  exercises    Exercise[]
   createdAt    DateTime                @default(now())
   updatedAt    DateTime                @updatedAt
 

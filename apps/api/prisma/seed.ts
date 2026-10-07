@@ -14,6 +14,7 @@ import { fileURLToPath } from "node:url";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { type PartOfSpeech, PrismaClient } from "../src/generated/prisma/client.js";
 import { DEFAULT_REWARD_RULES } from "../src/progress/rules/rewards.js";
+import { buildThemedCourse, type ThemeDef } from "../src/courses/course-builder.js";
 
 const url = process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"];
 if (!url) throw new Error("Defina DATABASE_URL/DIRECT_URL no apps/api/.env");
@@ -261,6 +262,89 @@ async function main() {
   }
   console.log(`  gravações: ${recordings.length}; palavras com áudio ligado agora: ${linked}`);
 
+  // Curso de Kriolu (Beta, ADR-14): temas → lições → um exercício por palavra.
+  // Idempotente: só cria o que falta; nunca apaga lições nem exercícios existentes.
+  const themesFile = JSON.parse(
+    readFileSync(join(root, "content", "courses", "kabuverdianu", "themes.json"), "utf8"),
+  ) as { wordsPerLesson: number; themes: ThemeDef[] };
+  const keaVocab = await prisma.vocabulary.findMany({
+    where: { languageId: "kabuverdianu" },
+    select: {
+      id: true,
+      word: true,
+      partOfSpeech: true,
+      translations: { where: { locale: "en" }, select: { text: true }, take: 1 },
+    },
+  });
+  const wordOf = new Map(keaVocab.map((w) => [w.id, w.word]));
+  const units = buildThemedCourse(
+    keaVocab.flatMap((w) =>
+      w.translations[0]
+        ? [
+            {
+              id: w.id,
+              word: w.word,
+              partOfSpeech: w.partOfSpeech,
+              glossEn: w.translations[0].text,
+            },
+          ]
+        : [],
+    ),
+    themesFile.themes,
+    themesFile.wordsPerLesson,
+  );
+  const course = await prisma.course.upsert({
+    where: { slug: "kriolu-beta" },
+    create: {
+      slug: "kriolu-beta",
+      languageId: "kabuverdianu",
+      title: "Kriolu (Beta)",
+      description: "Curso por temas a partir do Wiktionary — em revisão por falantes nativos.",
+    },
+    update: {},
+  });
+  let newExercises = 0;
+  for (const u of units) {
+    const unit = await prisma.unit.upsert({
+      where: { courseId_slug: { courseId: course.id, slug: u.slug } },
+      create: { courseId: course.id, slug: u.slug, icon: u.icon, title: u.slug, order: u.order },
+      update: { icon: u.icon, order: u.order },
+    });
+    for (const l of u.lessons) {
+      const lesson = await prisma.lesson.upsert({
+        where: { unitId_slug: { unitId: unit.id, slug: l.slug } },
+        create: {
+          unitId: unit.id,
+          slug: l.slug,
+          title: l.slug,
+          order: l.index,
+          estimatedMinutes: 3,
+          createdById: system.id,
+        },
+        update: {},
+        select: { id: true, _count: { select: { exercises: true } } },
+      });
+      if (lesson._count.exercises > 0) continue;
+      const created = await prisma.exercise.createMany({
+        data: l.vocabularyIds.map((vocabularyId, order) => ({
+          languageId: "kabuverdianu",
+          lessonId: lesson.id,
+          vocabularyId,
+          type: "MULTIPLE_CHOICE" as const,
+          prompt: wordOf.get(vocabularyId) ?? "",
+          // O servidor gera as opções no idioma de quem joga a partir desta palavra.
+          payload: { kind: "vocab-meaning", vocabularyId },
+          order,
+          createdById: system.id,
+        })),
+      });
+      newExercises += created.count;
+    }
+  }
+  console.log(
+    `  curso Kriolu: ${units.length} unidades, ${units.reduce((n, u) => n + u.lessons.length, 0)} lições; exercícios novos: ${newExercises}`,
+  );
+
   // Regras de recompensa: só cria as que faltam (não apaga ajustes feitos no admin).
   const rules = await prisma.rewardRule.createMany({
     data: DEFAULT_REWARD_RULES.map((r) => ({ ...r })),
@@ -289,6 +373,8 @@ async function main() {
     áudios: await prisma.audioAsset.count(),
     palavrasComÁudio: await prisma.vocabulary.count({ where: { audioId: { not: null } } }),
     regrasDeRecompensa: await prisma.rewardRule.count(),
+    lições: await prisma.lesson.count(),
+    exercícios: await prisma.exercise.count(),
   };
   console.log("Seed concluído:", counts);
 }
