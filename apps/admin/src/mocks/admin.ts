@@ -26,6 +26,7 @@ import type {
   VocabItem,
 } from "@/admin/types";
 import { languageMeta, languages as baseLanguages } from "./languages";
+import { keaWiktionaryDrafts } from "./kea-wiktionary";
 import { LETTERS, ph } from "./questions";
 import { currentUser, people } from "./users";
 
@@ -406,7 +407,8 @@ export function createSeed() {
     units,
     lessons,
     audios,
-    vocabulary,
+    // Rascunhos importados do Wiktionary (Kabuverdianu) — DRAFT, à espera de revisão.
+    vocabulary: [...vocabulary, ...keaWiktionaryDrafts("2026-10-07T00:00:00.000Z")],
     phrases,
     exercises,
     users,
