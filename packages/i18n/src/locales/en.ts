@@ -131,6 +131,8 @@ export const en: Messages = {
     lessonsDone: "{{done}}/{{total}} lessons",
     lessonDone: "Lesson complete!",
     learningLabel: "Learning",
+    listen: "Listen to pronunciation",
+    voice: "Voice: {{name}} (Lingua Libre)",
     themes: {
       numbers: "Numbers",
       time: "Days and months",

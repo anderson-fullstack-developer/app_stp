@@ -1,5 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, ExternalLink, Flag, FlaskConical, RotateCcw, XCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  ExternalLink,
+  Flag,
+  FlaskConical,
+  RotateCcw,
+  Volume2,
+  XCircle,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -16,6 +24,8 @@ import {
   krioluPtSuggestions,
   useKrioluCourse,
   useMeaningLocale,
+  krioluAudio,
+  playPronunciation,
 } from "@/hooks/use-kriolu";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { buildKrioluLessonQuiz } from "@/lib/kriolu-course";
@@ -151,6 +161,8 @@ function KrioluLesson() {
     .filter(Boolean)
     .join(" · ");
   const word = q.mode === "meaning" ? q.target : q.options[q.correctIndex]!;
+  // Gravação real de falante nativa (Lingua Libre), quando existe para esta palavra.
+  const pronunciation = krioluAudio.get(word);
 
   return (
     <PhoneFrame>
@@ -176,6 +188,15 @@ function KrioluLesson() {
           />
         </h1>
         <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+        {q.mode === "meaning" && pronunciation && (
+          <ListenButton
+            label={t("kriolu.listen")}
+            credit={
+              pronunciation.speaker ? t("kriolu.voice", { name: pronunciation.speaker }) : null
+            }
+            onPlay={() => playPronunciation(pronunciation)}
+          />
+        )}
       </div>
 
       <div key={q.id} className="animate-rise flex-1 space-y-3 px-5 pb-48 pt-5">
@@ -227,6 +248,15 @@ function KrioluLesson() {
                 {t("preview.answer")} <span className="font-bold">{q.options[q.correctIndex]}</span>
               </p>
             )}
+            {pronunciation && (
+              <ListenButton
+                label={`${t("kriolu.listen")} · «${word}»`}
+                credit={
+                  pronunciation.speaker ? t("kriolu.voice", { name: pronunciation.speaker }) : null
+                }
+                onPlay={() => playPronunciation(pronunciation)}
+              />
+            )}
             <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-muted-foreground">
               <a
                 href={q.sourceUrl}
@@ -264,5 +294,30 @@ function KrioluLesson() {
         </AppButton>
       </BottomSheet>
     </PhoneFrame>
+  );
+}
+
+/** Botão para ouvir a pronúncia gravada por uma falante nativa, com o crédito da voz. */
+function ListenButton({
+  label,
+  credit,
+  onPlay,
+}: {
+  label: string;
+  credit: string | null;
+  onPlay: () => void;
+}) {
+  return (
+    <div className="mt-3 flex items-center gap-3">
+      <button
+        type="button"
+        onClick={onPlay}
+        className="pressable inline-flex items-center gap-2 rounded-full bg-ocean px-3.5 py-2 text-sm font-semibold text-ocean-foreground shadow-card"
+      >
+        <Volume2 className="size-4" />
+        {label}
+      </button>
+      {credit && <span className="text-[11px] text-muted-foreground">{credit}</span>}
+    </div>
   );
 }

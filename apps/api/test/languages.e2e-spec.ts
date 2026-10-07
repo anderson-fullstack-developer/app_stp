@@ -75,4 +75,19 @@ describe.skipIf(!dbUrl)("Línguas e vocabulário (e2e, base de dados real)", () 
       .expect(400);
     expect(bad.body.code).toBe("VALIDATION_FAILED");
   });
+
+  it("devolve a gravação da falante quando a palavra tem áudio (Lingua Libre)", async () => {
+    let cursor: string | null = null;
+    let withAudio: { word: string; audio: { url: string; speaker: string } } | undefined;
+    for (let page = 0; page < 30 && !withAudio; page++) {
+      const res: request.Response = await request(app.getHttpServer())
+        .get(`/api/v1/languages/kabuverdianu/vocabulary?take=100${cursor ? `&cursor=${cursor}` : ""}`)
+        .expect(200);
+      withAudio = res.body.items.find((i: { audio: unknown }) => i.audio);
+      cursor = res.body.nextCursor;
+      if (!cursor) break;
+    }
+    expect(withAudio?.audio.url.startsWith("https://upload.wikimedia.org/")).toBe(true);
+    expect(withAudio?.audio.speaker).toBeTruthy();
+  });
 });

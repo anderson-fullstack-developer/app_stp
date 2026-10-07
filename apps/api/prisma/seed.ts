@@ -199,6 +199,67 @@ async function main() {
   });
   console.log(`  traduções novas: ${tInserted.count} (de ${translations.length})`);
 
+  // Gravações de pronúncia de falantes nativas (Lingua Libre, CC0) — ligadas às palavras.
+  const llSource = await prisma.source.upsert({
+    where: { name: "Lingua Libre — Kabuverdianu" },
+    update: {},
+    create: {
+      name: "Lingua Libre — Kabuverdianu",
+      url: "https://commons.wikimedia.org/wiki/Category:Lingua_Libre_pronunciation-kea",
+      license: "CC0 1.0",
+      licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
+      attribution:
+        "Falantes: Rosa Lima, Rosa Pimenta Lima, Rosangela Delgado, Lenilda (Lingua Libre)",
+      notes:
+        "Importado com scripts/import-lingua-libre-kea.mjs. Ficheiros no Wikimedia Commons; copiar para R2 em produção.",
+    },
+  });
+  const llDir = join(root, "content", "sources", "lingua-libre-kea");
+  const recordings = (
+    JSON.parse(readFileSync(join(llDir, "recordings.json"), "utf8")) as {
+      recordings: {
+        word: string;
+        speaker: string | null;
+        url: string;
+        commonsPage: string;
+        mimeType: string;
+      }[];
+    }
+  ).recordings;
+  await prisma.audioAsset.createMany({
+    skipDuplicates: true,
+    data: recordings.map((r) => ({
+      languageId: "kabuverdianu",
+      storageKey: `commons:${decodeURIComponent(r.url.split("/").pop() ?? r.word)}`,
+      url: r.url,
+      mimeType: r.mimeType,
+      speakerName: r.speaker,
+      region: "Cabo Verde",
+      // Publicado pelas próprias falantes em domínio público através do Lingua Libre.
+      consentRecorded: true,
+      sourceId: llSource.id,
+      sourceRef: r.commonsPage,
+      status: "DRAFT" as const,
+      createdById: system.id,
+    })),
+  });
+  const audio = await prisma.audioAsset.findMany({
+    where: { sourceId: llSource.id },
+    select: { id: true, sourceRef: true },
+  });
+  const audioIdByPage = new Map(audio.map((a) => [a.sourceRef, a.id]));
+  let linked = 0;
+  for (const r of recordings) {
+    const audioId = audioIdByPage.get(r.commonsPage);
+    if (!audioId) continue;
+    const res = await prisma.vocabulary.updateMany({
+      where: { languageId: "kabuverdianu", word: r.word, audioId: null },
+      data: { audioId },
+    });
+    linked += res.count;
+  }
+  console.log(`  gravações: ${recordings.length}; palavras com áudio ligado agora: ${linked}`);
+
   const counts = {
     países: await prisma.country.count(),
     línguas: await prisma.language.count(),
@@ -206,6 +267,8 @@ async function main() {
     vocabulário: await prisma.vocabulary.count(),
     traduções: await prisma.vocabularyTranslation.count(),
     aprovados: await prisma.vocabulary.count({ where: { status: "APPROVED" } }),
+    áudios: await prisma.audioAsset.count(),
+    palavrasComÁudio: await prisma.vocabulary.count({ where: { audioId: { not: null } } }),
   };
   console.log("Seed concluído:", counts);
 }

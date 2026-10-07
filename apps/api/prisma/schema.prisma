@@ -185,19 +185,19 @@ model User {
   updatedAt          DateTime      @updatedAt
   deletedAt          DateTime?
 
-  learningLanguage Language?        @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
-  roles            UserRole[]       @relation("RoleHolder")
-  rolesGranted     UserRole[]       @relation("RoleGranter")
+  learningLanguage Language?       @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
+  roles            UserRole[]      @relation("RoleHolder")
+  rolesGranted     UserRole[]      @relation("RoleGranter")
   reviews          ContentReview[]
   auditLogs        AdminAuditLog[]
-  createdVocab     Vocabulary[]     @relation("VocabCreatedBy")
-  reviewedVocab    Vocabulary[]     @relation("VocabReviewedBy")
-  createdPhrases   Phrase[]         @relation("PhraseCreatedBy")
-  reviewedPhrases  Phrase[]         @relation("PhraseReviewedBy")
-  createdExercises Exercise[]       @relation("ExerciseCreatedBy")
-  reviewedExercise Exercise[]       @relation("ExerciseReviewedBy")
-  createdLessons   Lesson[]         @relation("LessonCreatedBy")
-  createdAudio     AudioAsset[]     @relation("AudioCreatedBy")
+  createdVocab     Vocabulary[]    @relation("VocabCreatedBy")
+  reviewedVocab    Vocabulary[]    @relation("VocabReviewedBy")
+  createdPhrases   Phrase[]        @relation("PhraseCreatedBy")
+  reviewedPhrases  Phrase[]        @relation("PhraseReviewedBy")
+  createdExercises Exercise[]      @relation("ExerciseCreatedBy")
+  reviewedExercise Exercise[]      @relation("ExerciseReviewedBy")
+  createdLessons   Lesson[]        @relation("LessonCreatedBy")
+  createdAudio     AudioAsset[]    @relation("AudioCreatedBy")
 
   @@index([status])
   @@map("users")
@@ -235,6 +235,7 @@ model Source {
   notes       String?
   vocabulary  Vocabulary[]
   phrases     Phrase[]
+  audio       AudioAsset[]
   createdAt   DateTime     @default(now())
 
   @@map("sources")
@@ -453,11 +454,15 @@ model AudioAsset {
   speakerName     String?
   region          String?
   consentRecorded Boolean          @default(false)
+  /// Origem e licença da gravação (ex.: Lingua Libre, CC0) — obrigatório para conteúdo externo.
+  sourceId        String?          @db.Uuid
+  sourceRef       String?
   status          ContentStatus    @default(DRAFT)
   createdById     String           @db.Uuid
   language        Language         @relation(fields: [languageId], references: [id])
   variant         LanguageVariant? @relation(fields: [variantId], references: [id])
   createdBy       User             @relation("AudioCreatedBy", fields: [createdById], references: [id])
+  source          Source?          @relation(fields: [sourceId], references: [id])
   vocabulary      Vocabulary[]
   phrases         Phrase[]
   createdAt       DateTime         @default(now())
