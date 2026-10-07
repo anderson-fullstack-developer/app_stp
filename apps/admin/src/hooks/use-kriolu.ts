@@ -2,11 +2,32 @@ import { useMemo, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import data from "@content/sources/wiktionary-kea/entries.json";
 import ptSuggestions from "@content/sources/wiktionary-kea/pt-suggestions.json";
+import recordings from "@content/sources/lingua-libre-kea/recordings.json";
+import { settings } from "@/hooks/use-settings";
 import { buildKrioluCourse, type KrioluUnit } from "@/lib/kriolu-course";
 import type { MeaningLocale, SourceEntry } from "@/lib/preview-quiz";
 
 export const krioluEntries = data.entries as SourceEntry[];
 export const krioluPtSuggestions = ptSuggestions.translations as Record<string, string>;
+
+/** Gravação de pronúncia por falante nativa (Lingua Libre, CC0), por palavra. */
+export interface Pronunciation {
+  url: string;
+  speaker: string | null;
+}
+export const krioluAudio = new Map<string, Pronunciation>(
+  (recordings.recordings as { word: string; url: string; speaker: string | null }[]).map((r) => [
+    r.word,
+    { url: r.url, speaker: r.speaker },
+  ]),
+);
+
+/** Toca a pronúncia (respeita o interruptor geral "Som" das Definições). */
+export function playPronunciation(p: Pronunciation) {
+  if (typeof window === "undefined" || !settings.get().sound) return;
+  const el = new Audio(p.url);
+  void el.play().catch(() => {});
+}
 
 /** Idioma dos significados: o da interface (português ou inglês). */
 export function useMeaningLocale(): MeaningLocale {

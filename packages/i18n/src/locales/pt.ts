@@ -133,6 +133,8 @@ export const pt = {
     lessonsDone: "{{done}}/{{total}} lições",
     lessonDone: "Lição concluída!",
     learningLabel: "A aprender",
+    listen: "Ouvir pronúncia",
+    voice: "Voz: {{name}} (Lingua Libre)",
     themes: {
       numbers: "Números",
       time: "Dias e meses",

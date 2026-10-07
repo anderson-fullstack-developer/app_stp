@@ -5,6 +5,7 @@ Dados linguísticos de **origem externa**, guardados com a fonte, a licença e o
 | Pasta | Língua | Fonte | Licença | Estado |
 |---|---|---|---|---|
 | `sources/wiktionary-kea/` | Kabuverdianu (Cabo Verde) | Wiktionary (en) + sugestões PT automáticas | CC BY-SA 4.0 | DRAFT — por rever |
+| `sources/lingua-libre-kea/` | Kabuverdianu (Cabo Verde) | Lingua Libre — 28 gravações de 4 falantes nativas | CC0 | Ligadas a 16 palavras |
 
 Regras:
 1. Cada fonte tem um `ATTRIBUTION.md` (origem, autores, licença, alterações).

@@ -66,6 +66,7 @@ export class LanguagesService {
         status: true,
         variant: { select: { name: true } },
         sourceRef: true,
+        audio: { select: { url: true, speakerName: true, sourceRef: true } },
         translations: {
           where: { locale: { in: [q.locale, "en"] } },
           select: { locale: true, text: true, isSuggestion: true },
@@ -87,6 +88,9 @@ export class LanguagesService {
           meaning: tr ? { locale: tr.locale, text: tr.text, isSuggestion: tr.isSuggestion } : null,
           reviewed: v.status === "APPROVED",
           sourceUrl: v.sourceRef,
+          audio: v.audio
+            ? { url: v.audio.url, speaker: v.audio.speakerName, sourceUrl: v.audio.sourceRef }
+            : null,
         };
       }),
       nextCursor: items.length > q.take ? (page[page.length - 1]?.id ?? null) : null,
