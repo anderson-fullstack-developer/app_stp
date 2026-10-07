@@ -29,14 +29,35 @@ export const envSchema = z
     APP_VERSION: z.preprocess(emptyToUndefined, z.string().optional()),
     /** Neon com pooling (runtime). Obrigatória em staging e produção. */
     DATABASE_URL: z.preprocess(emptyToUndefined, z.string().startsWith("postgres").optional()),
+    /** Chave secreta do Clerk (só no servidor): valida sessões e lê utilizadores. */
+    CLERK_SECRET_KEY: z.preprocess(emptyToUndefined, z.string().startsWith("sk_").optional()),
+    /** Segredo de assinatura do webhook do Clerk (Standard Webhooks). */
+    CLERK_WEBHOOK_SIGNING_SECRET: z.preprocess(
+      emptyToUndefined,
+      z.string().startsWith("whsec_").optional(),
+    ),
+    /** Origens cujos tokens de sessão aceitamos (claim azp), separadas por vírgula. */
+    CLERK_AUTHORIZED_PARTIES: z
+      .string()
+      .default("http://localhost:8080")
+      .transform((s) =>
+        s
+          .split(",")
+          .map((o) => o.trim())
+          .filter(Boolean),
+      )
+      .pipe(z.array(z.url())),
   })
   .superRefine((env, ctx) => {
-    if ((env.NODE_ENV === "staging" || env.NODE_ENV === "production") && !env.DATABASE_URL) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["DATABASE_URL"],
-        message: "obrigatória em staging/produção",
-      });
+    if (env.NODE_ENV !== "staging" && env.NODE_ENV !== "production") return;
+    for (const key of [
+      "DATABASE_URL",
+      "CLERK_SECRET_KEY",
+      "CLERK_WEBHOOK_SIGNING_SECRET",
+    ] as const) {
+      if (!env[key]) {
+        ctx.addIssue({ code: "custom", path: [key], message: "obrigatória em staging/produção" });
+      }
     }
   });
 

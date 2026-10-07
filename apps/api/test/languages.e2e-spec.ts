@@ -81,7 +81,9 @@ describe.skipIf(!dbUrl)("Línguas e vocabulário (e2e, base de dados real)", () 
     let withAudio: { word: string; audio: { url: string; speaker: string } } | undefined;
     for (let page = 0; page < 30 && !withAudio; page++) {
       const res: request.Response = await request(app.getHttpServer())
-        .get(`/api/v1/languages/kabuverdianu/vocabulary?take=100${cursor ? `&cursor=${cursor}` : ""}`)
+        .get(
+          `/api/v1/languages/kabuverdianu/vocabulary?take=100${cursor ? `&cursor=${cursor}` : ""}`,
+        )
         .expect(200);
       withAudio = res.body.items.find((i: { audio: unknown }) => i.audio);
       cursor = res.body.nextCursor;

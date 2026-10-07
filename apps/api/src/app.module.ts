@@ -2,12 +2,16 @@ import { type DynamicModule, Module } from "@nestjs/common";
 import { APP_FILTER, APP_GUARD } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { LoggerModule } from "nestjs-pino";
+import { ClerkService } from "./auth/clerk.service.js";
 import { AllExceptionsFilter } from "./common/all-exceptions.filter.js";
 import { ENV, type Env } from "./config/env.js";
 import { DatabaseModule } from "./database/database.module.js";
 import { HealthController } from "./health/health.controller.js";
 import { LanguagesController } from "./languages/languages.controller.js";
 import { LanguagesService } from "./languages/languages.service.js";
+import { MeController } from "./users/me.controller.js";
+import { UsersService } from "./users/users.service.js";
+import { ClerkWebhookController } from "./webhooks/clerk-webhook.controller.js";
 
 /**
  * Módulo raiz. Recebe a configuração já validada (main.ts ou testes), para que cada
@@ -34,10 +38,12 @@ export class AppModule {
         ThrottlerModule.forRoot([{ ttl: 60_000, limit: env.RATE_LIMIT_PER_MINUTE }]),
         DatabaseModule,
       ],
-      controllers: [HealthController, LanguagesController],
+      controllers: [HealthController, LanguagesController, MeController, ClerkWebhookController],
       providers: [
         { provide: ENV, useValue: env },
         LanguagesService,
+        UsersService,
+        ClerkService,
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_FILTER, useClass: AllExceptionsFilter },
       ],

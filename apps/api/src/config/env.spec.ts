@@ -35,4 +35,11 @@ describe("loadEnv", () => {
     expect(() => loadEnv({ NODE_ENV: "staging" })).toThrow(/DATABASE_URL/);
     expect(loadEnv({ NODE_ENV: "development" }).DATABASE_URL).toBeUndefined();
   });
+
+  it("exige as chaves do Clerk em produção e valida o formato", () => {
+    const db = { DATABASE_URL: "postgresql://x" };
+    expect(() => loadEnv({ NODE_ENV: "production", ...db })).toThrow(/CLERK_SECRET_KEY/);
+    expect(() => loadEnv({ CLERK_SECRET_KEY: "pk_test_errada" })).toThrow(/CLERK_SECRET_KEY/);
+    expect(loadEnv({}).CLERK_AUTHORIZED_PARTIES).toEqual(["http://localhost:8080"]);
+  });
 });

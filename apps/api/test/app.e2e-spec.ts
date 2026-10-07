@@ -81,6 +81,8 @@ describe("API (e2e) — limites", () => {
       NODE_ENV: "production",
       // URL fictício: a base de dados nunca é contactada neste teste.
       DATABASE_URL: "postgresql://teste:teste@localhost:5432/teste",
+      CLERK_SECRET_KEY: "sk_test_ficticio",
+      CLERK_WEBHOOK_SIGNING_SECRET: "whsec_ZmljdGljaW8=",
     });
     await request(app.getHttpServer()).get("/api/docs").expect(404);
     await app.close();
