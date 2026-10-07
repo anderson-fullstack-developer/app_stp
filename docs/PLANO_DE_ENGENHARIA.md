@@ -119,6 +119,7 @@ Cada decisão fica registada com o motivo. Alterar uma decisão = novo ADR, não
 | ADR-09 | **Ficheiros: um único fornecedor no início — Cloudflare R2** (áudio e imagens), uploads por *signed URL* emitida pela API. Cloudinary só se forem precisas transformações de imagem. | Proposto (simplifica o handoff, que previa os dois) | Menos contas, chaves e código; R2 não cobra saída de dados. | `media.service.ts` mantém a separação `imageService`/`audioService`, por isso trocar depois é local. |
 | ADR-10 | **Pagamentos: RevenueCat + Google Play Billing** na app. **Stripe adiado** para B2B/escolas (fase 3), só fora da app. | Proposto | Regras da Google Play: conteúdo digital vendido dentro da app tem de usar o Play Billing. | Remover `VITE_STRIPE_PUBLISHABLE_KEY` do MVP. |
 | ADR-11 | **Servidor é a fonte de verdade** para XP, moedas, streak, níveis, recompensas, vidas, respostas, tempo e classificação. | Aceite (especificação) | Anti-batota e consistência. | O cliente envia **intenções** (`lessonAttemptId`, `selectedOptionId`); nunca valores. |
+| ADR-13 | **Plataforma multilíngue e multipaís** (Adendo B): `Country → Language → Variant`; começa com São Tomé e Príncipe e Cabo Verde. | Aceite (2026-10-07) | Objetivo do produto é cobrir várias línguas e países. | Onboarding agrupa por país; conteúdo, rankings e cursos sempre filtrados por língua; nome da app tem de servir vários países (D-10); linguistas por língua. |
 | ADR-12 | **Contratos partilhados com Zod** em `packages/contracts` (DTOs REST + eventos Socket.IO), usados pela API, mobile e admin. | Proposto | Uma definição → validação no servidor + tipos no cliente; elimina divergências. | NestJS valida com pipe Zod (ou class-validator gerado); OpenAPI gerado a partir dos schemas. |
 
 ---
@@ -503,5 +504,5 @@ O desenvolvimento pode estar pronto e a app continuar vazia. Para evitar isso:
 | D-07 | Exercício de pronúncia (gravação) entra no MVP? | Não; evita pedir permissão de microfone no MVP. |
 | D-08 | Arena entra no MVP ou fica na Fase 2 (como diz a especificação)? | Fase 2; MVP focado em aprender + social básico. |
 | D-09 | Tabela de recompensas definitiva (lições, diário, Arena por posição)? | Definir uma vez em `RewardRule`; valores atuais são provisórios. |
-| D-10 | Nome final da app e `applicationId`? | Decidir antes da Fase 6 (o `applicationId` é permanente). |
+| D-10 | Nome final da app e `applicationId`? **Atenção (ADR-13): já não pode ser só "STP" — tem de servir vários países.** | Decidir antes da Fase 6 (o `applicationId` é permanente). |
 | D-11 | Quem são os linguistas (criador + revisor) e quando começam? | Antes do fim da Fase 2. |

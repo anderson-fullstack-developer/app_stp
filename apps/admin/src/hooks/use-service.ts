@@ -16,6 +16,8 @@ export const useCourse = () =>
   useQuery({ queryKey: ["course"], queryFn: () => lessonService.getCourse() });
 export const useLanguages = () =>
   useQuery({ queryKey: ["languages"], queryFn: lessonService.getLanguages });
+export const useCountries = () =>
+  useQuery({ queryKey: ["countries"], queryFn: lessonService.getCountries });
 export const useLesson = (id: string) =>
   useQuery({ queryKey: ["lesson", id], queryFn: () => lessonService.getLesson(id) });
 export const useFriends = () => useQuery({ queryKey: ["friends"], queryFn: friendService.list });

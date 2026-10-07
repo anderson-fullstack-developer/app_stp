@@ -13,8 +13,11 @@
 | **Residentes em São Tomé e Príncipe** | País pequeno (~230 mil habitantes) | **Baixa** (pagamentos digitais pouco comuns, preços em euros pesam) | Escolas, operadoras móveis, rádio/TV, influenciadores locais |
 | **Diáspora** (Portugal, França, Reino Unido…) | Comunidade significativa | **Média/alta** — e motivação forte (identidade, filhos) | Associações, igrejas, eventos, grupos de Facebook/WhatsApp, Instagram/TikTok |
 | **Filhos e netos da diáspora** | Quem aprende; quem paga são os pais | Pais pagam por educação | Plano Família, marketing dirigido a pais |
+| **Cabo Verde e diáspora cabo-verdiana** (EUA — sobretudo Massachusetts —, Portugal, Países Baixos, França, Luxemburgo) | País e diáspora maiores do que os de STP | **Média/alta na diáspora** | Associações, eventos culturais, igrejas, redes sociais; **interface em inglês** torna-se prioritária para a diáspora nos EUA |
 | **Turistas** | Fluxo crescente para STP | Alta, compra única | Hotéis, agências, companhias aéreas, guias de viagem |
 | **Instituições** | Escolas, universidades, ministério, ONG culturais | Orçamentos próprios, subsídios | Venda direta (B2B), propostas de financiamento |
+
+**Cabo Verde (Adendo B)** aumenta bastante o mercado: diáspora grande e com poder de compra, e turismo forte (Sal, Boa Vista). O Pack Viagem e o Plano Família ganham peso.
 
 **Conclusão honesta:** os residentes em STP vão ser a maioria dos utilizadores, mas **não a maioria da receita**. O dinheiro vem sobretudo de **(1) diáspora e famílias**, **(2) instituições e financiamento cultural** e **(3) turismo e patrocínios**. A app gratuita e boa para os residentes é o que cria comunidade, conteúdo partilhado e credibilidade — e isso vende aos outros segmentos.
 
@@ -56,7 +59,7 @@ Ordenadas por **potencial × facilidade**.
 
 | Produto | Preço proposto | Notas |
 |---|---|---|
-| Pack Viagem (Forro) | **€6,99 compra única** | Frases essenciais (saudações, restaurante, hotel, transportes, mercado, emergências), áudio **offline**, guia cultural curto. Não é assinatura — turistas não querem assinaturas. O ecrã já existe no protótipo (desligado). |
+| Pack Viagem (por língua: Forro, Kriolu…) | **€6,99 compra única** | Frases essenciais (saudações, restaurante, hotel, transportes, mercado, emergências), áudio **offline**, guia cultural curto. Não é assinatura — turistas não querem assinaturas. O ecrã já existe no protótipo (desligado). |
 
 Venda cruzada: hotéis/agências podem oferecer o pack aos clientes (ver G).
 

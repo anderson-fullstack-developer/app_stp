@@ -22,9 +22,19 @@ export interface User {
 
 export type AvatarColor = "forest" | "sun" | "ocean" | "cocoa" | "coral";
 
+/** País/comunidade a que pertencem as línguas (a plataforma cobre vários países). */
+export interface Country {
+  id: string;
+  name: string;
+  /** Ordem de apresentação. */
+  order: number;
+}
+
 export interface Language {
   id: string;
   name: string;
+  /** País a que a língua pertence (Country.id). */
+  countryId: string;
   region: string;
   available: boolean;
 }

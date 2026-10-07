@@ -5,7 +5,7 @@ import island from "@/assets/island.jpg";
 import { AppButton } from "@/components/app/Buttons";
 import { SoonBadge } from "@/components/app/Badges";
 import { ProgressBar } from "@/components/app/Primitives";
-import { useLanguages } from "@/hooks/use-service";
+import { useCountries, useLanguages } from "@/hooks/use-service";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
 import { authService } from "@/services";
@@ -37,6 +37,7 @@ function Onboarding() {
   const [minutes, setMinutes] = useState<number | null>(null);
   const navigate = useNavigate();
   const { data: langs } = useLanguages();
+  const { data: countries } = useCountries();
 
   if (step === 0) {
     return (
@@ -89,39 +90,50 @@ function Onboarding() {
         {step === 1 && (
           <>
             <h1 className="font-display text-2xl font-bold">Qual língua queres aprender?</h1>
-            <div className="mt-6 space-y-3">
-              {langs?.map((l) => (
-                <div
-                  key={l.id}
-                  className={cn(
-                    "flex items-center gap-4 rounded-3xl border-[1.5px] p-4",
-                    l.available
-                      ? "border-primary bg-primary/5"
-                      : "border-border bg-surface opacity-60",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "grid size-14 place-items-center rounded-2xl font-display text-xl font-bold",
-                      l.available
-                        ? "bg-forest text-primary-foreground"
-                        : "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    {l.name.charAt(0)}
+            <div className="mt-6 space-y-6">
+              {countries?.map((c) => (
+                <section key={c.id} aria-label={c.name}>
+                  <h2 className="mb-2.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {c.name}
+                  </h2>
+                  <div className="space-y-3">
+                    {langs
+                      ?.filter((l) => l.countryId === c.id)
+                      .map((l) => (
+                        <div
+                          key={l.id}
+                          className={cn(
+                            "flex items-center gap-4 rounded-3xl border-[1.5px] p-4",
+                            l.available
+                              ? "border-primary bg-primary/5"
+                              : "border-border bg-surface opacity-60",
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "grid size-14 place-items-center rounded-2xl font-display text-xl font-bold",
+                              l.available
+                                ? "bg-forest text-primary-foreground"
+                                : "bg-muted text-muted-foreground",
+                            )}
+                          >
+                            {l.name.charAt(0)}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-display font-bold">{l.name}</p>
+                            <p className="text-xs text-muted-foreground">{l.region}</p>
+                          </div>
+                          {l.available ? (
+                            <span className="rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold uppercase text-success">
+                              Disponível
+                            </span>
+                          ) : (
+                            <SoonBadge />
+                          )}
+                        </div>
+                      ))}
                   </div>
-                  <div className="flex-1">
-                    <p className="font-display font-bold">{l.name}</p>
-                    <p className="text-xs text-muted-foreground">{l.region}</p>
-                  </div>
-                  {l.available ? (
-                    <span className="rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold uppercase text-success">
-                      Disponível
-                    </span>
-                  ) : (
-                    <SoonBadge />
-                  )}
-                </div>
+                </section>
               ))}
             </div>
           </>
