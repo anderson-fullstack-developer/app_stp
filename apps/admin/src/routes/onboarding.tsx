@@ -6,6 +6,7 @@ import { AppButton } from "@/components/app/Buttons";
 import { SoonBadge } from "@/components/app/Badges";
 import { ProgressBar } from "@/components/app/Primitives";
 import { useCountries, useLanguages } from "@/hooks/use-service";
+import { PREVIEW_ENABLED } from "@/lib/preview-quiz";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
 import { authService } from "@/services";
@@ -99,39 +100,56 @@ function Onboarding() {
                   <div className="space-y-3">
                     {langs
                       ?.filter((l) => l.countryId === c.id)
-                      .map((l) => (
-                        <div
-                          key={l.id}
-                          className={cn(
-                            "flex items-center gap-4 rounded-3xl border-[1.5px] p-4",
-                            l.available
-                              ? "border-primary bg-primary/5"
-                              : "border-border bg-surface opacity-60",
-                          )}
-                        >
+                      .map((l) => {
+                        // Em desenvolvimento, o Kriolu abre a pré-visualização com rascunhos.
+                        const preview = PREVIEW_ENABLED && !l.available && l.id === "kabuverdianu";
+                        const card = (
                           <div
+                            key={l.id}
                             className={cn(
-                              "grid size-14 place-items-center rounded-2xl font-display text-xl font-bold",
+                              "flex items-center gap-4 rounded-3xl border-[1.5px] p-4",
                               l.available
-                                ? "bg-forest text-primary-foreground"
-                                : "bg-muted text-muted-foreground",
+                                ? "border-primary bg-primary/5"
+                                : preview
+                                  ? "pressable border-accent bg-accent/10"
+                                  : "border-border bg-surface opacity-60",
                             )}
                           >
-                            {l.name.charAt(0)}
+                            <div
+                              className={cn(
+                                "grid size-14 place-items-center rounded-2xl font-display text-xl font-bold",
+                                l.available
+                                  ? "bg-forest text-primary-foreground"
+                                  : "bg-muted text-muted-foreground",
+                              )}
+                            >
+                              {l.name.charAt(0)}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-display font-bold">{l.name}</p>
+                              <p className="text-xs text-muted-foreground">{l.region}</p>
+                            </div>
+                            {l.available ? (
+                              <span className="rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold uppercase text-success">
+                                Disponível
+                              </span>
+                            ) : preview ? (
+                              <span className="shrink-0 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-accent-foreground">
+                                Testar · rascunho
+                              </span>
+                            ) : (
+                              <SoonBadge />
+                            )}
                           </div>
-                          <div className="flex-1">
-                            <p className="font-display font-bold">{l.name}</p>
-                            <p className="text-xs text-muted-foreground">{l.region}</p>
-                          </div>
-                          {l.available ? (
-                            <span className="rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold uppercase text-success">
-                              Disponível
-                            </span>
-                          ) : (
-                            <SoonBadge />
-                          )}
-                        </div>
-                      ))}
+                        );
+                        return preview ? (
+                          <Link key={l.id} to="/preview/kriolu" className="block">
+                            {card}
+                          </Link>
+                        ) : (
+                          card
+                        );
+                      })}
                   </div>
                 </section>
               ))}
