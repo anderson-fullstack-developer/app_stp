@@ -2,7 +2,7 @@
 // em SVG: apps/admin/public/icon.svg (cantos redondos) e icon-maskable.svg (fundo inteiro,
 // Neto dentro da zona segura de 80 % exigida pelo Android).
 // Uso: node scripts/build-app-icons.mjs   (os PNG/ICO são gerados a partir destes SVG)
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -83,3 +83,30 @@ const maskable = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
 writeFileSync(join(out, "icon.svg"), rounded);
 writeFileSync(join(out, "icon-maskable.svg"), maskable);
 console.log("icon.svg e icon-maskable.svg escritos em", out);
+
+// App mobile (Expo): ícone sem cantos (o sistema arredonda), primeiro plano do ícone
+// adaptável do Android (Neto a 62 % para caber na zona segura de qualquer máscara) e o
+// Neto sozinho para o ecrã de abertura. Os PNG saem de scripts/render-app-icons.mjs.
+const brand = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "apps",
+  "mobile",
+  "assets",
+  "brand",
+);
+mkdirSync(brand, { recursive: true });
+const transparent = (scale) => {
+  const offset = (200 - 200 * scale) / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <title>Fala Neto</title>
+  <g transform="translate(${offset} ${offset - 2}) scale(${scale})">
+    ${neto()}
+  </g>
+</svg>
+`;
+};
+writeFileSync(join(brand, "icon.svg"), maskable);
+writeFileSync(join(brand, "adaptive-foreground.svg"), transparent(0.62));
+writeFileSync(join(brand, "neto.svg"), transparent(1));
+console.log("ícones da app mobile escritos em", brand);

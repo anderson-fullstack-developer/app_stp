@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <title>Fala Neto</title>
+  <g transform="translate(38 36) scale(0.62)">
+    <ellipse cx="100" cy="182" rx="56" ry="7" fill="#00000022"/>
+    <ellipse cx="72" cy="172" rx="16" ry="9" fill="#86cfa6" stroke="#5fb083" stroke-width="2.5"/>
+    <ellipse cx="128" cy="172" rx="16" ry="9" fill="#86cfa6" stroke="#5fb083" stroke-width="2.5"/>
+    <ellipse cx="100" cy="134" rx="64" ry="44" fill="#17603f"/>
+    <ellipse cx="40" cy="128" rx="22" ry="10" fill="#86cfa6" stroke="#5fb083" stroke-width="2.5" transform="rotate(20 40 128)"/>
+    <ellipse cx="160" cy="128" rx="22" ry="10" fill="#86cfa6" stroke="#5fb083" stroke-width="2.5" transform="rotate(-20 160 128)"/>
+    <ellipse cx="100" cy="140" rx="37" ry="35" fill="#f7e8bd" stroke="#e6d197" stroke-width="2.5"/>
+    <polygon points="100.0,128.0 103.7,136.9 113.3,137.7 106.0,143.9 108.2,153.3 100.0,148.3 91.8,153.3 94.0,143.9 86.7,137.7 96.3,136.9" fill="#f5bf2c" stroke="#d99a12" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="100" cy="76" r="42" fill="#86cfa6" stroke="#5fb083" stroke-width="2.7096774193548385"/>
+    <ellipse cx="89.16129032258064" cy="50.25806451612904" rx="12.193548387096774" ry="5.419354838709677" fill="#ffffff45" transform="rotate(-20 89.16129032258064 50.25806451612904)"/>
+    <circle cx="85.09677419354838" cy="71.25806451612904" r="10.838709677419354" fill="#fff"/>
+    <circle cx="86.11290322580645" cy="72.61290322580646" r="6.435483870967741" fill="#1d2b24"/>
+    <circle cx="88.48387096774194" cy="69.90322580645162" r="2.1677419354838707" fill="#fff"/>
+    <ellipse cx="75.61290322580645" cy="88.19354838709677" rx="6.774193548387096" ry="4.064516129032258" fill="#f29b9b" opacity=".6"/>
+    <circle cx="114.90322580645162" cy="71.25806451612904" r="10.838709677419354" fill="#fff"/>
+    <circle cx="115.91935483870968" cy="72.61290322580646" r="6.435483870967741" fill="#1d2b24"/>
+    <circle cx="118.29032258064517" cy="69.90322580645162" r="2.1677419354838707" fill="#fff"/>
+    <ellipse cx="124.38709677419355" cy="88.19354838709677" rx="6.774193548387096" ry="4.064516129032258" fill="#f29b9b" opacity=".6"/>
+    <path d="M89.16129032258064 90.90322580645162 Q100 101.06451612903226 110.83870967741936 90.90322580645162" fill="none" stroke="#1d2b24" stroke-width="3.387096774193548" stroke-linecap="round"/>
+  </g>
+</svg>
