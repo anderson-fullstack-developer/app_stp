@@ -9,6 +9,7 @@ import { levelInfo, useGame } from "@/hooks/use-game";
 import { useCourse, useDaily, useLanguages, useMe } from "@/hooks/use-service";
 import { TabLayout } from "@/layouts/AppShell";
 import { useTranslation } from "react-i18next";
+import { useUser } from "@clerk/tanstack-react-start";
 import { KrioluPath } from "@/components/app/KrioluPath";
 import { useSettings } from "@/hooks/use-settings";
 import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
@@ -42,6 +43,9 @@ function Learn() {
   const g = useGame();
   const lvl = levelInfo(g.xp);
   const { t } = useTranslation();
+  // Nome real de quem entrou (Clerk); sem sessão usa o perfil de demonstração.
+  const { user: account } = useUser();
+  const displayName = account?.firstName ?? account?.fullName ?? user?.name;
   const { learning } = useSettings();
   const { data: langs } = useLanguages();
   const learningLang =
@@ -58,7 +62,9 @@ function Learn() {
             </Link>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold text-muted-foreground">Olá,</p>
-              <p className="-mt-0.5 truncate font-display text-lg font-bold">{user?.name ?? "…"}</p>
+              <p className="-mt-0.5 truncate font-display text-lg font-bold">
+                {displayName ?? "…"}
+              </p>
             </div>
             <Link
               to="/notifications"

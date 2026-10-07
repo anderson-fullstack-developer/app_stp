@@ -1,4 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { SignUp } from "@clerk/tanstack-react-start";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Check } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,7 +19,6 @@ import { useCountries, useLanguages } from "@/hooks/use-service";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
 import i18n from "@/i18n";
-import { authService } from "@/services";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -58,7 +58,6 @@ function Onboarding() {
   const [step, setStep] = useState(0);
   const [reasons, setReasons] = useState<ReasonId[]>([]);
   const [minutes, setMinutes] = useState<number | null>(null);
-  const navigate = useNavigate();
   const { locale, learning } = useSettings();
   const { data: langs } = useLanguages();
   const { data: countries } = useCountries();
@@ -85,7 +84,7 @@ function Onboarding() {
           </p>
           <div className="mt-auto space-y-3 pt-6">
             <AppButton onClick={() => setStep(1)}>{t("onboarding.start")}</AppButton>
-            <Link to="/login">
+            <Link to="/sign-in/$" params={{ _splat: "" }}>
               <AppButton variant="ghost" size="md" className="w-full">
                 {t("onboarding.haveAccount")}
               </AppButton>
@@ -268,7 +267,7 @@ function Onboarding() {
             </div>
           </>
         )}
-        {step === 5 && <Register onDone={() => navigate({ to: "/learn" })} />}
+        {step === 5 && <Register reasons={reasons} minutes={minutes} />}
         {step < 5 && (
           <div className="mt-auto pb-6 pt-6 safe-bottom">
             <AppButton disabled={!canNext} onClick={() => setStep(step + 1)}>
@@ -281,65 +280,71 @@ function Onboarding() {
   );
 }
 
-function Register({ onDone }: { onDone: () => void }) {
+/**
+ * Último passo: perfil (país e línguas faladas) e depois a conta real no Clerk
+ * (email + palavra-passe com verificação, ou Google). As escolhas do onboarding seguem
+ * em unsafeMetadata para o backend gravar no utilizador quando o sincronizar.
+ */
+function Register({ reasons, minutes }: { reasons: string[]; minutes: number | null }) {
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(false);
+  const { locale, learning } = useSettings();
+  const [part, setPart] = useState<"profile" | "account">("profile");
   const [country, setCountry] = useState<CountryId | "">("");
   const [spoken, setSpoken] = useState<SpokenLanguageId[]>([]);
   const toggleSpoken = (id: SpokenLanguageId) =>
     setSpoken((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
-  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!country || spoken.length === 0) return;
-    const f = new FormData(e.currentTarget);
-    setLoading(true);
-    await authService.signUp({
-      name: String(f.get("name")),
-      username: String(f.get("username")),
-      email: String(f.get("email")),
-      password: String(f.get("password")),
-      country,
-      spokenLanguages: spoken,
-    });
-    onDone();
-  };
+  if (part === "account") {
+    return (
+      <div className="flex flex-1 flex-col items-center">
+        <SignUp
+          routing="hash"
+          signInUrl="/sign-in"
+          forceRedirectUrl="/learn"
+          unsafeMetadata={{
+            countryCode: country,
+            spokenLanguages: spoken,
+            uiLocale: locale ?? i18n.language,
+            learningLanguageId: learning,
+            reasons,
+            dailyGoalMinutes: minutes,
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => setPart("profile")}
+          className="mt-4 text-sm font-semibold text-muted-foreground"
+        >
+          ← {t("common.back")}
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <form onSubmit={submit} className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col">
       <h1 className="font-display text-2xl font-bold">{t("register.title")}</h1>
-      <div className="mt-6 space-y-3">
-        <Field name="name" label={t("register.name")} autoComplete="name" />
-        <Field name="username" label={t("register.username")} autoComplete="username" />
-        <Field name="email" label={t("register.email")} type="email" autoComplete="email" />
-        <Field
-          name="password"
-          label={t("register.password")}
-          type="password"
-          autoComplete="new-password"
-        />
-        <label className="block">
-          <span className="sr-only">{t("register.country")}</span>
-          <select
-            required
-            value={country}
-            onChange={(e) => setCountry(e.target.value as CountryId)}
-            className={cn(
-              "card h-14 w-full appearance-none rounded-2xl px-4 font-semibold outline-none transition focus:border-primary",
-              !country && "text-muted-foreground",
-            )}
-          >
-            <option value="" disabled>
-              {t("register.country")} — {t("register.countryPlaceholder")}
+      <label className="mt-6 block">
+        <span className="mb-1.5 block text-sm font-semibold">{t("register.country")}</span>
+        <select
+          required
+          value={country}
+          onChange={(e) => setCountry(e.target.value as CountryId)}
+          className={cn(
+            "card h-14 w-full appearance-none rounded-2xl px-4 font-semibold outline-none transition focus:border-primary",
+            !country && "text-muted-foreground",
+          )}
+        >
+          <option value="" disabled>
+            {t("register.countryPlaceholder")}
+          </option>
+          {COUNTRY_IDS.map((id) => (
+            <option key={id} value={id}>
+              {t(`countries.${id}`)}
             </option>
-            {COUNTRY_IDS.map((id) => (
-              <option key={id} value={id}>
-                {t(`countries.${id}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+          ))}
+        </select>
+      </label>
 
       <fieldset className="mt-6">
         <legend className="font-display text-lg font-bold">{t("register.spokenTitle")}</legend>
@@ -367,40 +372,17 @@ function Register({ onDone }: { onDone: () => void }) {
       </fieldset>
 
       <div className="mt-auto space-y-3 pb-6 pt-6 safe-bottom">
-        <AppButton type="submit" disabled={loading || !country || spoken.length === 0}>
-          {loading ? t("register.creating") : t("register.create")}
+        <AppButton disabled={!country || spoken.length === 0} onClick={() => setPart("account")}>
+          {t("common.continue")}
         </AppButton>
-        <AppButton type="button" variant="secondary" onClick={onDone}>
-          <GoogleG />
-          {t("register.google")}
-        </AppButton>
-        <Link to="/login" className="block text-center text-sm font-bold text-primary">
+        <Link
+          to="/sign-in/$"
+          params={{ _splat: "" }}
+          className="block text-center text-sm font-bold text-primary"
+        >
           {t("onboarding.haveAccount")}
         </Link>
       </div>
-    </form>
+    </div>
   );
 }
-
-export function Field({
-  label,
-  ...p
-}: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <label className="block">
-      <span className="sr-only">{label}</span>
-      <input
-        required
-        placeholder={label}
-        {...p}
-        className="h-14 w-full rounded-2xl card px-4 font-semibold outline-none transition focus:border-primary"
-      />
-    </label>
-  );
-}
-
-export const GoogleG = () => (
-  <span className="grid size-5 place-items-center rounded-full bg-ocean font-sans text-[11px] font-black text-ocean-foreground">
-    G
-  </span>
-);

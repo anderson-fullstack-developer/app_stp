@@ -3,6 +3,7 @@
 > Complementa `docs/PLANO_DE_ENGENHARIA.md` (fases e ADRs). Este documento detalha **o que vamos usar, onde fica alojado e a ordem exata de construção** do backend.
 >
 > Estado (2026-10-07): fase 0 concluída; **B1 concluído** — `apps/api` com NestJS 12 (ESM), configuração validada com Zod 4, `/api/v1/health`, Helmet, CORS, rate limiting, erros uniformes, logs Pino, Sentry opcional, Swagger e testes e2e. **B2 parte 1 concluída:** Prisma 7 + Neon (eu-central-1), migração `init_core` (países, línguas, variantes, utilizadores, papéis por língua, curso/unidade/lição/exercício, vocabulário e frases com traduções por idioma, áudio, fontes/licenças, revisão, auditoria), seed com o Kriolu (1059 palavras DRAFT) e endpoints `/languages` e `/languages/:id/vocabulary`. Falta (parte 2): tabelas de progresso/XP/streak/moedas após `docs/REGRAS_DE_NEGOCIO.md`.
+> **B4 adiantado (frontend):** Clerk ligado à app web (`clerk init`, app `Língua STP`): login/registo reais com email+código, palavra-passe e Google; registo no fim do onboarding leva país, línguas faladas, idioma, língua a aprender, motivos e objetivo em `unsafeMetadata`; gestão de conta (incl. eliminar conta) em Definições → Conta; ecrãs em PT/EN com o tema da app. **Falta:** validar o token do Clerk na API e o webhook que cria/atualiza o `User` na Neon.
 
 ---
 
@@ -150,7 +151,7 @@ STRIPE_WEBHOOK_SECRET=
 | **B1** ✅ (2026-10-07) | Esqueleto NestJS | `apps/api` no monorepo, config validada, `/api/v1/health`, Helmet, CORS, rate limit, erros uniformes, logs, Sentry, Swagger, testes, CI | `pnpm --filter @stp/api test` verde e CI verde | B0 (Sentry) |
 | **B2** 🟡 (parte 1 ✅ 2026-10-07) | Base de dados | `schema.prisma` do MVP (utilizadores, papéis, conteúdo, revisão, progresso, gamificação, social, auditoria; tabelas de jogo já criadas), migração inicial, seed com **placeholders rotulados**, branches Neon | Migração aplicada em `dev` e `staging`; diagrama do modelo em `docs/` | B1, **regras de negócio** |
 | **B3** | Deploy staging | Serviço na Railway, variáveis, health check, deploy automático de `main` | `https://api-staging.<domínio>/api/v1/health` responde | B2 |
-| **B4** | Autenticação | Guard Clerk, webhook → cria/atualiza `User`, papéis, `GET /me`, **eliminar conta** | Registo no Clerk aparece na BD; `/me` só responde autenticado | B3 |
+| **B4** 🟡 (frontend ✅ 2026-10-07) | Autenticação | Guard Clerk, webhook → cria/atualiza `User`, papéis, `GET /me`, **eliminar conta** | Registo no Clerk aparece na BD; `/me` só responde autenticado | B3 |
 | **B5** | Conteúdo + revisão | CRUD de conteúdo; `DRAFT → UNDER_REVIEW → APPROVED/REJECTED → ARCHIVED`; **quem cria não aprova**; histórico, versão, auditoria; API pública só devolve `APPROVED` | Testes provam: autor não aprova; conteúdo não aprovado nunca sai na API pública | B4 |
 | **B6** | Ficheiros (R2) | URLs assinadas de upload, validação de tipo/tamanho, `AudioAsset` (falante, região, variante) | Upload de um áudio pelo admin em staging, reprodução por URL pública | B5 |
 | **B7** | Admin ligado à API | Login do admin com Clerk; `services/admin.ts` passa a chamar a API; admin publicado | **Linguistas conseguem introduzir e aprovar conteúdo real em staging** | B6 |

@@ -12,6 +12,7 @@
  * Never read auth state from localStorage in components — always go through
  * this service so the Clerk swap is a one-file change.
  */
+import { getToken as getClerkToken } from "@clerk/tanstack-react-start";
 import * as mock from "@/mocks";
 import type { User } from "@/types";
 
@@ -71,5 +72,9 @@ export const authService = {
   getCurrentUser: (): Promise<User | null> => delay(mock.currentUser),
 
   /** Session token for API calls (Authorization: Bearer). Future: clerk.session.getToken(). */
-  getToken: (): Promise<string | null> => delay(MOCK_TOKEN),
+  getToken: async (): Promise<string | null> => {
+    // Sessão real (Clerk): o token vai para a API no cabeçalho Authorization.
+    if (typeof window === "undefined") return null;
+    return (await getClerkToken()) ?? null;
+  },
 };
