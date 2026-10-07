@@ -26,18 +26,51 @@ function AdminLogin() {
   const [role, setRole] = useState<AdminRole>("SUPER_ADMIN");
   const [loading, setLoading] = useState(false);
   const submit = async (e: FormEvent) => {
-    e.preventDefault(); setLoading(true);
+    e.preventDefault();
+    setLoading(true);
     await new Promise((r) => setTimeout(r, 400));
     adminAuth.login(email, role);
     navigate({ to: "/admin" });
   };
   return (
-    <AuthScreen title="Entrar no painel" text="Autenticação de demonstração. O login real será feito com Clerk.">
+    <AuthScreen
+      title="Entrar no painel"
+      text="Autenticação de demonstração. O login real será feito com Clerk."
+    >
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Email"><TextInput type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
-        <Field label="Palavra-passe"><TextInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Qualquer valor (demo)" /></Field>
-        <Field label="Perfil (demo)"><Select<AdminRole> value={role} onChange={setRole} options={(Object.keys(ROLE_LABEL) as AdminRole[]).map((r) => ({ value: r, label: `${ROLE_LABEL[r]} · ${r}` }))} /></Field>
-        <button type="submit" disabled={loading} className="h-10 w-full rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-60">{loading ? "A entrar…" : "Entrar"}</button>
+        <Field label="Email">
+          <TextInput
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </Field>
+        <Field label="Palavra-passe">
+          <TextInput
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Qualquer valor (demo)"
+          />
+        </Field>
+        <Field label="Perfil (demo)">
+          <Select<AdminRole>
+            value={role}
+            onChange={setRole}
+            options={(Object.keys(ROLE_LABEL) as AdminRole[]).map((r) => ({
+              value: r,
+              label: `${ROLE_LABEL[r]} · ${r}`,
+            }))}
+          />
+        </Field>
+        <button
+          type="submit"
+          disabled={loading}
+          className="h-10 w-full rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-60"
+        >
+          {loading ? "A entrar…" : "Entrar"}
+        </button>
       </form>
     </AuthScreen>
   );

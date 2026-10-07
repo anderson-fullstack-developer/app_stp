@@ -24,5 +24,9 @@ function Duel() {
     { name: "Adversário", tone: "coral", players: [listOpponents()[0]!] },
   ]);
   const { questions, seconds } = MULTIPLAYER_CONFIG.duel;
-  return <PhoneFrame className="bg-muted"><ScoreMatch teams={teams} questions={questions} seconds={seconds} replayTo="/play/duel" /></PhoneFrame>;
+  return (
+    <PhoneFrame className="bg-muted">
+      <ScoreMatch teams={teams} questions={questions} seconds={seconds} replayTo="/play/duel" />
+    </PhoneFrame>
+  );
 }

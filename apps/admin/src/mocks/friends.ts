@@ -5,5 +5,13 @@ import { people } from "./users";
 export const friends: Friend[] = people
   .filter((p) => p.relation !== "none")
   .map(({ id, name, username, color, level, streak, weeklyXp, country, relation }) => ({
-    id, name, username, avatarColor: color, level, streak, weeklyXp, country, status: relation as Friend["status"],
+    id,
+    name,
+    username,
+    avatarColor: color,
+    level,
+    streak,
+    weeklyXp,
+    country,
+    status: relation as Friend["status"],
   }));

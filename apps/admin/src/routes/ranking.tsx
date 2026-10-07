@@ -12,7 +12,10 @@ export const Route = createFileRoute("/ranking")({
   head: () => ({
     meta: [
       { title: "Ranking — Língua STP" },
-      { name: "description", content: "Rankings de amigos, semanal, global e por país, com ligas." },
+      {
+        name: "description",
+        content: "Rankings de amigos, semanal, global e por país, com ligas.",
+      },
       { property: "og:title", content: "Ranking — Língua STP" },
       { property: "og:description", content: "Sobe de liga e chega ao topo." },
     ],
@@ -36,7 +39,14 @@ function Ranking() {
         <div className="rounded-3xl bg-forest p-4 text-primary-foreground shadow-raised pattern-leaf">
           <div className="flex justify-center gap-3">
             {TIERS.map((t) => (
-              <div key={t} className={cn("grid size-12 place-items-center rounded-2xl", tierCls[t], t === league.tier ? "scale-115 ring-4 ring-primary-foreground/40" : "opacity-35")}>
+              <div
+                key={t}
+                className={cn(
+                  "grid size-12 place-items-center rounded-2xl",
+                  tierCls[t],
+                  t === league.tier ? "scale-115 ring-4 ring-primary-foreground/40" : "opacity-35",
+                )}
+              >
                 <Shield className="size-6 fill-primary-foreground/40 text-primary-foreground" />
               </div>
             ))}
@@ -44,13 +54,32 @@ function Ranking() {
           <p className="mt-3 text-center font-display text-xl font-bold">Liga {league.tier}</p>
           <p className="text-center text-sm opacity-80">Termina em {league.endsIn}</p>
           <div className="mt-3 flex justify-center gap-4 text-xs font-bold">
-            <span className="inline-flex items-center gap-1 text-accent"><ArrowUp className="size-4" />Top {league.promoteTop} sobem</span>
-            <span className="inline-flex items-center gap-1 opacity-75"><ArrowDown className="size-4" />Últimos {league.demoteBottom} descem</span>
+            <span className="inline-flex items-center gap-1 text-accent">
+              <ArrowUp className="size-4" />
+              Top {league.promoteTop} sobem
+            </span>
+            <span className="inline-flex items-center gap-1 opacity-75">
+              <ArrowDown className="size-4" />
+              Últimos {league.demoteBottom} descem
+            </span>
           </div>
         </div>
       )}
-      <div className="mt-4"><Tabs value={scope} onChange={setScope} items={[{ value: "friends", label: "Amigos" }, { value: "weekly", label: "Semanal" }, { value: "global", label: "Global" }, { value: "country", label: "País" }]} /></div>
-      {!data ? <LoadingState /> : (
+      <div className="mt-4">
+        <Tabs
+          value={scope}
+          onChange={setScope}
+          items={[
+            { value: "friends", label: "Amigos" },
+            { value: "weekly", label: "Semanal" },
+            { value: "global", label: "Global" },
+            { value: "country", label: "País" },
+          ]}
+        />
+      </div>
+      {!data ? (
+        <LoadingState />
+      ) : (
         <>
           <div className="mt-6 flex items-end justify-center gap-3">
             {podium.map((e) => {
@@ -62,19 +91,33 @@ function Ranking() {
               }[e.rank as 1 | 2 | 3];
               return (
                 <div key={e.userId} className="animate-rise flex w-24 flex-col items-center">
-                  <span className={cn("mb-1 h-6", e.rank === 1 ? "text-accent-deep" : "invisible")}><Crown className="size-6 fill-current" /></span>
+                  <span className={cn("mb-1 h-6", e.rank === 1 ? "text-accent-deep" : "invisible")}>
+                    <Crown className="size-6 fill-current" />
+                  </span>
                   <Avatar name={e.name} color={e.avatarColor} size={e.rank === 1 ? 64 : 52} />
                   <p className="mt-1 text-sm font-bold">{e.name}</p>
                   <p className="text-xs text-muted-foreground">{e.xp.toLocaleString("pt-PT")} XP</p>
-                  <div className={cn("relative mt-2 grid w-full place-items-start justify-center overflow-hidden rounded-t-[20px] pt-2", h, bg)}>
+                  <div
+                    className={cn(
+                      "relative mt-2 grid w-full place-items-start justify-center overflow-hidden rounded-t-[20px] pt-2",
+                      h,
+                      bg,
+                    )}
+                  >
                     <span className="absolute inset-x-0 top-0 h-px bg-white/60" />
-                    <span className="font-display text-2xl font-bold text-white/85 drop-shadow-sm">{e.rank}</span>
+                    <span className="font-display text-2xl font-bold text-white/85 drop-shadow-sm">
+                      {e.rank}
+                    </span>
                   </div>
                 </div>
               );
             })}
           </div>
-          <div className="space-y-2 pt-4">{data.slice(3).map((e) => <LeaderboardCard key={e.userId} entry={e} />)}</div>
+          <div className="space-y-2 pt-4">
+            {data.slice(3).map((e) => (
+              <LeaderboardCard key={e.userId} entry={e} />
+            ))}
+          </div>
         </>
       )}
     </TabLayout>

@@ -15,7 +15,7 @@
 import * as mock from "@/mocks";
 import type { User } from "@/types";
 
-const delay = <T,>(value: T, ms = 250) => new Promise<T>((r) => setTimeout(() => r(value), ms));
+const delay = <T>(value: T, ms = 250) => new Promise<T>((r) => setTimeout(() => r(value), ms));
 
 export interface SignInInput {
   email: string;
@@ -50,7 +50,8 @@ export const authService = {
     }),
 
   /** Sign in with Google. Future: Clerk OAuth (sso callback). */
-  signInWithGoogle: (): Promise<AuthSession> => delay({ user: mock.currentUser, token: MOCK_TOKEN }),
+  signInWithGoogle: (): Promise<AuthSession> =>
+    delay({ user: mock.currentUser, token: MOCK_TOKEN }),
 
   /** End the session. Future: clerk.signOut(). */
   signOut: (): Promise<true> => delay(true),

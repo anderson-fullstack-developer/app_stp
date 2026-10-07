@@ -17,7 +17,11 @@ export const Route = createFileRoute("/admin_/unauthorized")({
 
 function Page() {
   return (
-    <AuthScreen icon={<Lock className="size-10 text-destructive" />} title="Não autenticado" text="Precisas de iniciar sessão para aceder ao painel.">
+    <AuthScreen
+      icon={<Lock className="size-10 text-destructive" />}
+      title="Não autenticado"
+      text="Precisas de iniciar sessão para aceder ao painel."
+    >
       <LoginLink />
     </AuthScreen>
   );

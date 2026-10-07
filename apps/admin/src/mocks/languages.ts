@@ -8,8 +8,9 @@ export const languages: Language[] = [
 ];
 
 /** Admin-only metadata keyed by language id. */
-export const languageMeta: Record<string, { altName: string; code: string; description: string }> = {
-  forro: { altName: "Santomé", code: "FOR", description: "Língua da ilha de São Tomé." },
-  angolar: { altName: "Ngola", code: "ANG", description: "Língua do sul de São Tomé." },
-  lungie: { altName: "Principense", code: "LUN", description: "Língua da ilha do Príncipe." },
-};
+export const languageMeta: Record<string, { altName: string; code: string; description: string }> =
+  {
+    forro: { altName: "Santomé", code: "FOR", description: "Língua da ilha de São Tomé." },
+    angolar: { altName: "Ngola", code: "ANG", description: "Língua do sul de São Tomé." },
+    lungie: { altName: "Principense", code: "LUN", description: "Língua da ilha do Príncipe." },
+  };

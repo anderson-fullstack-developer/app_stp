@@ -13,26 +13,50 @@ const SESSION_KEY = "lstp-admin-session";
 
 export const getDB = () => (db ??= createSeed());
 
-export function mutate(fn: (d: AdminDB) => Partial<AdminDB>, audit?: { action: string; object: string }) {
+export function mutate(
+  fn: (d: AdminDB) => Partial<AdminDB>,
+  audit?: { action: string; object: string },
+) {
   const cur = getDB();
   const patch = fn(cur);
   db = { ...cur, ...patch };
   if (audit && session) {
-    db.audit = [{ id: `a${Date.now()}`, admin: session.name, role: session.role, action: audit.action, object: audit.object, at: new Date().toISOString() }, ...db.audit];
+    db.audit = [
+      {
+        id: `a${Date.now()}`,
+        admin: session.name,
+        role: session.role,
+        action: audit.action,
+        object: audit.object,
+        at: new Date().toISOString(),
+      },
+      ...db.audit,
+    ];
   }
   emit();
 }
 
-export const resetDB = () => { db = createSeed(); emit(); };
+export const resetDB = () => {
+  db = createSeed();
+  emit();
+};
 
-const subscribe = (l: () => void) => { listeners.add(l); return () => listeners.delete(l); };
+const subscribe = (l: () => void) => {
+  listeners.add(l);
+  return () => listeners.delete(l);
+};
 export const useAdminDB = () => useSyncExternalStore(subscribe, getDB, getDB);
 
 /* ---------- session ---------- */
 function loadSession() {
   if (sessionLoaded || typeof window === "undefined") return;
   sessionLoaded = true;
-  try { const raw = localStorage.getItem(SESSION_KEY); if (raw) session = JSON.parse(raw); } catch { /* ignore */ }
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (raw) session = JSON.parse(raw);
+  } catch {
+    /* ignore */
+  }
 }
 
 export const adminAuth = {
@@ -42,10 +66,27 @@ export const adminAuth = {
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     emit();
   },
-  switchRole(role: AdminRole) { if (!session) return; session = { ...session, role, name: `${session.email.split("@")[0]} (${ROLE_LABEL[role]})` }; localStorage.setItem(SESSION_KEY, JSON.stringify(session)); emit(); },
-  expire() { if (!session) return; session = { ...session, expiresAt: 0 }; localStorage.setItem(SESSION_KEY, JSON.stringify(session)); emit(); },
-  logout() { session = null; localStorage.removeItem(SESSION_KEY); emit(); },
-  get() { loadSession(); return session; },
+  switchRole(role: AdminRole) {
+    if (!session) return;
+    session = { ...session, role, name: `${session.email.split("@")[0]} (${ROLE_LABEL[role]})` };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    emit();
+  },
+  expire() {
+    if (!session) return;
+    session = { ...session, expiresAt: 0 };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    emit();
+  },
+  logout() {
+    session = null;
+    localStorage.removeItem(SESSION_KEY);
+    emit();
+  },
+  get() {
+    loadSession();
+    return session;
+  },
 };
 
 const getSession = () => adminAuth.get();

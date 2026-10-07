@@ -13,7 +13,8 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []) {
   fnRef.current = fn;
 
   const run = useCallback(async () => {
-    if (typeof navigator !== "undefined" && !navigator.onLine) return setState({ status: "offline" });
+    if (typeof navigator !== "undefined" && !navigator.onLine)
+      return setState({ status: "offline" });
     setState({ status: "loading" });
     try {
       setState({ status: "success", data: await fnRef.current() });
@@ -22,8 +23,9 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []) {
     }
   }, []);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { void run(); }, [run, online, ...deps]);
+  useEffect(() => {
+    void run();
+  }, [run, online, ...deps]);
 
   return { state, retry: run };
 }

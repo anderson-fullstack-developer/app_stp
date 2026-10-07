@@ -12,7 +12,10 @@ export const Route = createFileRoute("/travel")({
   head: () => ({
     meta: [
       { title: "Pack Viagem STP — Língua STP" },
-      { name: "description", content: "Expressões essenciais para visitar São Tomé e Príncipe. Em breve." },
+      {
+        name: "description",
+        content: "Expressões essenciais para visitar São Tomé e Príncipe. Em breve.",
+      },
       { property: "og:title", content: "Pack Viagem STP — Língua STP" },
       { property: "og:description", content: "Prepara a tua viagem a São Tomé e Príncipe." },
     ],
@@ -28,11 +31,19 @@ function Travel() {
       <AppHeader left={<BackButton />} title="Pack Viagem" />
       <main className="flex-1 px-4 pb-8">
         <div className="rounded-[2rem] bg-ocean-grad p-6 text-ocean-foreground pattern-leaf">
-          <div className="flex items-start justify-between"><Plane className="size-10" />{!on && <SoonBadge />}</div>
+          <div className="flex items-start justify-between">
+            <Plane className="size-10" />
+            {!on && <SoonBadge />}
+          </div>
           <h1 className="mt-3 font-display text-3xl font-bold">Pack Viagem STP</h1>
-          <p className="mt-1 text-sm opacity-85">Expressões essenciais para quem visita as ilhas. O conteúdo em Forro será validado antes de ser publicado.</p>
+          <p className="mt-1 text-sm opacity-85">
+            Expressões essenciais para quem visita as ilhas. O conteúdo em Forro será validado antes
+            de ser publicado.
+          </p>
         </div>
-        {!data ? <LoadingState /> : (
+        {!data ? (
+          <LoadingState />
+        ) : (
           <div className="mt-4 grid grid-cols-2 gap-3">
             {data.map((c) => (
               <div key={c.id} className="relative rounded-3xl card p-4">
@@ -44,7 +55,9 @@ function Travel() {
             ))}
           </div>
         )}
-        <AppButton className="mt-6" variant="secondary" disabled={!on}>{on ? "Abrir pack" : "Avisa-me quando sair"}</AppButton>
+        <AppButton className="mt-6" variant="secondary" disabled={!on}>
+          {on ? "Abrir pack" : "Avisa-me quando sair"}
+        </AppButton>
       </main>
     </PhoneFrame>
   );

@@ -29,7 +29,9 @@ describe("sound", () => {
 
   it("guarda as preferências no dispositivo", () => {
     settings.set({ effects: false });
-    expect(JSON.parse(localStorage.getItem("lstp-settings-v1") ?? "{}")).toMatchObject({ effects: false });
+    expect(JSON.parse(localStorage.getItem("lstp-settings-v1") ?? "{}")).toMatchObject({
+      effects: false,
+    });
   });
 
   it("o tom das entradas na sala sobe a cada jogador (escala maior)", () => {

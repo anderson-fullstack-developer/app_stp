@@ -8,7 +8,7 @@ import * as mock from "@/mocks";
 export { listInvitableFriends, listOpponents, opponentSkill, mePlayer } from "./game.service";
 import type { Course, Friend, LeaderboardEntry, Lesson, User } from "@/types";
 
-const delay = <T,>(value: T, ms = 250) => new Promise<T>((r) => setTimeout(() => r(value), ms));
+const delay = <T>(value: T, ms = 250) => new Promise<T>((r) => setTimeout(() => r(value), ms));
 
 export { authService } from "./auth.service";
 export type { AuthSession, SignInInput, SignUpInput } from "./auth.service";
@@ -45,12 +45,14 @@ export const progressService = {
 
 export const friendService = {
   list: (): Promise<Friend[]> => delay(mock.friends),
-  search: (q: string) => delay(mock.friends.filter((f) => f.name.toLowerCase().includes(q.toLowerCase()))),
+  search: (q: string) =>
+    delay(mock.friends.filter((f) => f.name.toLowerCase().includes(q.toLowerCase()))),
   sendRequest: (_username: string) => delay(true),
 };
 
 export const leaderboardService = {
-  get: (_scope: "friends" | "weekly" | "global" | "country"): Promise<LeaderboardEntry[]> => delay(mock.leaderboard),
+  get: (_scope: "friends" | "weekly" | "global" | "country"): Promise<LeaderboardEntry[]> =>
+    delay(mock.leaderboard),
   getLeague: () => delay(mock.league),
 };
 /** @deprecated alias */
@@ -66,7 +68,6 @@ export const gameService = {
   ...multiplayerService,
 };
 
-
 export const shopService = {
   getItems: () => delay(mock.shopItems),
 };
@@ -79,7 +80,10 @@ export const adsService = {
 };
 
 /** Named aliases matching the handoff contract (docs/HANDOFF.md). */
-export const languageService = { list: lessonService.getLanguages, getCourse: lessonService.getCourse };
+export const languageService = {
+  list: lessonService.getLanguages,
+  getCourse: lessonService.getCourse,
+};
 export const achievementService = { list: userService.getAchievements };
 export const roomService = {
   getRoom: gameService.getRoom,

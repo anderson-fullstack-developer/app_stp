@@ -6,9 +6,9 @@
 const env = import.meta.env as Record<string, string | undefined>;
 
 /** Base URL of the future NestJS API, e.g. https://api.linguastp.st */
-export const API_BASE_URL = (env['VITE_API_URL'] ?? "").replace(/\/+$/, "");
+export const API_BASE_URL = (env["VITE_API_URL"] ?? "").replace(/\/+$/, "");
 /** Socket.IO server for multiplayer. */
-export const SOCKET_URL = env['VITE_SOCKET_URL'] ?? "";
+export const SOCKET_URL = env["VITE_SOCKET_URL"] ?? "";
 export const API_VERSION = "v1";
 export const API_PREFIX = `/api/${API_VERSION}`;
 /** While no API URL is configured, services keep using mock data. */

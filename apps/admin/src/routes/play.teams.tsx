@@ -16,7 +16,10 @@ export const Route = createFileRoute("/play/teams")({
   head: () => ({
     meta: [
       { title: "2 vs 2 — Língua STP" },
-      { name: "description", content: "Joga em equipa: cada resposta certa soma pontos para a tua equipa." },
+      {
+        name: "description",
+        content: "Joga em equipa: cada resposta certa soma pontos para a tua equipa.",
+      },
       { property: "og:title", content: "2 vs 2 — Língua STP" },
       { property: "og:description", content: "Equipa A contra Equipa B." },
     ],
@@ -27,7 +30,9 @@ export const Route = createFileRoute("/play/teams")({
 function initialRoster(): MatchPlayerSeed[] {
   const pending = session.peekPending();
   if (pending && pending.members.length >= 4) {
-    return pending.members.slice(0, 4).map((mb) => ({ id: mb.id, name: mb.name, color: mb.color, isMe: mb.isMe }));
+    return pending.members
+      .slice(0, 4)
+      .map((mb) => ({ id: mb.id, name: mb.name, color: mb.color, isMe: mb.isMe }));
   }
   // [A1, A2, B1, B2]
   return [mePlayer(), listOpponents()[1]!, listOpponents()[0]!, listOpponents()[2]!];
@@ -51,7 +56,11 @@ function Teams() {
 
   if (started) {
     const { questions, seconds } = MULTIPLAYER_CONFIG.teams;
-    return <PhoneFrame className="bg-muted"><ScoreMatch teams={teams} questions={questions} seconds={seconds} replayTo="/play/teams" /></PhoneFrame>;
+    return (
+      <PhoneFrame className="bg-muted">
+        <ScoreMatch teams={teams} questions={questions} seconds={seconds} replayTo="/play/teams" />
+      </PhoneFrame>
+    );
   }
 
   return (
@@ -61,12 +70,21 @@ function Teams() {
         <TeamCard name="Equipa A" tone="forest" players={teams[0].players} />
         <p className="text-center font-display text-2xl font-bold">VS</p>
         <TeamCard name="Equipa B" tone="coral" players={teams[1].players} />
-        <p className="text-center text-sm font-semibold text-muted-foreground">Todos respondem individualmente. Cada resposta certa soma pontos para a equipa.</p>
+        <p className="text-center text-sm font-semibold text-muted-foreground">
+          Todos respondem individualmente. Cada resposta certa soma pontos para a equipa.
+        </p>
         <div className="grid grid-cols-2 gap-2">
-          <AppButton variant="secondary" size="md" onClick={switchTeam}>Trocar equipa</AppButton>
-          <AppButton variant="secondary" size="md" onClick={randomize}><Shuffle className="size-4" />Aleatórias</AppButton>
+          <AppButton variant="secondary" size="md" onClick={switchTeam}>
+            Trocar equipa
+          </AppButton>
+          <AppButton variant="secondary" size="md" onClick={randomize}>
+            <Shuffle className="size-4" />
+            Aleatórias
+          </AppButton>
         </div>
-        <div className="mt-auto"><AppButton onClick={() => setStarted(true)}>Começar partida</AppButton></div>
+        <div className="mt-auto">
+          <AppButton onClick={() => setStarted(true)}>Começar partida</AppButton>
+        </div>
       </main>
     </PhoneFrame>
   );
