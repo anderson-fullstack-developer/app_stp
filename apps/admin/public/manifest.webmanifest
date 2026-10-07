@@ -1,10 +1,35 @@
 {
   "name": "Fala Neto",
   "short_name": "Fala Neto",
-  "description": "Aprende. Joga. Preserva.",
+  "description": "Aprende as línguas de São Tomé e Príncipe e Cabo Verde com o Neto.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f7f3ea",
   "theme_color": "#1f7a55",
-  "icons": [{ "src": "/favicon.ico", "sizes": "64x64", "type": "image/x-icon" }]
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
 }

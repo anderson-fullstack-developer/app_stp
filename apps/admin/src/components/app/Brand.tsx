@@ -1,14 +1,18 @@
 import { APP_CONFIG } from "@stp/config";
 import { cn } from "@/lib/utils";
 
+/** Ícone da app (o Neto). Fonte única: public/icon.svg, gerado por scripts/build-app-icons.mjs. */
 export function LogoMark({ size = 56, className }: { size?: number; className?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" className={className} aria-hidden>
-      <rect width="64" height="64" rx="20" fill="var(--accent)" />
-      <path d="M14 46 L30 14 L36 26 L42 20 L52 46 Z" fill="var(--primary-deep)" />
-      <path d="M8 46 Q20 40 32 46 T56 46 V56 H8Z" fill="var(--ocean)" />
-      <circle cx="46" cy="16" r="5" fill="var(--destructive)" />
-    </svg>
+    <img
+      src="/icon.svg"
+      width={size}
+      height={size}
+      alt=""
+      aria-hidden
+      draggable={false}
+      className={cn("shrink-0 select-none", className)}
+    />
   );
 }
 
