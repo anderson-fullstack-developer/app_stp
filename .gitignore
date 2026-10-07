@@ -43,3 +43,4 @@ dist-ssr
 
 # Cliente Prisma gerado (recriado por `prisma generate`, também no postinstall)
 apps/api/src/generated/
+.design/
