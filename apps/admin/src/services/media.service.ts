@@ -15,7 +15,7 @@
  * in VITE_* env vars (see .env.example).
  */
 
-const delay = <T,>(value: T, ms = 250) => new Promise<T>((r) => setTimeout(() => r(value), ms));
+const delay = <T>(value: T, ms = 250) => new Promise<T>((r) => setTimeout(() => r(value), ms));
 
 export interface MediaAsset {
   /** Public URL the UI can render/play directly. */
@@ -39,7 +39,8 @@ export const imageService = {
   upload: (file: File): Promise<UploadResult> =>
     delay({ url: `/mock-images/${file.name}`, key: `mock/${file.name}`, bytes: file.size }),
   /** Future: Cloudinary delivery URL with transformations (size/format). */
-  getUrl: (key: string, _opts?: { width?: number; height?: number }): string => `/mock-images/${key}`,
+  getUrl: (key: string, _opts?: { width?: number; height?: number }): string =>
+    `/mock-images/${key}`,
   /** Future: destroy the asset via the backend. */
   remove: (_key: string) => delay(true),
 };

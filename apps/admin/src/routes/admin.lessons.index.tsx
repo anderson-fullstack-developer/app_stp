@@ -4,7 +4,12 @@ import type { AdminLesson } from "@/admin/types";
 import { DataTable, PageHeader, StatusBadge, type Column } from "@/admin/ui";
 
 export const Route = createFileRoute("/admin/lessons/")({
-  head: () => ({ meta: [{ title: "Lições — Admin Língua STP" }, { name: "description", content: "Lista e editor de lições." }] }),
+  head: () => ({
+    meta: [
+      { title: "Lições — Admin Língua STP" },
+      { name: "description", content: "Lista e editor de lições." },
+    ],
+  }),
   component: Lessons,
 });
 
@@ -19,13 +24,21 @@ function Lessons() {
     { key: "u", header: "Unidade", cell: (l) => unit(l.unitId)?.title },
     { key: "d", header: "Dificuldade", cell: (l) => l.difficulty },
     { key: "x", header: "XP", cell: (l) => l.xp },
-    { key: "e", header: "Exercícios", cell: (l) => db.exercises.filter((e) => e.lessonId === l.id).length },
+    {
+      key: "e",
+      header: "Exercícios",
+      cell: (l) => db.exercises.filter((e) => e.lessonId === l.id).length,
+    },
     { key: "s", header: "Status", cell: (l) => <StatusBadge status={l.status} /> },
   ];
   return (
     <>
       <PageHeader title="Lições" />
-      <DataTable rows={db.lessons} columns={columns} onRowClick={(l) => navigate({ to: "/admin/lessons/$lessonId", params: { lessonId: l.id } })} />
+      <DataTable
+        rows={db.lessons}
+        columns={columns}
+        onRowClick={(l) => navigate({ to: "/admin/lessons/$lessonId", params: { lessonId: l.id } })}
+      />
     </>
   );
 }

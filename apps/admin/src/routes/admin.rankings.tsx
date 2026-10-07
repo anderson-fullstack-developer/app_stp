@@ -4,7 +4,12 @@ import type { AdminUser } from "@/admin/types";
 import { DataTable, PageHeader, type Column } from "@/admin/ui";
 
 export const Route = createFileRoute("/admin/rankings")({
-  head: () => ({ meta: [{ title: "Rankings — Admin Língua STP" }, { name: "description", content: "Classificação global por XP." }] }),
+  head: () => ({
+    meta: [
+      { title: "Rankings — Admin Língua STP" },
+      { name: "description", content: "Classificação global por XP." },
+    ],
+  }),
   component: Rankings,
 });
 
@@ -18,5 +23,10 @@ function Rankings() {
     { key: "l", header: "Nível", cell: (u) => u.level },
     { key: "m", header: "Partidas", cell: (u) => u.matches },
   ];
-  return (<><PageHeader title="Rankings" description="Ranking global (mock)." /><DataTable rows={rows} columns={columns} pageSize={15} /></>);
+  return (
+    <>
+      <PageHeader title="Rankings" description="Ranking global (mock)." />
+      <DataTable rows={rows} columns={columns} pageSize={15} />
+    </>
+  );
 }

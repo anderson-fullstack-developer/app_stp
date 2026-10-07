@@ -22,15 +22,22 @@ export const adPolicy = {
     emit();
     return () => {
       const n = (active.get(ctx) ?? 1) - 1;
-      if (n <= 0) active.delete(ctx); else active.set(ctx, n);
+      if (n <= 0) active.delete(ctx);
+      else active.set(ctx, n);
       emit();
     };
   },
   isBlocked: () => active.size > 0,
   blockedBy: () => [...active.keys()],
   /** Central check used by every ad component and adsService. */
-  canShow: (placement: string) => (AD_PLACEMENTS as readonly string[]).includes(placement) && active.size === 0,
-  subscribe(l: () => void) { listeners.add(l); return () => { listeners.delete(l); }; },
+  canShow: (placement: string) =>
+    (AD_PLACEMENTS as readonly string[]).includes(placement) && active.size === 0,
+  subscribe(l: () => void) {
+    listeners.add(l);
+    return () => {
+      listeners.delete(l);
+    };
+  },
 };
 
 /** Call in any screen where ads are forbidden (lesson, match, countdown). */

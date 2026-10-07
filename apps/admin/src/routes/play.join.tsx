@@ -18,7 +18,11 @@ export const Route = createFileRoute("/play/join")({
   component: Join,
 });
 
-const ERRORS = { invalid: "Código inválido", full: "Sala cheia", started: "A partida já começou" } as const;
+const ERRORS = {
+  invalid: "Código inválido",
+  full: "Sala cheia",
+  started: "A partida já começou",
+} as const;
 
 function Join() {
   const navigate = useNavigate();
@@ -36,18 +40,47 @@ function Join() {
     <PhoneFrame>
       <AppHeader left={<BackButton />} title="Entrar com código" />
       <main className="flex flex-1 flex-col gap-4 px-5 pb-6">
-        <label htmlFor="room-code" className="mt-6 text-center font-display text-xl font-bold">Código da sala</label>
-        <div className={cn("mx-auto flex items-center rounded-2xl border-[1.5px] bg-surface px-4 font-display text-4xl font-bold tracking-[0.2em]", error ? "border-destructive animate-shake" : "border-border")}>
+        <label htmlFor="room-code" className="mt-6 text-center font-display text-xl font-bold">
+          Código da sala
+        </label>
+        <div
+          className={cn(
+            "mx-auto flex items-center rounded-2xl border-[1.5px] bg-surface px-4 font-display text-4xl font-bold tracking-[0.2em]",
+            error ? "border-destructive animate-shake" : "border-border",
+          )}
+        >
           <span className="text-muted-foreground">STP</span>
-          <input id="room-code" inputMode="numeric" autoFocus maxLength={3} value={digits} placeholder="___"
-            onChange={(e) => { setDigits(e.target.value.replace(/\D/g, "").slice(0, 3)); setState("idle"); }}
-            className="h-16 w-28 bg-transparent outline-none placeholder:text-muted-foreground/40" />
+          <input
+            id="room-code"
+            inputMode="numeric"
+            autoFocus
+            maxLength={3}
+            value={digits}
+            placeholder="___"
+            onChange={(e) => {
+              setDigits(e.target.value.replace(/\D/g, "").slice(0, 3));
+              setState("idle");
+            }}
+            className="h-16 w-28 bg-transparent outline-none placeholder:text-muted-foreground/40"
+          />
         </div>
-        <p className={cn("min-h-6 text-center font-bold", error ? "text-destructive" : "text-muted-foreground")} role="status">
-          {state === "loading" ? "A entrar…" : error ?? "Pede o código ao host da sala."}
+        <p
+          className={cn(
+            "min-h-6 text-center font-bold",
+            error ? "text-destructive" : "text-muted-foreground",
+          )}
+          role="status"
+        >
+          {state === "loading" ? "A entrar…" : (error ?? "Pede o código ao host da sala.")}
         </p>
-        <p className="text-center text-xs font-semibold text-muted-foreground">Demo: STP999 = sala cheia · STP111 = já começou</p>
-        <div className="mt-auto"><AppButton onClick={submit} disabled={digits.length !== 3 || state === "loading"}>{state === "loading" ? "A entrar…" : "Entrar"}</AppButton></div>
+        <p className="text-center text-xs font-semibold text-muted-foreground">
+          Demo: STP999 = sala cheia · STP111 = já começou
+        </p>
+        <div className="mt-auto">
+          <AppButton onClick={submit} disabled={digits.length !== 3 || state === "loading"}>
+            {state === "loading" ? "A entrar…" : "Entrar"}
+          </AppButton>
+        </div>
       </main>
     </PhoneFrame>
   );

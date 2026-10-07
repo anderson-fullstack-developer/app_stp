@@ -6,7 +6,8 @@ const ids = new Set([currentUser.id, ...people.map((p) => p.id)]);
 
 describe("demo data has one source of players", () => {
   it("opponents, friends, rankings and rooms reuse the shared people", () => {
-    for (const x of [...MOCK_OPPONENTS, ...friends, ...sampleRoom.players]) expect(ids.has(x.id)).toBe(true);
+    for (const x of [...MOCK_OPPONENTS, ...friends, ...sampleRoom.players])
+      expect(ids.has(x.id)).toBe(true);
     for (const e of leaderboard) expect(ids.has(e.userId)).toBe(true);
   });
   it("admin users use the same usernames", () => {

@@ -26,7 +26,11 @@ function UserProfile() {
     <PhoneFrame>
       <AppHeader left={<BackButton />} title={u ? `@${u.username}` : ""} />
       <main className="flex-1 px-4 pb-8">
-        {isLoading ? <LoadingState /> : !u ? <ErrorState text="Utilizador não encontrado." /> : (
+        {isLoading ? (
+          <LoadingState />
+        ) : !u ? (
+          <ErrorState text="Utilizador não encontrado." />
+        ) : (
           <>
             <div className="flex flex-col items-center text-center">
               <Avatar name={u.name} color={u.avatarColor} size={104} />
@@ -37,12 +41,26 @@ function UserProfile() {
               <StatCard icon={<Star className="size-4" />} label="Nível" value={u.level} />
               <StatCard icon={<Award className="size-4" />} label="XP semana" value={u.weeklyXp} />
               <StatCard icon={<Flame className="size-4" />} label="Streak" value={u.streak} />
-              <StatCard icon={<Trophy className="size-4" />} label="Vitórias" value={Math.round(u.level * 2.5)} />
+              <StatCard
+                icon={<Trophy className="size-4" />}
+                label="Vitórias"
+                value={Math.round(u.level * 2.5)}
+              />
             </div>
             <div className="mt-6 grid grid-cols-2 gap-3">
-              {u.status === "friend"
-                ? <Link to="/play/private" className="col-span-2"><AppButton><Swords className="size-5" />Desafiar</AppButton></Link>
-                : <AppButton className="col-span-2"><UserPlus className="size-5" />Adicionar amigo</AppButton>}
+              {u.status === "friend" ? (
+                <Link to="/play/private" className="col-span-2">
+                  <AppButton>
+                    <Swords className="size-5" />
+                    Desafiar
+                  </AppButton>
+                </Link>
+              ) : (
+                <AppButton className="col-span-2">
+                  <UserPlus className="size-5" />
+                  Adicionar amigo
+                </AppButton>
+              )}
             </div>
           </>
         )}

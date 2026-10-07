@@ -12,7 +12,9 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/quiz")({
   // Legacy prototype screen, superseded by /play/survival. Kept (not deleted) but redirected so there is one flow.
-  beforeLoad: () => { throw redirect({ to: "/play/survival", replace: true }); },
+  beforeLoad: () => {
+    throw redirect({ to: "/play/survival", replace: true });
+  },
   head: () => ({
     meta: [
       { title: "Quiz multijogador — Língua STP" },
@@ -29,7 +31,11 @@ function Quiz() {
   const [time, setTime] = useState(10);
   const [sel, setSel] = useState<number | null>(null);
   const done = sel !== null || time === 0;
-  useEffect(() => { if (done) return; const t = setTimeout(() => setTime((x) => x - 1), 1000); return () => clearTimeout(t); }, [time, done]);
+  useEffect(() => {
+    if (done) return;
+    const t = setTimeout(() => setTime((x) => x - 1), 1000);
+    return () => clearTimeout(t);
+  }, [time, done]);
   const ranking = [...(room?.players ?? [])].sort((a, b) => b.score - a.score);
 
   return (
@@ -37,8 +43,14 @@ function Quiz() {
       <div className="flex items-center justify-between px-4 pt-3 safe-top">
         <BackButton close />
         <span className="font-display font-bold">Pergunta 4/10</span>
-        <span className={cn("inline-flex items-center gap-1 rounded-xl px-3 py-1 font-display text-lg font-bold", time <= 3 ? "bg-destructive" : "bg-primary-foreground/15")}>
-          <Timer className="size-5" />{String(time).padStart(2, "0")}
+        <span
+          className={cn(
+            "inline-flex items-center gap-1 rounded-xl px-3 py-1 font-display text-lg font-bold",
+            time <= 3 ? "bg-destructive" : "bg-primary-foreground/15",
+          )}
+        >
+          <Timer className="size-5" />
+          {String(time).padStart(2, "0")}
         </span>
       </div>
       <main className="flex-1 px-5 pb-8 pt-6">
@@ -48,8 +60,14 @@ function Quiz() {
         </div>
         <div className="mt-4 space-y-3 text-foreground">
           {["A", "B", "C", "D"].map((l, i) => (
-            <QuizOption key={l} letter={l} label={`Resposta ${l}`} selected={sel === i}
-              state={!done ? "idle" : i === 1 ? "correct" : sel === i ? "wrong" : "idle"} onClick={() => !done && setSel(i)} />
+            <QuizOption
+              key={l}
+              letter={l}
+              label={`Resposta ${l}`}
+              selected={sel === i}
+              state={!done ? "idle" : i === 1 ? "correct" : sel === i ? "wrong" : "idle"}
+              onClick={() => !done && setSel(i)}
+            />
           ))}
         </div>
         {done && (
@@ -57,7 +75,13 @@ function Quiz() {
             <SectionTitle>Ranking ao vivo</SectionTitle>
             <ol className="space-y-2">
               {ranking.map((p, i) => (
-                <li key={p.id} className={cn("flex items-center gap-3 rounded-2xl px-3 py-2", p.isHost ? "bg-accent text-accent-foreground" : "bg-primary-foreground/10")}>
+                <li
+                  key={p.id}
+                  className={cn(
+                    "flex items-center gap-3 rounded-2xl px-3 py-2",
+                    p.isHost ? "bg-accent text-accent-foreground" : "bg-primary-foreground/10",
+                  )}
+                >
                   <span className="w-5 font-display font-bold">{i + 1}</span>
                   <Avatar name={p.name} color={p.avatarColor} size={34} />
                   <span className="flex-1 font-semibold">{p.name}</span>
@@ -65,7 +89,9 @@ function Quiz() {
                 </li>
               ))}
             </ol>
-            <Link to="/challenges" className="mt-5 block"><AppButton variant="sun">Próxima pergunta</AppButton></Link>
+            <Link to="/challenges" className="mt-5 block">
+              <AppButton variant="sun">Próxima pergunta</AppButton>
+            </Link>
           </div>
         )}
       </main>

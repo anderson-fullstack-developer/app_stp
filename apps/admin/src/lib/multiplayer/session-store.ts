@@ -11,8 +11,16 @@ let pending: PendingMatch | null = null;
 let lastResult: MatchResult | null = null;
 
 export const session = {
-  setPending(p: PendingMatch | null) { pending = p; },
-  peekPending() { return pending; },
-  setResult(r: MatchResult) { lastResult = r; },
-  getResult() { return lastResult; },
+  setPending(p: PendingMatch | null) {
+    pending = p;
+  },
+  peekPending() {
+    return pending;
+  },
+  setResult(r: MatchResult) {
+    lastResult = r;
+  },
+  getResult() {
+    return lastResult;
+  },
 };

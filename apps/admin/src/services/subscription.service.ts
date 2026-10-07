@@ -19,7 +19,7 @@
 import { PREMIUM_MONTHLY_DISPLAY_PRICE, PREMIUM_YEARLY_DISPLAY_PRICE } from "@stp/config";
 import * as mock from "@/mocks";
 
-const delay = <T,>(value: T, ms = 400) => new Promise<T>((r) => setTimeout(() => r(value), ms));
+const delay = <T>(value: T, ms = 400) => new Promise<T>((r) => setTimeout(() => r(value), ms));
 
 /** Matches RevenueCat's Package model (identifier, offering, product). */
 export interface SubscriptionPackage {

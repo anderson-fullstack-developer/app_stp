@@ -7,9 +7,23 @@ const seat = (id: string, score: number) => {
 };
 
 export const sampleRoom: GameRoom = {
-  id: "r1", code: "STP847", maxPlayers: 10, questions: 10, secondsPerQuestion: 10, mode: "normal",
+  id: "r1",
+  code: "STP847",
+  maxPlayers: 10,
+  questions: 10,
+  secondsPerQuestion: 10,
+  mode: "normal",
   players: [
-    { id: currentUser.id, name: currentUser.name, avatarColor: currentUser.avatarColor, isHost: true, ready: true, score: 420 },
-    seat("f1", 450), seat("f2", 390), seat("f4", 360),
+    {
+      id: currentUser.id,
+      name: currentUser.name,
+      avatarColor: currentUser.avatarColor,
+      isHost: true,
+      ready: true,
+      score: 420,
+    },
+    seat("f1", 450),
+    seat("f2", 390),
+    seat("f4", 360),
   ],
 };

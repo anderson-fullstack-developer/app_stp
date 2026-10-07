@@ -21,8 +21,18 @@ export const Route = createFileRoute("/achievements")({
       <PhoneFrame>
         <AppHeader left={<BackButton />} title="Conquistas" />
         <main className="flex-1 px-4 pb-8">
-          <p className="mb-4 text-center text-sm font-semibold text-muted-foreground">{n} de {data?.length ?? 0} desbloqueadas</p>
-          {!data ? <LoadingState /> : <div className="grid grid-cols-3 gap-3">{data.map((a) => <AchievementBadge key={a.id} a={a} />)}</div>}
+          <p className="mb-4 text-center text-sm font-semibold text-muted-foreground">
+            {n} de {data?.length ?? 0} desbloqueadas
+          </p>
+          {!data ? (
+            <LoadingState />
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {data.map((a) => (
+                <AchievementBadge key={a.id} a={a} />
+              ))}
+            </div>
+          )}
         </main>
       </PhoneFrame>
     );

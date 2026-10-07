@@ -17,7 +17,11 @@ export const Route = createFileRoute("/admin_/forbidden")({
 
 function Page() {
   return (
-    <AuthScreen icon={<ShieldAlert className="size-10 text-destructive" />} title="Acesso proibido" text="O teu perfil não tem permissão para esta área.">
+    <AuthScreen
+      icon={<ShieldAlert className="size-10 text-destructive" />}
+      title="Acesso proibido"
+      text="O teu perfil não tem permissão para esta área."
+    >
       <LoginLink />
     </AuthScreen>
   );

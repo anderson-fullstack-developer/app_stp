@@ -10,10 +10,24 @@
 import { settings } from "@/hooks/use-settings";
 
 export type SoundName =
-  | "tap" | "select" | "correct" | "wrong" | "tick" | "urgent" | "go"
-  | "lifeLost" | "eliminated" | "final" | "victory" | "defeat"
-  | "complete" | "levelUp" | "streak" | "coins"
-  | "join" | "roomFull";
+  | "tap"
+  | "select"
+  | "correct"
+  | "wrong"
+  | "tick"
+  | "urgent"
+  | "go"
+  | "lifeLost"
+  | "eliminated"
+  | "final"
+  | "victory"
+  | "defeat"
+  | "complete"
+  | "levelUp"
+  | "streak"
+  | "coins"
+  | "join"
+  | "roomFull";
 
 /** Substituições opcionais por ficheiros (ex.: { victory: "/sounds/vitoria.mp3" }). */
 export const SOUND_FILES: Partial<Record<SoundName, string>> = {};
@@ -33,7 +47,16 @@ interface Note {
 }
 
 // Notas (Hz) usadas abaixo
-const C5 = 523.25, D5 = 587.33, E5 = 659.25, G5 = 783.99, A5 = 880, C6 = 1046.5, D6 = 1174.66, E6 = 1318.51, G6 = 1567.98, C7 = 2093;
+const C5 = 523.25,
+  D5 = 587.33,
+  E5 = 659.25,
+  G5 = 783.99,
+  A5 = 880,
+  C6 = 1046.5,
+  D6 = 1174.66,
+  E6 = 1318.51,
+  G6 = 1567.98,
+  C7 = 2093;
 
 const RECIPES: Record<SoundName, Note[]> = {
   tap: [{ f: 900, to: 700, d: 0.045, type: "sine", g: 0.16 }],
@@ -91,7 +114,13 @@ const RECIPES: Record<SoundName, Note[]> = {
     { f: C6, t: 0.27, d: 0.5, type: "triangle", g: 0.24 },
     { f: C7, t: 0.36, d: 0.22, type: "sine", g: 0.06 },
   ],
-  levelUp: [C5, D5, E5, G5, A5, C6].map((f, i) => ({ f, t: i * 0.065, d: i === 5 ? 0.55 : 0.1, type: "triangle" as const, g: 0.22 })),
+  levelUp: [C5, D5, E5, G5, A5, C6].map((f, i) => ({
+    f,
+    t: i * 0.065,
+    d: i === 5 ? 0.55 : 0.1,
+    type: "triangle" as const,
+    g: 0.22,
+  })),
   streak: [
     { f: 300, to: 900, d: 0.35, type: "sine", g: 0.16 },
     { f: E6, t: 0.28, d: 0.4, type: "triangle", g: 0.18 },
@@ -116,10 +145,24 @@ const RECIPES: Record<SoundName, Note[]> = {
 
 /** Padrões de vibração (ms). */
 const HAPTICS: Partial<Record<SoundName, number | number[]>> = {
-  tap: 8, select: 8, tick: 10, urgent: 6, go: 25, correct: 15, wrong: [25, 40, 25],
-  lifeLost: [40, 30, 40], eliminated: [60, 40, 90], final: 30, victory: [20, 30, 20, 30, 60],
-  defeat: 60, levelUp: [15, 25, 15, 25, 40], streak: 20, coins: 10, complete: [15, 30, 30],
-  join: 12, roomFull: [20, 40, 20, 40, 50],
+  tap: 8,
+  select: 8,
+  tick: 10,
+  urgent: 6,
+  go: 25,
+  correct: 15,
+  wrong: [25, 40, 25],
+  lifeLost: [40, 30, 40],
+  eliminated: [60, 40, 90],
+  final: 30,
+  victory: [20, 30, 20, 30, 60],
+  defeat: 60,
+  levelUp: [15, 25, 15, 25, 40],
+  streak: 20,
+  coins: 10,
+  complete: [15, 30, 30],
+  join: 12,
+  roomFull: [20, 40, 20, 40, 50],
 };
 
 let ctx: AudioContext | null = null;
@@ -128,7 +171,9 @@ let out: AudioNode | null = null;
 function getAudio(): { ctx: AudioContext; out: AudioNode } | null {
   if (typeof window === "undefined") return null;
   if (!ctx) {
-    const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const AC =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AC) return null;
     ctx = new AC();
     const master = ctx.createGain();
@@ -169,7 +214,8 @@ const MIN_GAP_MS = 45;
 /** Escala maior em semitons — dá aos sons repetidos (ex.: entradas na sala) uma subida musical. */
 const MAJOR = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24];
 /** Fator de tom para o passo `step` (0, 1, 2…) da escala maior. */
-export const scaleStep = (step: number) => 2 ** ((MAJOR[Math.max(0, Math.min(step, MAJOR.length - 1))] ?? 0) / 12);
+export const scaleStep = (step: number) =>
+  2 ** ((MAJOR[Math.max(0, Math.min(step, MAJOR.length - 1))] ?? 0) / 12);
 
 export const sound = {
   /** `pitch` multiplica as frequências (1 = original; ver scaleStep). */
@@ -182,7 +228,11 @@ export const sound = {
     const prefs = settings.get();
     const pattern = HAPTICS[name];
     if (prefs.haptics && pattern !== undefined && typeof navigator.vibrate === "function") {
-      try { navigator.vibrate(pattern); } catch { /* ignorar */ }
+      try {
+        navigator.vibrate(pattern);
+      } catch {
+        /* ignorar */
+      }
     }
     if (!prefs.sound || !prefs.effects) return;
 

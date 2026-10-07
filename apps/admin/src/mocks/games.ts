@@ -7,13 +7,34 @@ import { people } from "./users";
 export { buildQuestionPool } from "./questions";
 
 /** Simulated opponents — same people as friends/rankings, never a separate list. */
-export const MOCK_OPPONENTS: MatchPlayerSeed[] = people.map((p) => ({ id: p.id, name: p.name, color: p.color, skill: p.skill }));
+export const MOCK_OPPONENTS: MatchPlayerSeed[] = people.map((p) => ({
+  id: p.id,
+  name: p.name,
+  color: p.color,
+  skill: p.skill,
+}));
 
-export const dailyChallenge = { questions: 5, xpReward: APP_CONFIG.rewards.dailyXp, coinReward: APP_CONFIG.rewards.dailyCoins, participants: 247 };
+export const dailyChallenge = {
+  questions: 5,
+  xpReward: APP_CONFIG.rewards.dailyXp,
+  coinReward: APP_CONFIG.rewards.dailyCoins,
+  participants: 247,
+};
 
 export const subscriptions: Subscription[] = [
-  { id: "monthly", label: "Mensal", price: `${APP_CONFIG.currencySymbol}${APP_CONFIG.pricing.monthly}`, period: "/mês" },
-  { id: "yearly", label: "Anual", price: `${APP_CONFIG.currencySymbol}${APP_CONFIG.pricing.yearly}`, period: "/ano", highlight: "Poupa com o plano anual" },
+  {
+    id: "monthly",
+    label: "Mensal",
+    price: `${APP_CONFIG.currencySymbol}${APP_CONFIG.pricing.monthly}`,
+    period: "/mês",
+  },
+  {
+    id: "yearly",
+    label: "Anual",
+    price: `${APP_CONFIG.currencySymbol}${APP_CONFIG.pricing.yearly}`,
+    period: "/ano",
+    highlight: "Poupa com o plano anual",
+  },
 ];
 
 export const shopItems = [
