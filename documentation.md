@@ -3376,3 +3376,9 @@ Consequências:
 - O nome provisório da app ("Língua STP") deixa de servir — o nome final deve
   funcionar para vários países (decisão D-10).
 - Cada língua precisa da sua própria equipa de linguistas.
+
+Nota (2026-10-07, ADR-14): por decisão do dono do produto, o Kriolu fica
+disponível em BETA antes da revisão por falantes nativos, sempre identificado
+como "Beta — conteúdo em revisão", com botão "Reportar erro". Esta é uma
+exceção à regra "só APPROVED chega aos utilizadores", válida enquanto o
+conteúdo revisto não existir.

@@ -6,8 +6,12 @@ import { LessonNode } from "@/components/app/Cards";
 import { LoadingState, ProgressBar } from "@/components/app/Primitives";
 import { StreakCard } from "@/components/app/StreakCard";
 import { levelInfo, useGame } from "@/hooks/use-game";
-import { useCourse, useDaily, useMe } from "@/hooks/use-service";
+import { useCourse, useDaily, useLanguages, useMe } from "@/hooks/use-service";
 import { TabLayout } from "@/layouts/AppShell";
+import { useTranslation } from "react-i18next";
+import { KrioluPath } from "@/components/app/KrioluPath";
+import { useSettings } from "@/hooks/use-settings";
+import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/learn")({
@@ -37,6 +41,12 @@ function Learn() {
   const { data: daily } = useDaily();
   const g = useGame();
   const lvl = levelInfo(g.xp);
+  const { t } = useTranslation();
+  const { learning } = useSettings();
+  const { data: langs } = useLanguages();
+  const learningLang =
+    langs?.find((l) => l.id === learning) ?? langs?.find((l) => l.id === "forro");
+  const isKriolu = learningLang?.id === KRIOLU_LANGUAGE_ID;
 
   return (
     <TabLayout
@@ -77,9 +87,16 @@ function Learn() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-widest opacity-75">
-                  A aprender
+                  {t("kriolu.learningLabel")}
                 </p>
-                <p className="font-display text-lg font-bold">Forro / Santomé</p>
+                <p className="flex items-center gap-2 font-display text-lg font-bold">
+                  {learningLang?.name ?? "…"}
+                  {learningLang?.beta && (
+                    <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
+                      {t("kriolu.beta")}
+                    </span>
+                  )}
+                </p>
               </div>
               <span className="rounded-xl bg-primary-foreground/15 px-3 py-1 font-display font-bold">
                 Nível {lvl.level}
@@ -172,49 +189,53 @@ function Learn() {
             ))}
           </div>
 
-          {course.units.map((unit, ui) => {
-            const locked = unit.lessons.every((l) => l.status === "locked");
-            const doneCount = unit.lessons.filter((l) => l.status === "completed").length;
-            return (
-              <section key={unit.id} className="mt-7">
-                <div
-                  className={cn(
-                    "relative overflow-hidden rounded-3xl p-5 pattern-leaf",
-                    unitBg[unit.theme],
-                    locked && "opacity-70 saturate-50",
-                  )}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest opacity-80">
-                        Unidade {unit.index}
-                      </p>
-                      <h2 className="font-display text-2xl font-bold">{unit.title}</h2>
-                      <p className="text-sm opacity-85">{unit.description}</p>
+          {isKriolu ? (
+            <KrioluPath />
+          ) : (
+            course.units.map((unit, ui) => {
+              const locked = unit.lessons.every((l) => l.status === "locked");
+              const doneCount = unit.lessons.filter((l) => l.status === "completed").length;
+              return (
+                <section key={unit.id} className="mt-7">
+                  <div
+                    className={cn(
+                      "relative overflow-hidden rounded-3xl p-5 pattern-leaf",
+                      unitBg[unit.theme],
+                      locked && "opacity-70 saturate-50",
+                    )}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest opacity-80">
+                          Unidade {unit.index}
+                        </p>
+                        <h2 className="font-display text-2xl font-bold">{unit.title}</h2>
+                        <p className="text-sm opacity-85">{unit.description}</p>
+                      </div>
+                      <span className="rounded-xl bg-surface/20 px-2.5 py-1 text-xs font-bold">
+                        {doneCount}/{unit.lessons.length}
+                      </span>
                     </div>
-                    <span className="rounded-xl bg-surface/20 px-2.5 py-1 text-xs font-bold">
-                      {doneCount}/{unit.lessons.length}
-                    </span>
                   </div>
-                </div>
-                <div className="flex flex-col items-center gap-7 py-8">
-                  {unit.lessons.map((l, i) => (
-                    <LessonNode
-                      key={l.id}
-                      lesson={l}
-                      offset={WAVE[(i + ui * 3) % WAVE.length] ?? 0}
-                    />
-                  ))}
-                </div>
-                {ui === 0 && (
-                  <div className="space-y-3">
-                    <RewardedAdCard />
-                    <AdSlot placement="home" />
+                  <div className="flex flex-col items-center gap-7 py-8">
+                    {unit.lessons.map((l, i) => (
+                      <LessonNode
+                        key={l.id}
+                        lesson={l}
+                        offset={WAVE[(i + ui * 3) % WAVE.length] ?? 0}
+                      />
+                    ))}
                   </div>
-                )}
-              </section>
-            );
-          })}
+                  {ui === 0 && (
+                    <div className="space-y-3">
+                      <RewardedAdCard />
+                      <AdSlot placement="home" />
+                    </div>
+                  )}
+                </section>
+              );
+            })
+          )}
         </>
       )}
     </TabLayout>

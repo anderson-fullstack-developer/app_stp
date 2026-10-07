@@ -1,133 +1,156 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, ExternalLink, FlaskConical, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle2, ExternalLink, Flag, FlaskConical, RotateCcw, XCircle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import data from "@content/sources/wiktionary-kea/entries.json";
-import ptSuggestions from "@content/sources/wiktionary-kea/pt-suggestions.json";
+import { z } from "zod";
+import { APP_CONFIG } from "@stp/config";
 import { useBlockAds } from "@/config/ads";
 import { BackButton } from "@/components/app/BackButton";
 import { AppButton } from "@/components/app/Buttons";
 import { BottomSheet, ProgressBar } from "@/components/app/Primitives";
-import { DisabledState } from "@/components/app/States";
 import { QuizOption } from "@/components/exercises/Exercises";
-import { PhoneFrame } from "@/layouts/AppShell";
+import { game } from "@/hooks/use-game";
 import {
-  buildPreviewQuiz,
-  PREVIEW_ENABLED,
-  type MeaningLocale,
-  type SourceEntry,
-} from "@/lib/preview-quiz";
+  krioluEntries,
+  krioluProgress,
+  krioluPtSuggestions,
+  useKrioluCourse,
+  useMeaningLocale,
+} from "@/hooks/use-kriolu";
+import { PhoneFrame } from "@/layouts/AppShell";
+import { buildKrioluLessonQuiz } from "@/lib/kriolu-course";
 import { sound } from "@/lib/sound";
 
 /**
- * PRÉ-VISUALIZAÇÃO INTERNA do Kriolu com rascunhos NÃO revistos (Wiktionary, CC BY-SA 4.0).
- * Os significados aparecem no idioma da interface: português (sugestão automática) ou inglês (fonte).
- * Só existe em desenvolvimento — numa versão publicada mostra "indisponível".
- * Não atribui XP, moedas nem streak (não é conteúdo aprovado).
+ * Lição de Kriolu (Cabo Verde) em BETA — ADR-14.
+ * Conteúdo importado do Wiktionary (CC BY-SA 4.0) e ainda não revisto por falantes nativos:
+ * o aviso Beta e o botão "Reportar erro" estão sempre visíveis.
  */
-export const Route = createFileRoute("/preview/kriolu")({
-  head: () => ({
-    meta: [
-      { title: "Pré-visualização Kriolu (interno)" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
-  }),
-  component: KrioluPreview,
+export const Route = createFileRoute("/practice/kriolu")({
+  validateSearch: (s) => z.object({ lesson: z.string().optional().catch(undefined) }).parse(s),
+  head: () => ({ meta: [{ title: "Kriolu (Beta) — Língua STP" }] }),
+  component: KrioluLesson,
 });
 
-const QUESTIONS = 10;
 const POS_KEYS = ["substantivo", "verbo", "adjetivo", "advérbio", "numeral"] as const;
 type PosKey = (typeof POS_KEYS)[number];
 const isPosKey = (x: string): x is PosKey => (POS_KEYS as readonly string[]).includes(x);
+const THEME_KEYS = [
+  "numbers",
+  "time",
+  "family",
+  "body",
+  "food",
+  "nature",
+  "home",
+  "describe",
+  "verbs",
+] as const;
+type ThemeKey = (typeof THEME_KEYS)[number];
+const isThemeKey = (x: string): x is ThemeKey => (THEME_KEYS as readonly string[]).includes(x);
 
-function KrioluPreview() {
+function KrioluLesson() {
   useBlockAds("lesson");
-  const { t, i18n } = useTranslation();
-  const locale: MeaningLocale = i18n.language === "en" ? "en" : "pt";
+  const { t } = useTranslation();
+  const { lesson: lessonId } = Route.useSearch();
+  const locale = useMeaningLocale();
+  const course = useKrioluCourse();
+  const unit = course.find((u) => u.lessons.some((l) => l.id === lessonId)) ?? course[0];
+  const lesson = unit?.lessons.find((l) => l.id === lessonId) ?? unit?.lessons[0];
+
   const [seed, setSeed] = useState(() => Date.now());
   const quiz = useMemo(
     () =>
-      buildPreviewQuiz(data.entries as SourceEntry[], QUESTIONS, seed, {
-        locale,
-        ptSuggestions: ptSuggestions.translations,
-      }),
-    [seed, locale],
+      unit && lesson
+        ? buildKrioluLessonQuiz(
+            krioluEntries,
+            lesson,
+            unit.lessons.flatMap((l) => l.words),
+            locale,
+            krioluPtSuggestions,
+            seed,
+          )
+        : [],
+    [unit, lesson, locale, seed],
   );
   const [i, setI] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
   const [hits, setHits] = useState(0);
+  const [reported, setReported] = useState<string | null>(null);
 
-  // Mudar o idioma a meio recomeça o teste (as opções mudam de língua).
-  useEffect(() => {
+  const reset = () => {
     setI(0);
     setSelected(null);
     setChecked(false);
     setHits(0);
-  }, [locale]);
-
-  if (!PREVIEW_ENABLED) {
-    return (
-      <PhoneFrame>
-        <DisabledState text={t("preview.devOnly")} />
-      </PhoneFrame>
-    );
-  }
-
-  const restart = () => {
-    setSeed(Date.now());
-    setI(0);
-    setSelected(null);
-    setChecked(false);
-    setHits(0);
+    setReported(null);
   };
+  // Mudar de idioma ou de lição recomeça (as opções mudam).
+  useEffect(reset, [locale, lessonId]);
 
-  if (i >= quiz.length) {
+  const finished = quiz.length > 0 && i >= quiz.length;
+  useEffect(() => {
+    if (!finished || !lesson) return;
+    krioluProgress.complete(lesson.id);
+    game.completeLesson(APP_CONFIG.rewards.lessonXp, APP_CONFIG.rewards.lessonCoins);
+    sound.play("complete");
+  }, [finished, lesson]);
+
+  if (!unit || !lesson) return null;
+  const themeName = isThemeKey(unit.theme.id) ? t(`kriolu.themes.${unit.theme.id}`) : unit.theme.id;
+
+  if (finished) {
     return (
       <PhoneFrame className="bg-forest pattern-leaf">
         <div className="flex flex-1 flex-col items-center px-6 pt-16 text-center text-primary-foreground">
-          <FlaskConical className="size-14 text-accent" />
-          <h1 className="mt-4 font-display text-3xl font-bold">{t("preview.doneTitle")}</h1>
-          <p className="mt-2 text-primary-foreground/80">
+          <div className="animate-pop text-7xl">{unit.theme.icon}</div>
+          <h1 className="mt-4 font-display text-3xl font-bold">{t("kriolu.lessonDone")}</h1>
+          <p className="mt-1 text-primary-foreground/80">
+            {themeName} · {t("kriolu.lesson", { n: lesson.index })}
+          </p>
+          <p className="mt-4 font-display text-xl font-bold">
             {t("preview.score", { hits, total: quiz.length })}
           </p>
           <p className="mt-6 max-w-xs text-xs text-primary-foreground/70">
-            {t("preview.doneText")}
+            {t("kriolu.betaNotice")}
           </p>
           <div className="mt-auto w-full space-y-3 pb-6 pt-8">
-            <AppButton variant="light" onClick={restart}>
-              <RotateCcw className="size-4" />
-              {t("preview.again")}
-            </AppButton>
-            <Link to="/onboarding">
-              <AppButton
-                variant="ghost"
-                className="text-primary-foreground hover:bg-primary-foreground/10"
-              >
-                {t("common.back")}
-              </AppButton>
+            <Link to="/learn">
+              <AppButton variant="light">{t("common.continue")}</AppButton>
             </Link>
+            <AppButton
+              variant="ghost"
+              className="text-primary-foreground hover:bg-primary-foreground/10"
+              onClick={() => {
+                setSeed(Date.now());
+                reset();
+              }}
+            >
+              <RotateCcw className="size-4" />
+              {t("result.repeat")}
+            </AppButton>
           </div>
         </div>
       </PhoneFrame>
     );
   }
 
-  const q = quiz[i]!;
+  const q = quiz[i];
+  if (!q) return null;
   const correct = selected === q.correctIndex;
   const letters = ["A", "B", "C", "D"];
   const optionState = (k: number) =>
     !checked ? "idle" : k === q.correctIndex ? "correct" : k === selected ? "wrong" : "idle";
   const posLabel = isPosKey(q.pos) ? t(`pos.${q.pos}`) : q.pos;
-  const meaningLabel =
-    q.meaningSource === "pt-suggestion" ? t("preview.meaningLang") : t("preview.meaningLangEn");
   const hint = [
     posLabel,
     q.mode === "meaning" && q.variant ? t("preview.variant", { name: q.variant }) : null,
-    meaningLabel,
+    q.meaningSource === "pt-suggestion" ? t("preview.meaningLang") : t("preview.meaningLangEn"),
   ]
     .filter(Boolean)
     .join(" · ");
+  const word = q.mode === "meaning" ? q.target : q.options[q.correctIndex]!;
 
   return (
     <PhoneFrame>
@@ -138,14 +161,12 @@ function KrioluPreview() {
 
       <div className="mx-4 mt-3 flex items-start gap-2 rounded-2xl border border-accent/50 bg-accent/15 px-3 py-2 text-[12px] leading-snug text-accent-foreground">
         <FlaskConical className="mt-0.5 size-4 shrink-0" />
-        <span>
-          <strong>{t("preview.banner")}</strong> · {t("preview.bannerText")}
-        </span>
+        <span>{t("kriolu.betaNotice")}</span>
       </div>
 
       <div className="px-5 pt-5">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {t("preview.questionOf", { n: i + 1, total: quiz.length })}
+          {t("kriolu.questionOf", { theme: themeName, n: i + 1, total: quiz.length })}
         </p>
         <h1 className="mt-1 font-display text-2xl font-bold">
           <Trans
@@ -157,7 +178,7 @@ function KrioluPreview() {
         <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
       </div>
 
-      <div key={q.id} className="animate-rise flex-1 space-y-3 px-5 pb-40 pt-5">
+      <div key={q.id} className="animate-rise flex-1 space-y-3 px-5 pb-48 pt-5">
         {q.options.map((label, k) => (
           <QuizOption
             key={label}
@@ -177,7 +198,10 @@ function KrioluPreview() {
             onClick={() => {
               setChecked(true);
               sound.play(correct ? "correct" : "wrong");
-              if (correct) setHits((h) => h + 1);
+              if (correct) {
+                setHits((h) => h + 1);
+                game.addXp(APP_CONFIG.rewards.correctAnswerXp);
+              }
             }}
           >
             {t("lesson.check")}
@@ -203,14 +227,28 @@ function KrioluPreview() {
                 {t("preview.answer")} <span className="font-bold">{q.options[q.correctIndex]}</span>
               </p>
             )}
-            <a
-              href={q.sourceUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground underline"
-            >
-              {t("preview.source")} <ExternalLink className="size-3" />
-            </a>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-muted-foreground">
+              <a
+                href={q.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 underline"
+              >
+                {t("preview.source")} <ExternalLink className="size-3" />
+              </a>
+              {reported === word ? (
+                <span className="text-success">{t("kriolu.reported")}</span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setReported(word)}
+                  className="inline-flex items-center gap-1 underline"
+                >
+                  <Flag className="size-3" />
+                  {t("kriolu.report")}
+                </button>
+              )}
+            </div>
           </div>
         </div>
         <AppButton

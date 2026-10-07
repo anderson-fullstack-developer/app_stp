@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { settings, useSettings } from "@/hooks/use-settings";
 import { useTranslation } from "react-i18next";
 import { LOCALES } from "@stp/i18n";
+import { useLanguages } from "@/hooks/use-service";
 import { sound } from "@/lib/sound";
 import { authService } from "@/services";
 
@@ -110,6 +111,40 @@ function LanguageRow() {
   );
 }
 
+/** Língua que o utilizador está a aprender (só as disponíveis; Beta assinalado). */
+function LearningRow() {
+  const { t } = useTranslation();
+  const { learning } = useSettings();
+  const { data: langs } = useLanguages();
+  const options = (langs ?? []).filter((l) => l.available);
+  return (
+    <div className="flex w-full items-center justify-between gap-3 px-4 py-3 font-semibold">
+      {t("settings.learning")}
+      <div
+        className="flex rounded-xl bg-muted/80 p-1"
+        role="radiogroup"
+        aria-label={t("settings.learning")}
+      >
+        {options.map((l) => (
+          <button
+            key={l.id}
+            role="radio"
+            aria-checked={learning === l.id}
+            onClick={() => settings.set({ learning: l.id })}
+            className={cn(
+              "rounded-lg px-2.5 py-1 text-xs font-semibold transition-all",
+              learning === l.id ? "bg-surface text-primary shadow-card" : "text-muted-foreground",
+            )}
+          >
+            {l.name.split(" / ")[0]}
+            {l.beta ? " β" : ""}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Settings() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -120,7 +155,7 @@ function Settings() {
         <Group title={t("settings.general")}>
           <Row label={t("settings.account")} value="@anderson" />
           <LanguageRow />
-          <Row label={t("settings.learning")} value="Forro" />
+          <LearningRow />
           <Row label={t("settings.premium")} value={t("settings.free")} to="/premium" />
         </Group>
         <Group title={t("settings.preferences")}>

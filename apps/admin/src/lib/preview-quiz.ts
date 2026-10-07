@@ -6,9 +6,6 @@
  * de quem joga: inglês (fonte original) ou português (sugestão automática, por rever).
  */
 
-/** A pré-visualização com rascunhos só existe em desenvolvimento (nunca numa versão publicada). */
-export const PREVIEW_ENABLED = import.meta.env.DEV;
-
 export interface SourceEntry {
   word: string;
   senses: { partOfSpeech: string; glossEn: string }[];
@@ -54,6 +51,14 @@ export function shortGloss(gloss: string): string {
     .trim();
 }
 
+/** Compara palavras sem maiúsculas nem acentos. */
+const fold = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+
 interface Card {
   word: string;
   pos: string;
@@ -80,6 +85,8 @@ export function toCards(
       // Sem tradução ou duvidosa → fica fora do quiz em português.
       if (!pt || pt.includes("confirmar")) continue;
       gloss = pt;
+      // Palavra igual à resposta em português (ex.: «abril» → abril) não ensina nada.
+      if (fold(e.word) === fold(pt)) continue;
     }
     // Evita duas palavras com o mesmo significado (tornaria a pergunta ambígua).
     const key = `${sense.partOfSpeech}:${gloss.toLowerCase()}`;

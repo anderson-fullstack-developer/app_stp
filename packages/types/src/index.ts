@@ -39,6 +39,8 @@ export interface Language {
   countryId: string;
   region: string;
   available: boolean;
+  /** Disponível em Beta: conteúdo ainda em revisão por falantes nativos (ADR-14). */
+  beta?: boolean;
 }
 
 export interface Course {
