@@ -12,7 +12,8 @@ import { settings } from "@/hooks/use-settings";
 export type SoundName =
   | "tap" | "select" | "correct" | "wrong" | "tick" | "urgent" | "go"
   | "lifeLost" | "eliminated" | "final" | "victory" | "defeat"
-  | "complete" | "levelUp" | "streak" | "coins";
+  | "complete" | "levelUp" | "streak" | "coins"
+  | "join" | "roomFull";
 
 /** Substituições opcionais por ficheiros (ex.: { victory: "/sounds/vitoria.mp3" }). */
 export const SOUND_FILES: Partial<Record<SoundName, string>> = {};
@@ -95,6 +96,18 @@ const RECIPES: Record<SoundName, Note[]> = {
     { f: 300, to: 900, d: 0.35, type: "sine", g: 0.16 },
     { f: E6, t: 0.28, d: 0.4, type: "triangle", g: 0.18 },
   ],
+  /** Jogador entrou na sala — usar com `pitch` crescente para a escala subir à medida que a sala enche. */
+  join: [
+    { f: 520, to: 700, d: 0.07, type: "sine", g: 0.22 },
+    { f: 1040, t: 0.05, d: 0.12, type: "triangle", g: 0.12 },
+  ],
+  roomFull: [
+    { f: C5, d: 0.5, type: "triangle", g: 0.16 },
+    { f: E5, t: 0.04, d: 0.5, type: "triangle", g: 0.16 },
+    { f: G5, t: 0.08, d: 0.5, type: "triangle", g: 0.16 },
+    { f: C6, t: 0.12, d: 0.55, type: "triangle", g: 0.2 },
+    { f: G6, t: 0.2, d: 0.3, type: "sine", g: 0.06 },
+  ],
   coins: [
     { f: G6, d: 0.08, type: "triangle", g: 0.16 },
     { f: C7, t: 0.07, d: 0.26, type: "triangle", g: 0.16 },
@@ -106,6 +119,7 @@ const HAPTICS: Partial<Record<SoundName, number | number[]>> = {
   tap: 8, select: 8, tick: 10, urgent: 6, go: 25, correct: 15, wrong: [25, 40, 25],
   lifeLost: [40, 30, 40], eliminated: [60, 40, 90], final: 30, victory: [20, 30, 20, 30, 60],
   defeat: 60, levelUp: [15, 25, 15, 25, 40], streak: 20, coins: 10, complete: [15, 30, 30],
+  join: 12, roomFull: [20, 40, 20, 40, 50],
 };
 
 let ctx: AudioContext | null = null;
@@ -130,14 +144,14 @@ function getAudio(): { ctx: AudioContext; out: AudioNode } | null {
   return out ? { ctx, out } : null;
 }
 
-function playNote(ac: AudioContext, dest: AudioNode, n: Note, at: number) {
+function playNote(ac: AudioContext, dest: AudioNode, n: Note, at: number, pitch = 1) {
   const start = at + (n.t ?? 0);
   const end = start + n.d;
   const osc = ac.createOscillator();
   const gain = ac.createGain();
   osc.type = n.type ?? "sine";
-  osc.frequency.setValueAtTime(n.f, start);
-  if (n.to) osc.frequency.exponentialRampToValueAtTime(n.to, end);
+  osc.frequency.setValueAtTime(n.f * pitch, start);
+  if (n.to) osc.frequency.exponentialRampToValueAtTime(n.to * pitch, end);
   // Envolvente: ataque rápido (sem clique) e decaimento exponencial suave.
   const peak = n.g ?? 0.2;
   gain.gain.setValueAtTime(0.0001, start);
@@ -152,8 +166,14 @@ const lastPlayed = new Map<SoundName, number>();
 /** Intervalo mínimo entre repetições do mesmo som (evita metralhar cliques). */
 const MIN_GAP_MS = 45;
 
+/** Escala maior em semitons — dá aos sons repetidos (ex.: entradas na sala) uma subida musical. */
+const MAJOR = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24];
+/** Fator de tom para o passo `step` (0, 1, 2…) da escala maior. */
+export const scaleStep = (step: number) => 2 ** ((MAJOR[Math.max(0, Math.min(step, MAJOR.length - 1))] ?? 0) / 12);
+
 export const sound = {
-  play(name: SoundName) {
+  /** `pitch` multiplica as frequências (1 = original; ver scaleStep). */
+  play(name: SoundName, opts?: { pitch?: number }) {
     if (typeof window === "undefined") return;
     const now = performance.now();
     if (now - (lastPlayed.get(name) ?? -Infinity) < MIN_GAP_MS) return;
@@ -176,6 +196,6 @@ export const sound = {
     const audio = getAudio();
     if (!audio) return;
     const at = audio.ctx.currentTime + 0.005;
-    for (const n of RECIPES[name]) playNote(audio.ctx, audio.out, n, at);
+    for (const n of RECIPES[name]) playNote(audio.ctx, audio.out, n, at, opts?.pitch ?? 1);
   },
 };

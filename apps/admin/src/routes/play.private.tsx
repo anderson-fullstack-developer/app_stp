@@ -6,7 +6,7 @@ import { BackButton } from "@/components/app/BackButton";
 import { Avatar } from "@/components/app/Badges";
 import { AppButton } from "@/components/app/Buttons";
 import { LoadingState, Modal, SectionTitle } from "@/components/app/Primitives";
-import { LobbyPlayer, OptionPicker, RoomCode } from "@/components/play/LobbyUI";
+import { LobbyPlayer, OptionPicker, RoomCode, useJoinSounds } from "@/components/play/LobbyUI";
 import { MULTIPLAYER_CONFIG } from "@stp/config";
 import { listInvitableFriends } from "@/services/game.service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
@@ -104,6 +104,7 @@ function Lobby({ room }: { room: PrivateRoom }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHost, ready, members.length]);
 
+  useJoinSounds(members.length, members.length >= room.config.players);
   const host = members.find((m) => m.isHost);
   return (
     <>
