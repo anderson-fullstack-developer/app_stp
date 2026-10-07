@@ -22,9 +22,11 @@ export async function apiRequest<T>(
   resource: ApiResource,
   path: (string | number)[] = [],
   body?: unknown,
+  query?: Record<string, string>,
 ): Promise<T> {
   const token = await authService.getToken();
-  const res = await fetch(apiUrl(resource, ...path), {
+  const qs = query ? `?${new URLSearchParams(query).toString()}` : "";
+  const res = await fetch(apiUrl(resource, ...path) + qs, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -39,6 +41,8 @@ export async function apiRequest<T>(
 
 export const http = {
   get: <T>(r: ApiResource, ...p: (string | number)[]) => apiRequest<T>("GET", r, p),
+  getQ: <T>(r: ApiResource, p: (string | number)[], q: Record<string, string>) =>
+    apiRequest<T>("GET", r, p, undefined, q),
   post: <T>(r: ApiResource, p: (string | number)[], b?: unknown) => apiRequest<T>("POST", r, p, b),
   patch: <T>(r: ApiResource, p: (string | number)[], b?: unknown) =>
     apiRequest<T>("PATCH", r, p, b),

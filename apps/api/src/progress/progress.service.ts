@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../database/prisma.service.js";
 import { levelForXp, type LevelInfo } from "./rules/levels.js";
-import { isValidTimeZone, localDate } from "./rules/local-date.js";
+import { addDays, daysBetween, isValidTimeZone, localDate } from "./rules/local-date.js";
 import { effectiveStreak } from "./rules/streak.js";
 
 export interface ProgressSummary {
@@ -19,6 +19,10 @@ export interface ProgressSummary {
   lessonsCompleted: number;
   /** Dia local do utilizador (AAAA-MM-DD) usado nos cálculos. */
   today: string;
+  /** Semana local (segunda a domingo): dia ativo ou protegido. */
+  week: boolean[];
+  /** Posição de hoje na semana (segunda = 0). */
+  todayIndex: number;
 }
 
 const FALLBACK_TZ = "Europe/Lisbon";
@@ -40,6 +44,20 @@ export class ProgressService {
       (await this.prisma.userStats.upsert({ where: { userId }, create: { userId }, update: {} }));
     const timeZone = isValidTimeZone(user.timezone) ? user.timezone : FALLBACK_TZ;
     const today = localDate(now, timeZone);
+    const todayIndex = (new Date(`${today}T00:00:00Z`).getUTCDay() + 6) % 7;
+    const monday = addDays(today, -todayIndex);
+    const days = await this.prisma.activityDay.findMany({
+      where: {
+        userId,
+        localDate: { gte: new Date(`${monday}T00:00:00Z`), lte: new Date(`${today}T00:00:00Z`) },
+      },
+      select: { localDate: true },
+    });
+    const week = Array.from({ length: 7 }, () => false);
+    for (const d of days) {
+      const i = daysBetween(monday, isoDate(d.localDate));
+      if (i >= 0 && i < 7) week[i] = true;
+    }
     const lastActiveDate = stats.lastActiveDate ? isoDate(stats.lastActiveDate) : null;
 
     return {
@@ -63,6 +81,8 @@ export class ProgressService {
       correctAnswers: stats.correctAnswers,
       lessonsCompleted: stats.lessonsCompleted,
       today,
+      week,
+      todayIndex,
     };
   }
 }
