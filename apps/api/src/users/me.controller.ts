@@ -27,4 +27,10 @@ export class MeController {
     ]);
     return { ...profile, progress };
   }
+
+  @Get("achievements")
+  @ApiOkResponse({ description: "Conquistas: ganhas (com data) e progresso das restantes." })
+  achievements(@CurrentUser() user: AuthUser) {
+    return this.progress.achievements(user.id);
+  }
 }

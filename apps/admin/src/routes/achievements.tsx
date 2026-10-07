@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BackButton } from "@/components/app/BackButton";
 import { AchievementBadge } from "@/components/app/Cards";
 import { LoadingState } from "@/components/app/Primitives";
-import { useAchievements } from "@/hooks/use-service";
+import { useTranslation } from "react-i18next";
+import { useProfileView } from "@/hooks/use-profile-view";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { APP_NAME } from "@stp/config";
 
@@ -16,14 +17,15 @@ export const Route = createFileRoute("/achievements")({
     ],
   }),
   component: function AchievementsPage() {
-    const { data } = useAchievements();
+    const { t } = useTranslation();
+    const data = useProfileView()?.achievements;
     const n = data?.filter((a) => a.unlocked).length ?? 0;
     return (
       <PhoneFrame>
-        <AppHeader left={<BackButton />} title="Conquistas" />
+        <AppHeader left={<BackButton />} title={t("profile.achievements")} />
         <main className="flex-1 px-4 pb-8">
           <p className="mb-4 text-center text-sm font-semibold text-muted-foreground">
-            {n} de {data?.length ?? 0} desbloqueadas
+            {t("profile.unlockedOf", { n, total: data?.length ?? 0 })}
           </p>
           {!data ? (
             <LoadingState />

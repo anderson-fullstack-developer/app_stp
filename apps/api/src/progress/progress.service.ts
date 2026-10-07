@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../database/prisma.service.js";
 import { levelForXp, type LevelInfo } from "./rules/levels.js";
 import { addDays, daysBetween, isValidTimeZone, localDate } from "./rules/local-date.js";
+import { ACHIEVEMENTS, achievementProgress } from "./rules/achievements.js";
 import { effectiveStreak } from "./rules/streak.js";
 
 export interface ProgressSummary {
@@ -17,6 +18,11 @@ export interface ProgressSummary {
   };
   correctAnswers: number;
   lessonsCompleted: number;
+  /** Palavras diferentes já acertadas em lições. */
+  wordsLearned: number;
+  /** % de respostas certas à primeira tentativa (null sem respostas). */
+  accuracy: number | null;
+  achievementsCount: number;
   /** Dia local do utilizador (AAAA-MM-DD) usado nos cálculos. */
   today: string;
   /** Semana local (segunda a domingo): dia ativo ou protegido. */
@@ -59,6 +65,19 @@ export class ProgressService {
       if (i >= 0 && i < 7) week[i] = true;
     }
     const lastActiveDate = stats.lastActiveDate ? isoDate(stats.lastActiveDate) : null;
+    const [wordsLearned, firstTries, firstTriesRight, achievementsCount] = await Promise.all([
+      this.prisma.exercise.count({
+        where: {
+          vocabularyId: { not: null },
+          answers: { some: { correct: true, attempt: { userId } } },
+        },
+      }),
+      this.prisma.lessonAttemptAnswer.count({ where: { round: 1, attempt: { userId } } }),
+      this.prisma.lessonAttemptAnswer.count({
+        where: { round: 1, correct: true, attempt: { userId } },
+      }),
+      this.prisma.userAchievement.count({ where: { userId } }),
+    ]);
 
     return {
       xpTotal: stats.xpTotal,
@@ -80,9 +99,38 @@ export class ProgressService {
       },
       correctAnswers: stats.correctAnswers,
       lessonsCompleted: stats.lessonsCompleted,
+      wordsLearned,
+      accuracy: firstTries ? Math.round((firstTriesRight / firstTries) * 100) : null,
+      achievementsCount,
       today,
       week,
       todayIndex,
     };
+  }
+
+  /** Catálogo de conquistas com o estado do utilizador (ganhas e progresso das restantes). */
+  async achievements(userId: string) {
+    const [summary, earned] = await Promise.all([
+      this.summary(userId),
+      this.prisma.userAchievement.findMany({
+        where: { userId },
+        select: { achievementKey: true, earnedAt: true },
+      }),
+    ]);
+    const earnedAt = new Map(earned.map((e) => [e.achievementKey, e.earnedAt]));
+    const values = {
+      lessons: summary.lessonsCompleted,
+      streak: summary.streak.longest,
+      correct: summary.correctAnswers,
+      level: summary.level.level,
+    };
+    return ACHIEVEMENTS.map((a) => ({
+      key: a.key,
+      icon: a.icon,
+      target: a.target,
+      unlocked: earnedAt.has(a.key),
+      earnedAt: earnedAt.get(a.key) ?? null,
+      progress: earnedAt.has(a.key) ? 100 : achievementProgress(a, values),
+    }));
   }
 }
