@@ -1,5 +1,6 @@
 import { Check, Copy, Crown, HeartPulse, Share2, type LucideIcon } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { scaleStep, sound } from "@/lib/sound";
 import { Avatar, SoonBadge } from "@/components/app/Badges";
 import { AppButton } from "@/components/app/Buttons";
 import { cn } from "@/lib/utils";
@@ -35,8 +36,22 @@ export function MatchmakingAvatar({ p }: { p?: MatchPlayerSeed | undefined }) {
   );
 }
 
+/**
+ * Toca um som sempre que entra um jogador (o tom sobe a cada entrada) e um acorde quando a
+ * sala fica completa. Não toca para os jogadores que já estavam quando o ecrã abriu, nem para ti.
+ */
+export function useJoinSounds(count: number, full: boolean) {
+  const prev = useRef(count);
+  useEffect(() => {
+    if (count > prev.current && prev.current > 0) sound.play("join", { pitch: scaleStep(count - 2) });
+    prev.current = count;
+  }, [count]);
+  useEffect(() => { if (full) sound.play("roomFull"); }, [full]);
+}
+
 export function MatchmakingScreen({ players, size, full, onCancel }: { players: MatchPlayerSeed[]; size: number; full: boolean; onCancel: () => void }) {
   const cols = size > 8 ? "grid-cols-4 gap-2" : "grid-cols-4 gap-3";
+  useJoinSounds(players.length, full);
   return (
     <div className="flex flex-1 flex-col bg-forest px-5 pt-10 pb-6 text-primary-foreground safe-top">
       <div className="text-center">
