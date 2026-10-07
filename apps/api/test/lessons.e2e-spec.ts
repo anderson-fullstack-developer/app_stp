@@ -8,6 +8,7 @@ import { configureApp } from "../src/configure-app.js";
 import { loadEnv } from "../src/config/env.js";
 import { CoursesService } from "../src/courses/courses.service.js";
 import { PrismaService } from "../src/database/prisma.service.js";
+import { ProgressService } from "../src/progress/progress.service.js";
 import type { StoredQuestion } from "../src/lessons/lesson-rules.js";
 import { LessonsService } from "../src/lessons/lessons.service.js";
 import type { AuthUser } from "../src/users/users.service.js";
@@ -151,6 +152,12 @@ describe.skipIf(!dbUrl)(
         orderBy: { balanceAfter: "asc" },
       });
       expect(coinRows.map((c) => c.balanceAfter)).toEqual([5, 15]);
+
+      const summary = await app.get(ProgressService).summary(user.id);
+
+      expect(summary.week[summary.todayIndex]).toBe(true); // hoje fica marcado na semana
+
+      expect(summary.streak).toMatchObject({ current: 1, activeToday: true });
 
       const p = await lessons.progress(user, "kabuverdianu");
       expect(p.lessons[0]?.state).toBe("completed");

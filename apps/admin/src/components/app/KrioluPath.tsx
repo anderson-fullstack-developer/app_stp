@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Check, Lock, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { lessonStates, useKrioluCourse, useKrioluProgress } from "@/hooks/use-kriolu";
+import { type PathUnit, useServerPath } from "@/hooks/use-server-lessons";
+import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
 import { cn } from "@/lib/utils";
 
 const THEME_BG = [
@@ -16,20 +18,37 @@ const WAVE = [0, 44, 64, 44, 0, -44, -64, -44];
 type ThemeKey =
   "numbers" | "time" | "family" | "body" | "food" | "nature" | "home" | "describe" | "verbs";
 
-/** Caminho de aprendizagem do Kriolu (Beta): unidades por tema, lições em sequência. */
+/**
+ * Caminho de aprendizagem do Kriolu (Beta): unidades por tema, lições em sequência.
+ * Com sessão, curso e progresso vêm do servidor; sem sessão, a demonstração local.
+ */
 export function KrioluPath() {
   const { t } = useTranslation();
   const course = useKrioluCourse();
   const completed = useKrioluProgress();
-  const states = lessonStates(course, completed);
+  const server = useServerPath(KRIOLU_LANGUAGE_ID);
+  const local: PathUnit[] = (() => {
+    const states = lessonStates(course, completed);
+    return course.map((u) => ({
+      key: u.theme.id,
+      themeId: u.theme.id,
+      icon: u.theme.icon,
+      lessons: u.lessons.map((l) => ({
+        id: l.id,
+        index: l.index,
+        state: states.get(l.id) ?? "locked",
+      })),
+    }));
+  })();
+  const units = server ?? local;
 
   return (
     <>
-      {course.map((unit, ui) => {
-        const done = unit.lessons.filter((l) => states.get(l.id) === "completed").length;
-        const locked = unit.lessons.every((l) => states.get(l.id) === "locked");
+      {units.map((unit, ui) => {
+        const done = unit.lessons.filter((l) => l.state === "completed").length;
+        const locked = unit.lessons.every((l) => l.state === "locked");
         return (
-          <section key={unit.theme.id} className="mt-7">
+          <section key={unit.key} className="mt-7">
             <div
               className={cn(
                 "relative overflow-hidden rounded-3xl p-5 pattern-leaf",
@@ -43,7 +62,7 @@ export function KrioluPath() {
                     {t("kriolu.unit", { n: ui + 1 })}
                   </p>
                   <h2 className="font-display text-2xl font-bold">
-                    {unit.theme.icon} {t(`kriolu.themes.${unit.theme.id as ThemeKey}`)}
+                    {unit.icon} {t(`kriolu.themes.${unit.themeId as ThemeKey}`)}
                   </h2>
                 </div>
                 <span className="shrink-0 rounded-xl bg-surface/20 px-2.5 py-1 text-xs font-bold">
@@ -53,7 +72,7 @@ export function KrioluPath() {
             </div>
             <div className="flex flex-col items-center gap-7 py-8">
               {unit.lessons.map((lesson, li) => {
-                const state = states.get(lesson.id) ?? "locked";
+                const state = lesson.state;
                 const Icon = state === "completed" ? Check : state === "current" ? Star : Lock;
                 const node = (
                   <div

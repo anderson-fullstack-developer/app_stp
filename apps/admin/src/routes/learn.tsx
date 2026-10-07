@@ -13,6 +13,7 @@ import { useUser } from "@clerk/tanstack-react-start";
 import { KrioluPath } from "@/components/app/KrioluPath";
 import { NetoIntroOnce } from "@/components/app/NetoIntro";
 import { useSettings } from "@/hooks/use-settings";
+import { useAccountProfile } from "@/hooks/use-account";
 import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
 import { cn } from "@/lib/utils";
 import { APP_NAME } from "@stp/config";
@@ -43,11 +44,37 @@ function Learn() {
   const { data: course } = useCourse();
   const { data: daily } = useDaily();
   const g = useGame();
-  const lvl = levelInfo(g.xp);
+  // Com sessão, os números vêm do servidor (fonte única); sem sessão, a demonstração local.
+  const { data: serverProfile } = useAccountProfile();
+  const sp = serverProfile?.progress;
+  const lvl = sp
+    ? {
+        level: sp.level.level,
+        progress: Math.round(sp.level.progress * 100),
+        toNext: sp.level.nextLevelXp - sp.xpTotal,
+      }
+    : levelInfo(g.xp);
+  const stats = sp
+    ? {
+        streak: sp.streak.current,
+        longest: sp.streak.longest,
+        xp: sp.xpTotal,
+        coins: sp.coins,
+        week: sp.week,
+        todayIndex: sp.todayIndex,
+      }
+    : {
+        streak: g.streak,
+        longest: g.longestStreak,
+        xp: g.xp,
+        coins: g.coins,
+        week: g.week,
+        todayIndex: g.todayIndex,
+      };
   const { t } = useTranslation();
   // Nome real de quem entrou (Clerk); sem sessão usa o perfil de demonstração.
   const { user: account } = useUser();
-  const displayName = account?.firstName ?? account?.fullName ?? user?.name;
+  const displayName = account?.firstName ?? serverProfile?.name ?? account?.fullName ?? user?.name;
   const { learning } = useSettings();
   const { data: langs } = useLanguages();
   const learningLang =
@@ -78,10 +105,10 @@ function Learn() {
             </Link>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2">
-            <StreakBadge value={g.streak} className="justify-center" />
-            <XPBadge value={g.xp} className="justify-center" />
+            <StreakBadge value={stats.streak} className="justify-center" />
+            <XPBadge value={stats.xp} className="justify-center" />
             <Link to="/shop" aria-label="Abrir loja">
-              <CoinBadge value={g.coins} className="w-full justify-center" />
+              <CoinBadge value={stats.coins} className="w-full justify-center" />
             </Link>
           </div>
         </header>
@@ -121,10 +148,10 @@ function Learn() {
 
           <div className="mt-3">
             <StreakCard
-              streak={g.streak}
-              longest={g.longestStreak}
-              week={g.week}
-              todayIndex={g.todayIndex}
+              streak={stats.streak}
+              longest={stats.longest}
+              week={stats.week}
+              todayIndex={stats.todayIndex}
             />
           </div>
 

@@ -31,6 +31,8 @@ export interface AccountProfile {
     correctAnswers: number;
     lessonsCompleted: number;
     today: string;
+    week: boolean[];
+    todayIndex: number;
   };
 }
 

@@ -14,6 +14,8 @@ import { z } from "zod";
 import { APP_CONFIG, APP_NAME } from "@stp/config";
 import { useBlockAds } from "@/config/ads";
 import { Neto } from "@/components/app/Neto";
+import { ServerKrioluLesson } from "@/components/app/ServerKrioluLesson";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { BackButton } from "@/components/app/BackButton";
 import { AppButton } from "@/components/app/Buttons";
 import { BottomSheet, ProgressBar } from "@/components/app/Primitives";
@@ -60,7 +62,19 @@ const THEME_KEYS = [
 type ThemeKey = (typeof THEME_KEYS)[number];
 const isThemeKey = (x: string): x is ThemeKey => (THEME_KEYS as readonly string[]).includes(x);
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Com sessão, as lições do servidor jogam-se no servidor; sem sessão, a demonstração local. */
 function KrioluLesson() {
+  const { lesson } = Route.useSearch();
+  const serverEnabled = useServerLessonsEnabled();
+  if (serverEnabled && lesson && UUID_RE.test(lesson)) {
+    return <ServerKrioluLesson lessonId={lesson} />;
+  }
+  return <LocalKrioluLesson />;
+}
+
+function LocalKrioluLesson() {
   useBlockAds("lesson");
   const { t } = useTranslation();
   const { lesson: lessonId } = Route.useSearch();

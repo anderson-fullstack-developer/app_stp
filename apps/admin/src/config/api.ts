@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
   users: `${API_PREFIX}/users`,
   languages: `${API_PREFIX}/languages`,
   lessons: `${API_PREFIX}/lessons`,
+  lessonAttempts: `${API_PREFIX}/lesson-attempts`,
   progress: `${API_PREFIX}/progress`,
   friends: `${API_PREFIX}/friends`,
   leaderboards: `${API_PREFIX}/leaderboards`,
