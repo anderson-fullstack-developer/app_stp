@@ -7,7 +7,6 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from "@nestjs/common";
-import { shortGloss } from "../courses/course-builder.js";
 import { MIN_LESSON_QUESTIONS } from "../courses/courses.service.js";
 import { PrismaService } from "../database/prisma.service.js";
 import type { Prisma } from "../generated/prisma/client.js";
@@ -16,6 +15,7 @@ import { isPubliclyListed, visibleContentStatuses } from "../languages/visibilit
 import { grantActivity, loadRewardTable, lockStats, noGrant } from "../progress/grant.js";
 import { lessonRewards } from "../progress/rules/rewards.js";
 import type { AuthUser } from "../users/users.service.js";
+import { loadQuizItems } from "./quiz-items.js";
 import {
   buildQuestions,
   evaluateAttempt,
@@ -76,43 +76,9 @@ export class LessonsService {
   }
 
   /** Palavras de uma unidade com o significado no idioma pedido (fonte em inglês resumida). */
-  private async unitItems(unitId: string, visible: ContentStatus[], locale: string) {
-    const rows = await this.prisma.exercise.findMany({
-      where: {
-        lesson: { unitId },
-        status: { in: visible },
-        vocabularyId: { not: null },
-      },
-      orderBy: { order: "asc" },
-      select: {
-        id: true,
-        lessonId: true,
-        vocabulary: {
-          select: {
-            id: true,
-            word: true,
-            partOfSpeech: true,
-            translations: { where: { locale }, select: { text: true }, take: 1 },
-          },
-        },
-      },
-    });
-    return rows.flatMap((r) => {
-      const v = r.vocabulary;
-      const text = v?.translations[0]?.text;
-      if (!v || !text) return [];
-      const gloss = locale === "en" ? shortGloss(text) : text.trim();
-      if (!gloss) return [];
-      const item: QuizItem & { lessonId: string | null } = {
-        exerciseId: r.id,
-        vocabularyId: v.id,
-        word: v.word,
-        gloss,
-        partOfSpeech: v.partOfSpeech,
-        lessonId: r.lessonId,
-      };
-      return [item];
-    });
+  /** Palavras de uma unidade com o significado no idioma pedido. */
+  private unitItems(unitId: string, visible: ContentStatus[], locale: string) {
+    return loadQuizItems(this.prisma, { lesson: { unitId }, status: { in: visible } }, locale);
   }
 
   async start(user: AuthUser, lessonId: string, requestedLocale?: string) {
