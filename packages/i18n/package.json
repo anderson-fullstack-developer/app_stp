@@ -1,0 +1,10 @@
+{
+  "name": "@stp/i18n",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc --noEmit", "test": "vitest run" },
+  "dependencies": {},
+  "devDependencies": { "@stp/tsconfig": "workspace:*", "typescript": "^5.8.3", "vitest": "^4.1.10" }
+}

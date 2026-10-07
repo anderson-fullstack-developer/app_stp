@@ -4,6 +4,8 @@ import { BackButton } from "@/components/app/BackButton";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
 import { settings, useSettings } from "@/hooks/use-settings";
+import { useTranslation } from "react-i18next";
+import { LOCALES } from "@stp/i18n";
 import { sound } from "@/lib/sound";
 import { authService } from "@/services";
 
@@ -73,29 +75,65 @@ const Group = ({ title, children }: { title: string; children: React.ReactNode }
   </section>
 );
 
+/** Escolha do idioma da interface: muda logo a app inteira. */
+function LanguageRow() {
+  const { t, i18n } = useTranslation();
+  const { locale } = useSettings();
+  const current = locale ?? i18n.language;
+  return (
+    <div className="flex w-full items-center justify-between gap-3 px-4 py-3 font-semibold">
+      {t("settings.uiLanguage")}
+      <div
+        className="flex rounded-xl bg-muted/80 p-1"
+        role="radiogroup"
+        aria-label={t("settings.uiLanguage")}
+      >
+        {LOCALES.map((l) => (
+          <button
+            key={l.id}
+            role="radio"
+            aria-checked={current === l.id}
+            disabled={!l.available}
+            title={l.available ? l.label : `${l.label} — ${t("common.soon")}`}
+            onClick={() => settings.set({ locale: l.id })}
+            className={cn(
+              "rounded-lg px-2.5 py-1 text-xs font-semibold uppercase transition-all",
+              current === l.id ? "bg-surface text-primary shadow-card" : "text-muted-foreground",
+              !l.available && "opacity-40",
+            )}
+          >
+            {l.id}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Settings() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   return (
     <PhoneFrame>
-      <AppHeader left={<BackButton />} title="Definições" />
+      <AppHeader left={<BackButton />} title={t("settings.title")} />
       <main className="flex-1 px-4 pb-10">
-        <Group title="Geral">
-          <Row label="Conta" value="@anderson" />
-          <Row label="Idioma da interface" value="Português" />
-          <Row label="Língua estudada" value="Forro" />
-          <Row label="Conta Premium" value="Gratuita" to="/premium" />
+        <Group title={t("settings.general")}>
+          <Row label={t("settings.account")} value="@anderson" />
+          <LanguageRow />
+          <Row label={t("settings.learning")} value="Forro" />
+          <Row label={t("settings.premium")} value={t("settings.free")} to="/premium" />
         </Group>
-        <Group title="Preferências">
-          <Toggle label="Som" k="sound" />
-          <Toggle label="Efeitos sonoros" k="effects" />
-          <Toggle label="Vibração" k="haptics" />
-          <Toggle label="Notificações" k="notifications" />
+        <Group title={t("settings.preferences")}>
+          <Toggle label={t("settings.sound")} k="sound" />
+          <Toggle label={t("settings.effects")} k="effects" />
+          <Toggle label={t("settings.haptics")} k="haptics" />
+          <Toggle label={t("settings.notifications")} k="notifications" />
         </Group>
-        <Group title="Suporte">
-          <Row label="Privacidade" />
-          <Row label="Ajuda" />
-          <Row label="Termos" />
-          <Row label="Política de Privacidade" />
+        <Group title={t("settings.support")}>
+          <Row label={t("settings.privacy")} />
+          <Row label={t("settings.help")} />
+          <Row label={t("settings.terms")} />
+          <Row label={t("settings.privacyPolicy")} />
         </Group>
         <button
           onClick={async () => {
@@ -105,7 +143,7 @@ function Settings() {
           className="pressable mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] border-destructive/40 py-3.5 font-bold text-destructive"
         >
           <LogOut className="size-5" />
-          Terminar sessão
+          {t("settings.signOut")}
         </button>
       </main>
     </PhoneFrame>

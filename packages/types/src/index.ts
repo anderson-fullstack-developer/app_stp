@@ -4,6 +4,8 @@ export interface User {
   username: string;
   email?: string;
   country: string;
+  /** Línguas que o utilizador fala (ex.: ["pt", "kea"]). */
+  spokenLanguages?: string[];
   avatarColor: AvatarColor;
   level: number;
   levelProgress: number;

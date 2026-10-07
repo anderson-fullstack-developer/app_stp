@@ -12,10 +12,18 @@ export interface Settings {
   /** Vibração curta (Android; ignorada onde não existe). */
   haptics: boolean;
   notifications: boolean;
+  /** Idioma da interface escolhido pelo utilizador; null = usar o idioma do dispositivo. */
+  locale: string | null;
 }
 
 const KEY = "lstp-settings-v1";
-const DEFAULTS: Settings = { sound: true, effects: true, haptics: true, notifications: true };
+const DEFAULTS: Settings = {
+  sound: true,
+  effects: true,
+  haptics: true,
+  notifications: true,
+  locale: null,
+};
 
 let state: Settings = DEFAULTS;
 let hydrated = false;

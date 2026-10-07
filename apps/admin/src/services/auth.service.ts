@@ -27,6 +27,10 @@ export interface SignUpInput {
   username: string;
   email: string;
   password: string;
+  /** País onde vive (id de COUNTRY_IDS em @stp/i18n). */
+  country: string;
+  /** Línguas que fala (ids de SPOKEN_LANGUAGE_IDS) — define a língua das traduções. */
+  spokenLanguages: string[];
 }
 
 export interface AuthSession {
@@ -45,7 +49,14 @@ export const authService = {
   /** Create a new account. Future: Clerk signUp (+ email verification). */
   signUp: (input: SignUpInput): Promise<AuthSession> =>
     delay({
-      user: { ...mock.currentUser, name: input.name, username: input.username, email: input.email },
+      user: {
+        ...mock.currentUser,
+        name: input.name,
+        username: input.username,
+        email: input.email,
+        country: input.country,
+        spokenLanguages: input.spokenLanguages,
+      },
       token: MOCK_TOKEN,
     }),
 
