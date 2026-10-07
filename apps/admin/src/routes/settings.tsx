@@ -1,4 +1,5 @@
 import { useClerk, useUser } from "@clerk/tanstack-react-start";
+import { useAccountProfile } from "@/hooks/use-account";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight, LogOut } from "lucide-react";
 import { BackButton } from "@/components/app/BackButton";
@@ -157,6 +158,7 @@ function Settings() {
   const { t } = useTranslation();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { data: profile } = useAccountProfile();
   return (
     <PhoneFrame>
       <AppHeader left={<BackButton />} title={t("settings.title")} />
@@ -164,7 +166,7 @@ function Settings() {
         <Group title={t("settings.general")}>
           <Row
             label={t("settings.account")}
-            value={user?.primaryEmailAddress?.emailAddress}
+            value={profile ? `@${profile.username}` : user?.primaryEmailAddress?.emailAddress}
             to="/settings/account"
           />
           <LanguageRow />

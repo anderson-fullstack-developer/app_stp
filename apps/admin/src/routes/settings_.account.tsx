@@ -2,6 +2,7 @@ import { UserProfile } from "@clerk/tanstack-react-start";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { BackButton } from "@/components/app/BackButton";
+import { ServerProfileCard } from "@/components/app/ServerProfileCard";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 
 /**
@@ -17,7 +18,8 @@ function AccountPage() {
   return (
     <PhoneFrame>
       <AppHeader left={<BackButton />} title={t("settings.account")} />
-      <main className="flex flex-1 justify-center px-2 pb-8">
+      <main className="flex flex-1 flex-col items-center gap-4 px-2 pb-8">
+        <ServerProfileCard />
         <UserProfile routing="hash" />
       </main>
     </PhoneFrame>

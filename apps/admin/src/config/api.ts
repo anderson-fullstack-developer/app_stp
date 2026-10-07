@@ -17,6 +17,7 @@ export const USE_MOCK_API = API_BASE_URL === "";
 /** Resource roots. Paths are relative to API_BASE_URL. */
 export const API_ENDPOINTS = {
   auth: `${API_PREFIX}/auth`,
+  me: `${API_PREFIX}/me`,
   users: `${API_PREFIX}/users`,
   languages: `${API_PREFIX}/languages`,
   lessons: `${API_PREFIX}/lessons`,
