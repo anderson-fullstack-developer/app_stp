@@ -679,6 +679,12 @@ model LessonAttempt {
   userId          String        @db.Uuid
   lessonId        String        @db.Uuid
   status          AttemptStatus @default(IN_PROGRESS)
+  /// Idioma dos significados nas perguntas (pt, en…).
+  locale          String        @default("pt")
+  /// Perguntas geradas pelo servidor, com a resposta certa (nunca enviada ao cliente antes de responder).
+  questions       Json?
+  /// Resultado da conclusão (recompensas, streak…), para respostas idempotentes.
+  result          Json?
   /// Ordem dos exercícios escolhida pelo servidor (ids).
   exerciseIds     String[]      @db.Uuid
   total           Int

@@ -7,6 +7,8 @@ import { ReviewController } from "./content/review.controller.js";
 import { ReviewService } from "./content/review.service.js";
 import { CoursesController } from "./courses/courses.controller.js";
 import { CoursesService } from "./courses/courses.service.js";
+import { LessonsController } from "./lessons/lessons.controller.js";
+import { LessonsService } from "./lessons/lessons.service.js";
 import { AllExceptionsFilter } from "./common/all-exceptions.filter.js";
 import { ENV, type Env } from "./config/env.js";
 import { DatabaseModule } from "./database/database.module.js";
@@ -50,6 +52,7 @@ export class AppModule {
         ClerkWebhookController,
         CoursesController,
         ReviewController,
+        LessonsController,
       ],
       providers: [
         { provide: ENV, useValue: env },
@@ -59,6 +62,7 @@ export class AppModule {
         ProgressService,
         CoursesService,
         ReviewService,
+        LessonsService,
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_FILTER, useClass: AllExceptionsFilter },
       ],
