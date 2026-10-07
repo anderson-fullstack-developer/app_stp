@@ -2,6 +2,7 @@ import { SignUp } from "@clerk/tanstack-react-start";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Check } from "lucide-react";
 import { useState } from "react";
+import { Neto } from "@/components/app/Neto";
 import { useTranslation } from "react-i18next";
 import {
   COUNTRY_IDS,
@@ -74,6 +75,12 @@ function Onboarding() {
             width={816}
             height={816}
           />
+          <div className="absolute inset-x-0 bottom-0 flex items-end justify-center gap-1 pb-3">
+            <p className="animate-rise mb-16 max-w-[11rem] rounded-2xl rounded-br-sm bg-surface px-3.5 py-2.5 text-sm font-semibold shadow-raised">
+              {t("onboarding.netoHello")}
+            </p>
+            <Neto mood="happy" size={132} className="animate-float drop-shadow-lg" />
+          </div>
         </div>
         <div className="flex flex-1 flex-col px-6 pt-8 safe-bottom pb-6">
           <h1 className="animate-rise font-display text-3xl font-bold leading-tight">

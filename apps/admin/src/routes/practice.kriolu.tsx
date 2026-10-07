@@ -13,6 +13,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { z } from "zod";
 import { APP_CONFIG } from "@stp/config";
 import { useBlockAds } from "@/config/ads";
+import { Neto } from "@/components/app/Neto";
 import { BackButton } from "@/components/app/BackButton";
 import { AppButton } from "@/components/app/Buttons";
 import { BottomSheet, ProgressBar } from "@/components/app/Primitives";
@@ -114,7 +115,7 @@ function KrioluLesson() {
     return (
       <PhoneFrame className="bg-forest pattern-leaf">
         <div className="flex flex-1 flex-col items-center px-6 pt-16 text-center text-primary-foreground">
-          <div className="animate-pop text-7xl">{unit.theme.icon}</div>
+          <Neto mood="celebrate" size={150} className="animate-pop" />
           <h1 className="mt-4 font-display text-3xl font-bold">{t("kriolu.lessonDone")}</h1>
           <p className="mt-1 text-primary-foreground/80">
             {themeName} · {t("kriolu.lesson", { n: lesson.index })}
@@ -232,11 +233,7 @@ function KrioluLesson() {
 
       <BottomSheet open={checked} tone={correct ? "success" : "error"}>
         <div className="flex items-start gap-3">
-          {correct ? (
-            <CheckCircle2 className="size-9 animate-pop text-success" />
-          ) : (
-            <XCircle className="size-9 animate-pop text-destructive" />
-          )}
+          <Neto mood={correct ? "happy" : "sad"} size={64} className="-my-1 animate-pop" />
           <div className="flex-1">
             <p
               className={`font-display text-2xl font-bold ${correct ? "text-success" : "text-destructive"}`}

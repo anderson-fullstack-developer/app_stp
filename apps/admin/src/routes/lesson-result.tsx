@@ -8,6 +8,7 @@ import { APP_CONFIG } from "@stp/config";
 import { game, useGame } from "@/hooks/use-game";
 import { AdSlot } from "@/components/app/Ads";
 import { useEffect } from "react";
+import { Neto } from "@/components/app/Neto";
 import { useTranslation } from "react-i18next";
 import { sound } from "@/lib/sound";
 
@@ -52,7 +53,7 @@ function Result() {
   return (
     <PhoneFrame className="bg-forest pattern-leaf">
       <div className="flex flex-1 flex-col items-center px-6 pt-16 text-center text-primary-foreground safe-top">
-        <div className="animate-pop text-7xl">🎉</div>
+        <Neto mood="celebrate" size={150} className="animate-pop" />
         <h1 className="animate-rise mt-4 font-display text-3xl font-bold">
           {daily ? tr("result.challengeDone") : tr("result.lessonDone")}
         </h1>
