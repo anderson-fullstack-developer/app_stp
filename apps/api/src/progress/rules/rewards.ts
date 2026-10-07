@@ -2,6 +2,8 @@
  * Valores das recompensas (docs/REGRAS_DE_NEGOCIO.md §3, §7, §8). Provisórios até D-09.
  * São a semente da tabela `reward_rules`; em execução o servidor lê a tabela.
  */
+import { ACHIEVEMENTS } from "./achievements.js";
+
 export interface RewardRule {
   key: string;
   xp: number;
@@ -155,17 +157,18 @@ export function lessonRewards(
   return lines;
 }
 
-/** Conquistas de marcos (§8) atingidas com os novos totais. */
+/** Conquistas de marcos (§8) atingidas com os novos totais — pela ordem do catálogo. */
 export function milestoneAchievements(stats: {
   currentStreak: number;
   correctAnswers: number;
   lessonsCompleted: number;
   level: number;
 }): string[] {
-  const keys: string[] = [];
-  if (stats.lessonsCompleted >= 1) keys.push("ACH_FIRST_LESSON");
-  for (const d of [7, 30, 100, 365]) if (stats.currentStreak >= d) keys.push(`ACH_STREAK_${d}`);
-  for (const n of [100, 1000]) if (stats.correctAnswers >= n) keys.push(`ACH_CORRECT_${n}`);
-  for (const l of [10, 25, 50]) if (stats.level >= l) keys.push(`ACH_LEVEL_${l}`);
-  return keys;
+  const values = {
+    lessons: stats.lessonsCompleted,
+    streak: stats.currentStreak,
+    correct: stats.correctAnswers,
+    level: stats.level,
+  };
+  return ACHIEVEMENTS.filter((a) => values[a.metric] >= a.target).map((a) => a.key);
 }

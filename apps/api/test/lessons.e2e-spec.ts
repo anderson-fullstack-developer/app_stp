@@ -159,6 +159,24 @@ describe.skipIf(!dbUrl)(
 
       expect(summary.streak).toMatchObject({ current: 1, activeToday: true });
 
+      expect(summary.wordsLearned).toBe(total);
+
+      expect(summary.accuracy).toBe(Math.round(((total - 1) / total) * 100));
+
+      expect(summary.achievementsCount).toBe(1);
+
+      const achievements = await app.get(ProgressService).achievements(user.id);
+
+      expect(achievements.find((a) => a.key === "ACH_FIRST_LESSON")).toMatchObject({
+        unlocked: true,
+        progress: 100,
+      });
+
+      expect(achievements.find((a) => a.key === "ACH_STREAK_7")).toMatchObject({
+        unlocked: false,
+        progress: 14,
+      });
+
       const p = await lessons.progress(user, "kabuverdianu");
       expect(p.lessons[0]?.state).toBe("completed");
       expect(p.lessons[1]?.state).toBe("current");

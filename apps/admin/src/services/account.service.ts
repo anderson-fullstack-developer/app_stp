@@ -30,12 +30,26 @@ export interface AccountProfile {
     streak: { current: number; longest: number; freezes: number; activeToday: boolean };
     correctAnswers: number;
     lessonsCompleted: number;
+    wordsLearned: number;
+    accuracy: number | null;
+    achievementsCount: number;
     today: string;
     week: boolean[];
     todayIndex: number;
   };
 }
 
+export interface AccountAchievement {
+  key: string;
+  icon: string;
+  target: number;
+  unlocked: boolean;
+  earnedAt: string | null;
+  /** 0–100 */
+  progress: number;
+}
+
 export const accountService = {
   getProfile: () => http.get<AccountProfile>("me"),
+  getAchievements: () => http.get<AccountAchievement[]>("me", "achievements"),
 };
