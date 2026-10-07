@@ -9,7 +9,7 @@ Sem backend real, sem auth real, sem pagamentos, sem sockets, sem base de dados.
 > **Regra absoluta de conteúdo:** NUNCA inventar palavras em Forro, traduções ou pronúncias.
 > Toda amostra é placeholder rotulado ("Palavra em Forro", "Tradução em Português",
 > "Áudio de exemplo") e assim permanece até existir conteúdo validado e aprovado no Admin
-> (workflow DRAFT → IN_REVIEW → APPROVED; só APPROVED chega ao app).
+> (workflow DRAFT → UNDER_REVIEW → APPROVED; só APPROVED chega ao app).
 > Conteúdo real entra pela API depois de revisão linguística (workflow de aprovação).
 
 Comandos: `bun install` · `bun run dev` (http://localhost:8080) · `bunx vitest run`.
@@ -67,7 +67,7 @@ Componente / rota  ->  src/services/*  ->  NestJS REST / Socket.IO   (futuro)
 | `src/services/` | Camada única de dados (mock-backed hoje). |
 | `src/mocks/` | Dados de demonstração (ver §5). |
 | `src/types/` | `index.ts` (domínio + aliases de contrato), `multiplayer.ts`, `game-contract.ts`, `async.ts`. |
-| `src/admin/` | Painel: `store.ts` (DB em memória), `permissions.ts` (papéis→permissões), `workflow.ts` (DRAFT→IN_REVIEW→APPROVED/REJECTED), `types.ts`. |
+| `src/admin/` | Painel: `store.ts` (DB em memória), `permissions.ts` (papéis→permissões), `workflow.ts` (DRAFT→UNDER_REVIEW→APPROVED/REJECTED), `types.ts`. |
 | `src/hooks/` | `use-game.ts`, `useAsync`, `useOnline`, `useBlockAds`. |
 | `src/lib/multiplayer/` | `engine.ts` (regras de partida), `session-store.ts`. |
 | `src/test/` | Vitest: regras de jogo, engine multiplayer, workflow admin, config. |
@@ -93,7 +93,7 @@ Componente / rota  ->  src/services/*  ->  NestJS REST / Socket.IO   (futuro)
 - **Estados de ecrã:** loading, error, empty, offline, success, disabled, locked (com como desbloquear: Premium / completar unidade). `AsyncView`, `AvailabilityGate`, `AppButton` com loading/disabled, faixa "Sem ligação" automática no `PhoneFrame`. Isolados dos mocks — serviços fornecem dados, estados só apresentam.
 - **Premium:** ecrã de planos, paywall, gates por `subscriptionService` (nunca `user.isPremium` direto — no futuro o entitlement é verificado no servidor).
 - **Anúncios:** só via `AdSlot`/`RewardedAdCard`; bloqueados automaticamente em pergunta, countdown, matchmaking, multiplayer e lição ativa (`useBlockAds`).
-- **Admin desktop-first:** `/admin` com login mock, papéis (SUPER_ADMIN, ADMIN, LINGUIST, CONTENT_EDITOR, MODERATOR) em `src/admin/permissions.ts`, review workflow `DRAFT → IN_REVIEW → APPROVED/REJECTED` em `src/admin/workflow.ts` (só APPROVED chega ao app; saída de IA é sempre DRAFT), páginas de glossário/vocabulário/frases/áudios/exercícios/lições/cursos/utilizadores/rankings/anúncios/premium/relatórios/analytics/auditoria/config.
+- **Admin desktop-first:** `/admin` com login mock, papéis (SUPER_ADMIN, ADMIN, LINGUIST, CONTENT_EDITOR, MODERATOR) em `src/admin/permissions.ts`, review workflow `DRAFT → UNDER_REVIEW → APPROVED/REJECTED` em `src/admin/workflow.ts` (só APPROVED chega ao app; saída de IA é sempre DRAFT), páginas de glossário/vocabulário/frases/áudios/exercícios/lições/cursos/utilizadores/rankings/anúncios/premium/relatórios/analytics/auditoria/config.
 - **Onboarding:** seleção de idioma (Forro/Santomé disponível; Angolar e Lung'Ie/Principense "em breve"), preferências, primeiro login.
 - **Verificação:** typecheck limpo, 23+ testes Vitest passam, build OK.
 
@@ -135,7 +135,7 @@ Componente / rota  ->  src/services/*  ->  NestJS REST / Socket.IO   (futuro)
 - **Jogar → Sala privada → Lobby → Partida:** criar sala com código, amigos entram, ready, partida server-authoritative (mock).
 - **Jogar → 1v1 / 2v2:** matchmaking e lobbies equivalentes com bots derivados de `users.ts`.
 - **Amigos → Desafiar:** botão "Desafiar" abre a sala privada atual.
-- **Admin → Conteúdo → Revisão → Aprovação:** editor cria/submete (DRAFT→IN_REVIEW); apenas SUPER_ADMIN/ADMIN/LINGUIST aprovam; só APPROVED é servido ao app; IA só gera DRAFT.
+- **Admin → Conteúdo → Revisão → Aprovação:** editor cria/submete (DRAFT→UNDER_REVIEW); apenas SUPER_ADMIN/ADMIN/LINGUIST aprovam; só APPROVED é servido ao app; IA só gera DRAFT.
 - **Premium:** planos → compra simulada → estado premium no cliente (sem loja real).
 - **Recompensas:** daily claim, rewarded ad +20 moedas, streak — todos com overlays globais.
 - **Páginas sem saída:** nenhuma. Páginas de erro em PT voltam a Aprender; rotas antigas redirecionam.
