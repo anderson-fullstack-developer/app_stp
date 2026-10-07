@@ -111,17 +111,48 @@ function Face({ mood }: { mood: NetoMood }) {
   }
 }
 
+/**
+ * A mascote com a etiqueta do nome por baixo ("Neto"), para que toda a gente fique a
+ * conhecê-la. `showName={false}` só onde não há espaço. O nome aparece também como dica
+ * (tooltip) e é lido pelos leitores de ecrã.
+ */
 export function Neto({
   mood = "happy",
   size = 120,
   className,
-  title,
+  showName = true,
 }: {
   mood?: NetoMood;
   size?: number;
   className?: string;
-  /** Texto para leitores de ecrã; sem título a imagem é decorativa. */
-  title?: string;
+  showName?: boolean;
+}) {
+  if (!showName) return <NetoSvg mood={mood} size={size} className={className} />;
+  const small = size < 80;
+  return (
+    <span className={cn("inline-flex shrink-0 flex-col items-center", className)}>
+      <NetoSvg mood={mood} size={size} />
+      <span
+        className={cn(
+          "relative z-10 rounded-full bg-primary font-display font-bold tracking-wide text-primary-foreground shadow-card ring-2 ring-surface",
+          small ? "-mt-2 px-2 py-px text-[10px]" : "-mt-3 px-3 py-0.5 text-xs",
+        )}
+        aria-hidden
+      >
+        Neto
+      </span>
+    </span>
+  );
+}
+
+function NetoSvg({
+  mood,
+  size,
+  className,
+}: {
+  mood: NetoMood;
+  size: number;
+  className?: string | undefined;
 }) {
   const arms =
     mood === "celebrate" ? (
@@ -148,10 +179,10 @@ export function Neto({
       width={size}
       height={size}
       className={cn("shrink-0 select-none", className)}
-      role={title ? "img" : undefined}
-      aria-hidden={title ? undefined : true}
-      aria-label={title}
+      role="img"
+      aria-label="Neto"
     >
+      <title>Neto</title>
       {mood === "celebrate" &&
         CONFETTI.map(([x, y, c], i) => (
           <rect

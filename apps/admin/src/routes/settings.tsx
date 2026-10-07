@@ -1,6 +1,8 @@
 import { useAuth, useClerk, useUser } from "@clerk/tanstack-react-start";
 import { useState } from "react";
 import { useAccountProfile } from "@/hooks/use-account";
+import { Neto } from "@/components/app/Neto";
+import { NetoIntro } from "@/components/app/NetoIntro";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight, Loader2, LogIn, LogOut } from "lucide-react";
 import { BackButton } from "@/components/app/BackButton";
@@ -206,6 +208,7 @@ function Settings() {
   const { t } = useTranslation();
   const { user } = useUser();
   const { data: profile } = useAccountProfile();
+  const [netoOpen, setNetoOpen] = useState(false);
   return (
     <PhoneFrame>
       <AppHeader left={<BackButton />} title={t("settings.title")} />
@@ -227,12 +230,21 @@ function Settings() {
           <Toggle label={t("settings.notifications")} k="notifications" />
         </Group>
         <Group title={t("settings.support")}>
+          <button
+            onClick={() => setNetoOpen(true)}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-left font-semibold"
+          >
+            <Neto mood="happy" size={40} showName={false} />
+            <span className="flex-1">{t("neto.aboutRow")}</span>
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </button>
           <Row label={t("settings.privacy")} />
           <Row label={t("settings.help")} />
           <Row label={t("settings.terms")} />
           <Row label={t("settings.privacyPolicy")} />
         </Group>
         <SessionButton />
+        <NetoIntro open={netoOpen} onClose={() => setNetoOpen(false)} />
       </main>
     </PhoneFrame>
   );
