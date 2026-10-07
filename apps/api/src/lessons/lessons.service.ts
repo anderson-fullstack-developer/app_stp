@@ -13,16 +13,8 @@ import { PrismaService } from "../database/prisma.service.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import type { ContentStatus } from "../generated/prisma/enums.js";
 import { isPubliclyListed, visibleContentStatuses } from "../languages/visibility.js";
-import { levelForXp } from "../progress/rules/levels.js";
-import { isValidTimeZone, localDate } from "../progress/rules/local-date.js";
-import {
-  DEFAULT_REWARD_RULES,
-  lessonRewards,
-  milestoneAchievements,
-  type RewardRule,
-  toRewardTable,
-} from "../progress/rules/rewards.js";
-import { applyActivity } from "../progress/rules/streak.js";
+import { grantActivity, loadRewardTable, lockStats, noGrant } from "../progress/grant.js";
+import { lessonRewards } from "../progress/rules/rewards.js";
 import type { AuthUser } from "../users/users.service.js";
 import {
   buildQuestions,
@@ -35,8 +27,6 @@ import {
 
 const ATTEMPT_TTL_MS = 24 * 60 * 60 * 1000;
 const SUPPORTED_LOCALES = ["pt", "en", "fr"] as const;
-const isoDate = (d: Date) => d.toISOString().slice(0, 10);
-const asDate = (iso: string) => new Date(`${iso}T00:00:00Z`);
 
 export interface LessonResult {
   flagged: boolean;
@@ -346,11 +336,7 @@ export class LessonsService {
       });
     }
 
-    const rules = await this.prisma.rewardRule.findMany({ where: { active: true } });
-    const table = toRewardTable([
-      ...DEFAULT_REWARD_RULES.filter((d) => !rules.some((r) => r.key === d.key)),
-      ...rules.map((r): RewardRule => ({ ...r, description: r.description })),
-    ]);
+    const table = await loadRewardTable(this.prisma);
 
     const result = await this.prisma.$transaction(
       async (tx) => {
@@ -360,198 +346,61 @@ export class LessonsService {
         });
         if (claimed.count === 0) return null; // outro pedido concluiu-a ao mesmo tempo
 
-        const userRow = await tx.user.findUniqueOrThrow({
-          where: { id: user.id },
-          select: { timezone: true },
-        });
-        const tz = isValidTimeZone(userRow.timezone) ? userRow.timezone : "Europe/Lisbon";
-        const today = localDate(now, tz);
-
-        await tx.userStats.upsert({
-          where: { userId: user.id },
-          create: { userId: user.id },
-          update: {},
-        });
-        // Tranca a linha de estatísticas: duas lições concluídas ao mesmo tempo não se atropelam.
-        await tx.$queryRaw`SELECT 1 FROM "user_stats" WHERE "userId" = ${user.id}::uuid FOR UPDATE`;
-        const stats = await tx.userStats.findUniqueOrThrow({ where: { userId: user.id } });
+        const stats = await lockStats(tx, user.id);
         const progress = await tx.lessonProgress.findUnique({
           where: { userId_lessonId: { userId: user.id, lessonId: attempt.lessonId } },
         });
         const firstCompletion = !progress || progress.completions === 0;
-        const levelBefore = levelForXp(stats.xpTotal).level;
-
-        const base: LessonResult = {
+        const lessonFields = {
           flagged: ev.flagged,
           total: ev.total,
           correctFirstTry: ev.correctFirstTry,
           accuracy: ev.accuracy,
           durationSeconds: ev.durationSeconds,
           firstCompletion,
-          xp: 0,
-          coins: 0,
-          streak: {
-            current: stats.currentStreak,
-            longest: stats.longestStreak,
-            extendedToday: false,
-            frozenDays: [],
-          },
-          level: { before: levelBefore, after: levelBefore, leveledUp: false },
-          achievements: [],
-          totals: { xpTotal: stats.xpTotal, coins: stats.coins },
         };
+
+        let result: LessonResult;
         if (ev.flagged) {
           // Tempo implausível: conclui mas não paga nem conta para a streak (§5.6).
-          await tx.lessonAttempt.update({
-            where: { id: attempt.id },
-            data: { result: base as unknown as Prisma.InputJsonValue },
-          });
-          return base;
-        }
-
-        const lines = lessonRewards(
-          { total: ev.total, correctFirstTry: ev.correctFirstTry, firstCompletion },
-          table,
-        );
-        const xp = lines.reduce((n, l) => n + l.xp, 0);
-        const xpTotal = stats.xpTotal + xp;
-        const streak = applyActivity(
-          {
-            currentStreak: stats.currentStreak,
-            longestStreak: stats.longestStreak,
-            lastActiveDate: stats.lastActiveDate ? isoDate(stats.lastActiveDate) : null,
-            streakFreezes: stats.streakFreezes,
-          },
-          today,
-        );
-        const correctAnswers = stats.correctAnswers + ev.correctFirstTry;
-        const lessonsCompleted = stats.lessonsCompleted + (firstCompletion ? 1 : 0);
-        const levelAfter = levelForXp(xpTotal).level;
-
-        const earned = new Set(
-          (
-            await tx.userAchievement.findMany({
-              where: { userId: user.id },
-              select: { achievementKey: true },
-            })
-          ).map((a) => a.achievementKey),
-        );
-        const newAchievements = milestoneAchievements({
-          currentStreak: streak.state.currentStreak,
-          correctAnswers,
-          lessonsCompleted,
-          level: levelAfter,
-        }).filter((k) => !earned.has(k));
-
-        // Moedas: lição (só 1.ª conclusão) e conquistas, com o saldo depois de cada movimento.
-        let coins = stats.coins;
-        const coinRows: Prisma.CoinTransactionCreateManyInput[] = [];
-        const lessonCoins = lines.reduce((n, l) => n + l.coins, 0);
-        if (lessonCoins > 0) {
-          coins += lessonCoins;
-          coinRows.push({
+          result = { ...lessonFields, ...noGrant(stats) };
+        } else {
+          const lines = lessonRewards(
+            { total: ev.total, correctFirstTry: ev.correctFirstTry, firstCompletion },
+            table,
+          );
+          const granted = await grantActivity(tx, {
             userId: user.id,
-            amount: lessonCoins,
-            balanceAfter: coins,
-            reason: "LESSON_COMPLETE",
+            now,
             sourceType: "lesson_attempt",
             sourceId: attempt.id,
-            localDate: asDate(today),
+            xp: lines.map((l) => ({ reason: l.reason, amount: l.xp })),
+            // Moedas da lição só na 1.ª conclusão (lessonRewards já o garante).
+            coins: [{ reason: "LESSON_COMPLETE", amount: lines.reduce((n, l) => n + l.coins, 0) }],
+            correctAnswersDelta: ev.correctFirstTry,
+            lessonsCompletedDelta: firstCompletion ? 1 : 0,
+            table,
           });
-        }
-        for (const key of newAchievements) {
-          const reward = table.get(key)?.coins ?? 0;
-          if (reward <= 0) continue;
-          coins += reward;
-          coinRows.push({
-            userId: user.id,
-            amount: reward,
-            balanceAfter: coins,
-            reason: "ACHIEVEMENT",
-            sourceType: "achievement",
-            sourceId: key,
-            localDate: asDate(today),
-          });
-        }
-
-        await tx.xpEvent.createMany({
-          data: lines
-            .filter((l) => l.xp > 0)
-            .map((l) => ({
+          await tx.lessonProgress.upsert({
+            where: { userId_lessonId: { userId: user.id, lessonId: attempt.lessonId } },
+            create: {
               userId: user.id,
-              amount: l.xp,
-              reason: l.reason,
-              sourceType: "lesson_attempt",
-              sourceId: attempt.id,
-              localDate: asDate(today),
-            })),
-        });
-        if (coinRows.length) await tx.coinTransaction.createMany({ data: coinRows });
-        if (newAchievements.length) {
-          await tx.userAchievement.createMany({
-            data: newAchievements.map((achievementKey) => ({ userId: user.id, achievementKey })),
-            skipDuplicates: true,
+              lessonId: attempt.lessonId,
+              status: "COMPLETED",
+              completions: 1,
+              bestAccuracy: ev.accuracy,
+              firstCompletedAt: now,
+              lastCompletedAt: now,
+            },
+            update: {
+              status: "COMPLETED",
+              completions: { increment: 1 },
+              bestAccuracy: Math.max(progress?.bestAccuracy ?? 0, ev.accuracy),
+              lastCompletedAt: now,
+            },
           });
+          result = { ...lessonFields, ...granted };
         }
-        await tx.activityDay.createMany({
-          data: [
-            ...streak.frozenDays.map((d) => ({
-              userId: user.id,
-              localDate: asDate(d),
-              kind: "FROZEN" as const,
-            })),
-            { userId: user.id, localDate: asDate(today), kind: "ACTIVE" as const },
-          ],
-          skipDuplicates: true,
-        });
-        await tx.userStats.update({
-          where: { userId: user.id },
-          data: {
-            xpTotal,
-            coins,
-            correctAnswers,
-            lessonsCompleted,
-            currentStreak: streak.state.currentStreak,
-            longestStreak: streak.state.longestStreak,
-            lastActiveDate: streak.state.lastActiveDate
-              ? asDate(streak.state.lastActiveDate)
-              : null,
-            streakFreezes: streak.state.streakFreezes,
-          },
-        });
-        await tx.lessonProgress.upsert({
-          where: { userId_lessonId: { userId: user.id, lessonId: attempt.lessonId } },
-          create: {
-            userId: user.id,
-            lessonId: attempt.lessonId,
-            status: "COMPLETED",
-            completions: 1,
-            bestAccuracy: ev.accuracy,
-            firstCompletedAt: now,
-            lastCompletedAt: now,
-          },
-          update: {
-            status: "COMPLETED",
-            completions: { increment: 1 },
-            bestAccuracy: Math.max(progress?.bestAccuracy ?? 0, ev.accuracy),
-            lastCompletedAt: now,
-          },
-        });
-
-        const result: LessonResult = {
-          ...base,
-          xp,
-          coins: coins - stats.coins,
-          streak: {
-            current: streak.state.currentStreak,
-            longest: streak.state.longestStreak,
-            extendedToday: streak.counted,
-            frozenDays: streak.frozenDays,
-          },
-          level: { before: levelBefore, after: levelAfter, leveledUp: levelAfter > levelBefore },
-          achievements: newAchievements,
-          totals: { xpTotal, coins },
-        };
         await tx.lessonAttempt.update({
           where: { id: attempt.id },
           data: { result: result as unknown as Prisma.InputJsonValue },
