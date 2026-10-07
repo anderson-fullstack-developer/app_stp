@@ -85,6 +85,7 @@ export const pt = {
     terms: "Termos",
     privacyPolicy: "Política de Privacidade",
     signOut: "Terminar sessão",
+    signingOut: "A terminar sessão…",
     serverProfile: "Perfil na app",
     synced: "Guardado no servidor",
     syncing: "A sincronizar…",
