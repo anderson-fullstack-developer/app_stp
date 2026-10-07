@@ -83,6 +83,7 @@ export const en: Messages = {
     terms: "Terms",
     privacyPolicy: "Privacy Policy",
     signOut: "Sign out",
+    signingOut: "Signing out…",
     serverProfile: "App profile",
     synced: "Saved on the server",
     syncing: "Syncing…",

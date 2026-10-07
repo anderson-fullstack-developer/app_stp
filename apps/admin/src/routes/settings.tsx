@@ -1,7 +1,8 @@
-import { useClerk, useUser } from "@clerk/tanstack-react-start";
+import { useAuth, useClerk, useUser } from "@clerk/tanstack-react-start";
+import { useState } from "react";
 import { useAccountProfile } from "@/hooks/use-account";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight, LogOut } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ChevronRight, Loader2, LogIn, LogOut } from "lucide-react";
 import { BackButton } from "@/components/app/BackButton";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
@@ -154,10 +155,56 @@ function LearningRow() {
   );
 }
 
+/**
+ * Com sessão: termina-a e volta ao início. Sem sessão (modo de demonstração) não há nada
+ * para terminar — antes o botão não fazia nada; agora leva a "Entrar".
+ */
+function SessionButton() {
+  const { t } = useTranslation();
+  const { isLoaded, isSignedIn } = useAuth();
+  const { signOut } = useClerk();
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+  const base =
+    "pressable mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] py-3.5 font-bold disabled:opacity-60";
+
+  if (isLoaded && !isSignedIn) {
+    return (
+      <Link
+        to="/sign-in/$"
+        params={{ _splat: "" }}
+        className={cn(base, "border-primary/40 text-primary")}
+      >
+        <LogIn className="size-5" />
+        {t("login.submit")}
+      </Link>
+    );
+  }
+  const onSignOut = async () => {
+    setBusy(true);
+    try {
+      await signOut();
+    } finally {
+      setBusy(false);
+      // Navegação explícita: não depende do redirecionamento do Clerk.
+      await navigate({ to: "/", replace: true });
+    }
+  };
+  return (
+    <button
+      onClick={() => void onSignOut()}
+      disabled={!isLoaded || busy}
+      className={cn(base, "border-destructive/40 text-destructive")}
+    >
+      {busy ? <Loader2 className="size-5 animate-spin" /> : <LogOut className="size-5" />}
+      {busy ? t("settings.signingOut") : t("settings.signOut")}
+    </button>
+  );
+}
+
 function Settings() {
   const { t } = useTranslation();
   const { user } = useUser();
-  const { signOut } = useClerk();
   const { data: profile } = useAccountProfile();
   return (
     <PhoneFrame>
@@ -185,13 +232,7 @@ function Settings() {
           <Row label={t("settings.terms")} />
           <Row label={t("settings.privacyPolicy")} />
         </Group>
-        <button
-          onClick={() => void signOut({ redirectUrl: "/" })}
-          className="pressable mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border-[1.5px] border-destructive/40 py-3.5 font-bold text-destructive"
-        >
-          <LogOut className="size-5" />
-          {t("settings.signOut")}
-        </button>
+        <SessionButton />
       </main>
     </PhoneFrame>
   );
