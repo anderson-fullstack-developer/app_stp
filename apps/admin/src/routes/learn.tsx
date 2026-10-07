@@ -11,6 +11,7 @@ import { TabLayout } from "@/layouts/AppShell";
 import { useTranslation } from "react-i18next";
 import { useUser } from "@clerk/tanstack-react-start";
 import { KrioluPath } from "@/components/app/KrioluPath";
+import { NetoIntroOnce } from "@/components/app/NetoIntro";
 import { useSettings } from "@/hooks/use-settings";
 import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
 import { cn } from "@/lib/utils";
@@ -244,6 +245,7 @@ function Learn() {
           )}
         </>
       )}
+      <NetoIntroOnce />
     </TabLayout>
   );
 }
