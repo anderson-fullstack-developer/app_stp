@@ -16,7 +16,7 @@ Um protótipo **frontend completo e clicável** do app, com o feel de uma aplica
 - **Jogar** — multiplayer: sobrevivência, 1v1, 2v2, salas privadas e torneios (flag desligada).
 - **Social** — amigos, rankings, conquistas, notificações, desafios.
 - **Premium / Loja** — paywall, loja de recompensas (moedas apenas se ganham, nunca se compram), anúncios simulados.
-- **/admin** — painel desktop de gestão de conteúdo com papéis, fluxo de revisão (DRAFT → IN_REVIEW → APPROVED) e sugestões de IA (sempre DRAFT).
+- **/admin** — painel desktop de gestão de conteúdo com papéis, fluxo de revisão (DRAFT → UNDER_REVIEW → APPROVED) e sugestões de IA (sempre DRAFT).
 
 Todo o estado é **mock** (memória + `localStorage`); o backend real será NestJS + Prisma + Neon, Socket.IO, Clerk, etc. — ver secção 12.
 
@@ -142,7 +142,7 @@ Painel **desktop-first** (exceção ao PhoneFrame), em `src/admin/*` + `src/rout
 
 - **Papéis** (`src/admin/permissions.ts`): `SUPER_ADMIN`, `ADMIN`, `LINGUIST`, `CONTENT_EDITOR`, `MODERATOR` — matriz de permissões por papel (espelhar no servidor; no backend os papéis ficam numa tabela `user_roles` separada, nunca no perfil).
 - **Login mock** (`admin_.login`): aceita qualquer credencial — **não é segurança**; sessão em `localStorage`.
-- **Fluxo de conteúdo** (`src/admin/workflow.ts`): `DRAFT → IN_REVIEW → APPROVED / REJECTED`; editores criam e submetem mas **não aprovam**; **só conteúdo APPROVED chega ao app**; saída de IA é sempre `DRAFT`.
+- **Fluxo de conteúdo** (`src/admin/workflow.ts`): `DRAFT → UNDER_REVIEW → APPROVED / REJECTED`; editores criam e submetem mas **não aprovam**; **só conteúdo APPROVED chega ao app**; saída de IA é sempre `DRAFT`.
 - **Secções:** dashboard, idiomas, cursos, lições, exercícios, vocabulário, frases, áudios, revisão, utilizadores, multiplayer, rankings, conquistas, diário, premium, anúncios, relatórios, pesquisa, auditoria, analytics, definições.
 - Dados via `src/services/admin.ts` sobre a store em memória (`src/admin/store.ts`, semeada de `src/mocks/admin.ts`) — repõe-se ao recarregar.
 
