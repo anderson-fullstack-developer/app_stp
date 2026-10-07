@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight, LogOut } from "lucide-react";
-import { useState } from "react";
 import { BackButton } from "@/components/app/BackButton";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
+import { settings, useSettings } from "@/hooks/use-settings";
+import { sound } from "@/lib/sound";
 import { authService } from "@/services";
 
 export const Route = createFileRoute("/settings")({
@@ -18,10 +19,11 @@ export const Route = createFileRoute("/settings")({
   component: Settings,
 });
 
-function Toggle({ label, initial = true }: { label: string; initial?: boolean }) {
-  const [on, setOn] = useState(initial);
+function Toggle({ label, k }: { label: string; k: "sound" | "effects" | "haptics" | "notifications" }) {
+  const prefs = useSettings();
+  const on = prefs[k];
   return (
-    <button role="switch" aria-checked={on} onClick={() => setOn(!on)} className="flex w-full items-center justify-between px-4 py-3.5 font-semibold">
+    <button role="switch" aria-checked={on} onClick={() => { settings.set({ [k]: !on }); if (!on && k !== "notifications") sound.play("select"); }} className="flex w-full items-center justify-between px-4 py-3.5 font-semibold">
       {label}
       <span className={cn("relative h-7 w-12 rounded-full transition", on ? "bg-primary" : "bg-border")}>
         <span className={cn("absolute top-1 size-5 rounded-full bg-surface transition-all", on ? "left-6" : "left-1")} />
@@ -53,7 +55,7 @@ function Settings() {
           <Row label="Conta Premium" value="Gratuita" to="/premium" />
         </Group>
         <Group title="Preferências">
-          <Toggle label="Som" /><Toggle label="Efeitos" /><Toggle label="Vibração" /><Toggle label="Notificações" />
+          <Toggle label="Som" k="sound" /><Toggle label="Efeitos sonoros" k="effects" /><Toggle label="Vibração" k="haptics" /><Toggle label="Notificações" k="notifications" />
         </Group>
         <Group title="Suporte">
           <Row label="Privacidade" /><Row label="Ajuda" /><Row label="Termos" /><Row label="Política de Privacidade" />

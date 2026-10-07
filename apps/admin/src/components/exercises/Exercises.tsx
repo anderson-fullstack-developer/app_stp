@@ -3,12 +3,13 @@ import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Exercise } from "@/types";
 import { AudioButton } from "@/components/app/Primitives";
+import { sound } from "@/lib/sound";
 
 export type AnswerState = "idle" | "correct" | "wrong";
 
 export function QuizOption({ label, letter, selected, state, onClick }: { label: string; letter: string; selected: boolean; state: "idle" | "correct" | "wrong"; onClick: () => void }) {
   return (
-    <button onClick={onClick} disabled={state !== "idle" && !selected && state !== "correct"}
+    <button onClick={() => { sound.play("select"); onClick(); }} disabled={state !== "idle" && !selected && state !== "correct"}
       aria-pressed={selected}
       className={cn(
         "pressable flex w-full items-center gap-3 rounded-2xl border-[1.5px] bg-surface p-4 text-left font-semibold shadow-card hover:border-ocean/40",

@@ -1,5 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ButtonHTMLAttributes } from "react";
+import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
 const appButton = cva(
@@ -22,9 +23,10 @@ const appButton = cva(
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof appButton> & { loading?: boolean };
 
-export function AppButton({ className, variant, size, loading, disabled, children, ...p }: Props) {
+export function AppButton({ className, variant, size, loading, disabled, children, onClick, ...p }: Props) {
   return (
-    <button className={cn(appButton({ variant, size }), className)} disabled={disabled || loading} aria-busy={loading || undefined} {...p}>
+    <button className={cn(appButton({ variant, size }), className)} disabled={disabled || loading} aria-busy={loading || undefined}
+      onClick={(e) => { sound.play("tap"); onClick?.(e); }} {...p}>
       {loading && <span className="size-4 animate-spin rounded-full border-[2.5px] border-current border-t-transparent" aria-hidden />}
       {children}
     </button>

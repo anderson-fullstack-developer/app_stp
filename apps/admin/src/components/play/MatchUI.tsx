@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Avatar } from "@/components/app/Badges";
 import { AppButton } from "@/components/app/Buttons";
 import { MULTIPLAYER_CONFIG } from "@stp/config";
+import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 import type { AvatarColor } from "@/types";
 import type { QuizQuestion, RoundSummary, SurvivalPlayer } from "@stp/types/multiplayer";
@@ -95,7 +96,7 @@ export function QuizOption({ index, label, state, disabled, onClick }: { index: 
     dim: "border-border bg-surface opacity-50",
   }[state];
   return (
-    <button type="button" disabled={disabled} onClick={onClick}
+    <button type="button" disabled={disabled} onClick={() => { sound.play("select"); onClick(); }}
       className={cn("pressable flex min-h-16 w-full items-center gap-3 rounded-2xl border-[1.5px] px-4 py-3 text-left text-base font-semibold disabled:cursor-default", cls)}>
       <span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted font-display font-bold">{LETTERS[index]}</span>
       <span className="flex-1">{label}</span>
@@ -137,10 +138,11 @@ function Overlay({ children, tone = "dark" }: { children: ReactNode; tone?: "dar
 }
 
 export function CountdownOverlay({ value, title }: { value: number | "go"; title?: string | undefined }) {
+  useEffect(() => { sound.play(value === "go" ? "go" : "tick"); }, [value]);
   return (
     <Overlay tone="forest">
       {title && <p className="animate-rise font-display text-2xl font-bold">{title}</p>}
-      <p key={String(value)} className="animate-pop font-display text-[7rem] font-bold leading-none">{value === "go" ? "JOGAR!" : value}</p>
+      <p key={String(value)} className="animate-pop font-display text-[7rem] font-bold leading-none">{value === "go" ? "Já!" : value}</p>
     </Overlay>
   );
 }

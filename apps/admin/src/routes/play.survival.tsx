@@ -14,6 +14,7 @@ import {
   accuracy, alivePlayers, applySurvivalRound, botOutcomes, createRng, createSurvivalPlayers, rankRemaining, simulateToEnd, survivalReward,
 } from "@stp/game-engine";
 import { session } from "@/lib/multiplayer/session-store";
+import { sound } from "@/lib/sound";
 import { multiplayerService } from "@/services/game.service";
 import type { AnswerOutcome, MatchConfig, MatchPlayerSeed, RoundSummary, SurvivalPlayer } from "@stp/types/multiplayer";
 
@@ -166,6 +167,22 @@ function Survival() {
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.phase, s.round]);
+
+  // efeitos sonoros por mudança de fase (só apresentação — não altera regras)
+  useEffect(() => {
+    const me = s.players.find((p) => p.isMe);
+    if (s.phase === "feedback") sound.play(s.myOutcome === "correct" ? "correct" : "lifeLost");
+    else if (s.phase === "eliminated") sound.play("eliminated");
+    else if (s.phase === "final") sound.play("final");
+    else if (s.phase === "winner") { if (me && me.lives > 0) sound.play("victory"); else if (!s.spectator) sound.play("defeat"); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.phase]);
+  // últimos 3 segundos da pergunta
+  const secLeft = Math.ceil(s.left);
+  useEffect(() => {
+    if (s.phase === "question" && secLeft > 0 && secLeft <= 3) sound.play("urgent");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secLeft]);
 
   // ---- render ----
   const cancelSearch = async () => { await multiplayerService.cancelMatch(); navigate({ to: "/challenges" }); };

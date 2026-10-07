@@ -3,6 +3,7 @@ import { isFeatureOn } from "@stp/config";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { BookOpen, Swords, Trophy, User, Users } from "lucide-react";
 import type { ReactNode } from "react";
+import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
 /** Phone-sized frame: full-screen on mobile, centered device column on larger screens. */
@@ -34,7 +35,7 @@ export function BottomNavigation() {
           const active = path.startsWith(to);
           return (
             <li key={to}>
-              <Link to={to} className="group flex flex-col items-center gap-1 py-1" aria-current={active ? "page" : undefined}>
+              <Link to={to} onClick={() => sound.play("tap")} className="group flex flex-col items-center gap-1 py-1" aria-current={active ? "page" : undefined}>
                 <span className={cn("grid h-8 w-14 place-items-center rounded-full transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]", active ? "bg-primary/12 text-primary" : "text-muted-foreground group-active:scale-90")}>
                   <Icon className="size-[21px]" strokeWidth={active ? 2.4 : 1.9} />
                 </span>
