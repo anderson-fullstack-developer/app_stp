@@ -32,6 +32,7 @@ export const notificationService = {
 
 export const lessonService = {
   getLanguages: () => delay(mock.languages),
+  getCountries: () => delay([...mock.countries].sort((a, b) => a.order - b.order)),
   getCourse: (_languageId = "forro"): Promise<Course> => delay(mock.forroCourse),
   getLesson: (id: string): Promise<Lesson | undefined> =>
     delay(mock.forroCourse.units.flatMap((u) => u.lessons).find((l) => l.id === id)),

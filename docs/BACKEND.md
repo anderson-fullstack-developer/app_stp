@@ -136,6 +136,8 @@ STRIPE_WEBHOOK_SECRET=
 | Testes | Jest/Vitest + Supertest; BD de teste num branch Neon |
 | Datas | UTC na BD; fuso do utilizador só para calcular "o dia" (streak, desafio diário) |
 
+**Modelo multilíngue (ADR-13):** `Country` → `Language` (`countryId`) → `LanguageVariant` (ex.: variantes por ilha do crioulo cabo-verdiano) → `Course` → `Unit` → `Lesson` → `Exercise`. Vocabulário, frases e áudios têm `languageId` + `variantId` opcional. Progresso, rankings, desafio diário e Arena são sempre **por língua**. Papéis de linguista podem ser **por língua** (um revisor de Forro não aprova Kriolu).
+
 **Módulos:** `health` · `auth` · `users` · `roles` · `languages` · `content` (cursos, unidades, lições, exercícios, vocabulário, frases) · `review` (workflow) · `media` · `progress` · `gamification` (XP, níveis, streak, moedas, conquistas) · `social` (amigos, bloqueios) · `leaderboards` · `daily` · `notifications` · `admin` · `audit` · *(fase 4)* `game` · *(fase 5)* `subscriptions`.
 
 ---

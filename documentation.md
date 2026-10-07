@@ -3341,3 +3341,38 @@ Antes de implementar código:
 14. Separa o que entra no MVP do que deve ficar para versões posteriores.
 
 Depois aguarda a minha autorização antes de começar a implementar.
+
+
+##################################################
+##################################################
+ADENDO B — PLATAFORMA MULTILÍNGUE (2026-10-07)
+##################################################
+##################################################
+
+O objetivo passa a ser uma plataforma com VÁRIAS LÍNGUAS, de vários países.
+
+Por enquanto:
+
+SÃO TOMÉ E PRÍNCIPE
+- Forro / Santomé (primeira língua do MVP)
+- Angolar
+- Lung'Ie / Principense
+
+CABO VERDE
+- Kriolu / Crioulo cabo-verdiano (Kabuverdianu), com variantes por ilha
+  (ex.: Santiago, São Vicente). A variante de cada conteúdo é indicada e revista.
+
+Mais países e línguas poderão ser adicionados no futuro sem alterar a arquitetura.
+
+Regras que se mantêm para TODAS as línguas:
+- Não inventar palavras, traduções, pronúncias ou regras.
+- Todo o conteúdo é criado e aprovado por falantes nativos/especialistas de cada língua
+  (criador + revisor), através do painel administrativo.
+- Só conteúdo APPROVED chega aos utilizadores.
+
+Consequências:
+- O modelo de dados tem PAÍS → LÍNGUA → VARIANTE → CURSO → UNIDADE → LIÇÃO.
+- O onboarding agrupa as línguas por país.
+- O nome provisório da app ("Língua STP") deixa de servir — o nome final deve
+  funcionar para vários países (decisão D-10).
+- Cada língua precisa da sua própria equipa de linguistas.
