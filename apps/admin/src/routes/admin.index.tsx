@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { useAdminDB } from "@/services/admin";
 import { BarChart, Kpi, LineChart, PageHeader, Panel } from "@/admin/ui";
 import { adminAnalyticsService } from "@/services/admin";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Admin Língua STP" },
+      { title: `Dashboard — Admin ${APP_NAME}` },
       { name: "description", content: "Visão geral de utilizadores, conteúdo e multiplayer." },
     ],
   }),

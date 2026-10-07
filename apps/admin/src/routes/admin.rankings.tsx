@@ -2,11 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAdminDB } from "@/services/admin";
 import type { AdminUser } from "@/admin/types";
 import { DataTable, PageHeader, type Column } from "@/admin/ui";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/rankings")({
   head: () => ({
     meta: [
-      { title: "Rankings — Admin Língua STP" },
+      { title: `Rankings — Admin ${APP_NAME}` },
       { name: "description", content: "Classificação global por XP." },
     ],
   }),

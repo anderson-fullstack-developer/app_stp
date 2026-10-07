@@ -1,4 +1,4 @@
-// Língua STP — modelo de dados (Prisma 7 + Neon PostgreSQL).
+// Fala Neto — modelo de dados (Prisma 7 + Neon PostgreSQL).
 // Migração 1: núcleo (países, línguas, utilizadores, papéis, conteúdo, revisão, auditoria).
 // Migração 3: progresso, XP, streak, moedas e conquistas (docs/REGRAS_DE_NEGOCIO.md). Jogo (Arena) depois.
 // Ligações à base de dados: prisma.config.ts (nunca neste ficheiro).

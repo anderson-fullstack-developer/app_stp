@@ -16,11 +16,12 @@ import {
 } from "@/admin/ui";
 import { adminAudioService } from "@/services/admin";
 import { fmtDate } from "@/admin/format";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/audios")({
   head: () => ({
     meta: [
-      { title: "Áudios — Admin Língua STP" },
+      { title: `Áudios — Admin ${APP_NAME}` },
       { name: "description", content: "Biblioteca de áudio (futuro Cloudflare R2)." },
     ],
   }),

@@ -8,7 +8,7 @@ import { AppButton } from "@/components/app/Buttons";
 import { LoadingState, Modal, SectionTitle } from "@/components/app/Primitives";
 import { LobbyPlayer, OptionPicker, RoomCode } from "@/components/play/LobbyUI";
 import { useJoinSounds } from "@/hooks/use-join-sounds";
-import { MULTIPLAYER_CONFIG } from "@stp/config";
+import { MULTIPLAYER_CONFIG, APP_NAME } from "@stp/config";
 import { listInvitableFriends } from "@/services/game.service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { session } from "@/lib/multiplayer/session-store";
@@ -20,12 +20,12 @@ export const Route = createFileRoute("/play/private")({
     typeof s["code"] === "string" ? { code: s["code"] } : {},
   head: () => ({
     meta: [
-      { title: "Sala Privada — Língua STP" },
+      { title: `Sala Privada — ${APP_NAME}` },
       {
         name: "description",
         content: "Cria uma sala, convida amigos e configura jogadores, vidas e tempo.",
       },
-      { property: "og:title", content: "Sala Privada — Língua STP" },
+      { property: "og:title", content: `Sala Privada — ${APP_NAME}` },
       { property: "og:description", content: "Joga com os teus amigos." },
     ],
   }),

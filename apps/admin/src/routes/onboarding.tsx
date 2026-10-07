@@ -20,13 +20,14 @@ import { useCountries, useLanguages } from "@/hooks/use-service";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
 import i18n from "@/i18n";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
-      { title: "Começar — Língua STP" },
+      { title: `Começar — ${APP_NAME}` },
       { name: "description", content: "Escolhe a tua língua, o teu objetivo e cria a tua conta." },
-      { property: "og:title", content: "Começar — Língua STP" },
+      { property: "og:title", content: `Começar — ${APP_NAME}` },
       { property: "og:description", content: "Escolhe a tua língua e começa a aprender." },
     ],
   }),

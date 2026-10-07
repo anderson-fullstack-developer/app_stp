@@ -15,13 +15,14 @@ import { NetoIntroOnce } from "@/components/app/NetoIntro";
 import { useSettings } from "@/hooks/use-settings";
 import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
 import { cn } from "@/lib/utils";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/learn")({
   head: () => ({
     meta: [
-      { title: "Aprender — Língua STP" },
+      { title: `Aprender — ${APP_NAME}` },
       { name: "description", content: "O teu caminho de aprendizagem de Forro / Santomé." },
-      { property: "og:title", content: "Aprender — Língua STP" },
+      { property: "og:title", content: `Aprender — ${APP_NAME}` },
       { property: "og:description", content: "Unidades, lições e desafios diários." },
     ],
   }),

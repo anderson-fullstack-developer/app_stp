@@ -15,11 +15,12 @@ import {
 } from "@/admin/ui";
 import { adminReportService } from "@/services/admin";
 import { fmtDate } from "@/admin/format";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/reports")({
   head: () => ({
     meta: [
-      { title: "Denúncias — Admin Língua STP" },
+      { title: `Denúncias — Admin ${APP_NAME}` },
       { name: "description", content: "Gestão de denúncias de utilizadores e conteúdo." },
     ],
   }),

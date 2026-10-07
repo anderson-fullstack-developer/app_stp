@@ -8,13 +8,14 @@ import { EmptyState, LoadingState } from "@/components/app/Primitives";
 import { useNotifications } from "@/hooks/use-service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({
     meta: [
-      { title: "Notificações — Língua STP" },
+      { title: `Notificações — ${APP_NAME}` },
       { name: "description", content: "Sequências, desafios de amigos e novidades." },
-      { property: "og:title", content: "Notificações — Língua STP" },
+      { property: "og:title", content: `Notificações — ${APP_NAME}` },
       { property: "og:description", content: "As tuas notificações." },
     ],
   }),

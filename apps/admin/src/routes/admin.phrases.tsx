@@ -21,11 +21,12 @@ import {
 } from "@/admin/ui";
 import { adminPhraseService } from "@/services/admin";
 import { fmtDate } from "@/admin/format";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/phrases")({
   head: () => ({
     meta: [
-      { title: "Frases — Admin Língua STP" },
+      { title: `Frases — Admin ${APP_NAME}` },
       { name: "description", content: "Gestão de frases, contexto, explicação e revisão." },
     ],
   }),

@@ -1,4 +1,4 @@
-import { isFeatureOn } from "@stp/config";
+import { isFeatureOn, APP_NAME } from "@stp/config";
 import { Link } from "@tanstack/react-router";
 import { Check, Crown, Flame, Lock, Star, Swords, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -176,7 +176,7 @@ export function PremiumCard() {
           <Crown />
         </div>
         <div className="flex-1">
-          <p className="font-display text-lg font-bold">Língua STP Premium</p>
+          <p className="font-display text-lg font-bold">{APP_NAME} Premium</p>
           <p className="text-sm opacity-80">Sem anúncios e mais exercícios</p>
         </div>
       </div>

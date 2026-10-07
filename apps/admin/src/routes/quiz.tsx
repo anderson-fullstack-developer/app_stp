@@ -9,6 +9,7 @@ import { QuizOption } from "@/components/exercises/Exercises";
 import { useRoom } from "@/hooks/use-service";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/quiz")({
   // Legacy prototype screen, superseded by /play/survival. Kept (not deleted) but redirected so there is one flow.
@@ -17,9 +18,9 @@ export const Route = createFileRoute("/quiz")({
   },
   head: () => ({
     meta: [
-      { title: "Quiz multijogador — Língua STP" },
+      { title: `Quiz multijogador — ${APP_NAME}` },
       { name: "description", content: "Responde depressa e vê o ranking ao vivo." },
-      { property: "og:title", content: "Quiz multijogador — Língua STP" },
+      { property: "og:title", content: `Quiz multijogador — ${APP_NAME}` },
       { property: "og:description", content: "Quiz em tempo real com amigos." },
     ],
   }),

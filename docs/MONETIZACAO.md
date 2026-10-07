@@ -1,4 +1,4 @@
-# Língua STP — Plano de Monetização
+# Fala Neto — Plano de Monetização
 
 > Objetivo: tornar a app financeiramente sustentável — pagar linguistas, servidores e desenvolvimento — e gerar lucro, **sem bloquear a aprendizagem essencial** (secção 32 da especificação).
 >

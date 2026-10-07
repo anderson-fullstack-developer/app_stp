@@ -5,13 +5,14 @@ import { ROLE_LABEL } from "@/admin/permissions";
 import { adminAuth } from "@/services/admin";
 import type { AdminRole } from "@/admin/types";
 import { Field, Select, TextInput } from "@/admin/ui";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin_/login")({
   head: () => ({
     meta: [
-      { title: "Entrar no Admin — Língua STP" },
-      { name: "description", content: "Acesso reservado à equipa da Língua STP." },
-      { property: "og:title", content: "Entrar no Admin — Língua STP" },
+      { title: `Entrar no Admin — ${APP_NAME}` },
+      { name: "description", content: `Acesso reservado à equipa da ${APP_NAME}.` },
+      { property: "og:title", content: `Entrar no Admin — ${APP_NAME}` },
       { property: "og:description", content: "Acesso reservado à equipa." },
       { name: "robots", content: "noindex" },
     ],

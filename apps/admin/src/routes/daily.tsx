@@ -8,13 +8,14 @@ import { useDaily, useRanking } from "@/hooks/use-service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { useGame } from "@/hooks/use-game";
 import { CheckCircle2 } from "lucide-react";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/daily")({
   head: () => ({
     meta: [
-      { title: "Desafio do Dia — Língua STP" },
+      { title: `Desafio do Dia — ${APP_NAME}` },
       { name: "description", content: "5 perguntas por dia, recompensas e ranking diário." },
-      { property: "og:title", content: "Desafio do Dia — Língua STP" },
+      { property: "og:title", content: `Desafio do Dia — ${APP_NAME}` },
       { property: "og:description", content: "Joga o desafio diário e sobe no ranking." },
     ],
   }),

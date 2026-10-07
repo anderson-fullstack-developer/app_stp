@@ -1,4 +1,4 @@
-# Língua STP — regras do monorepo
+# Fala Neto — regras do monorepo
 
 Antes de trabalhar, ler: `documentation.md` (requisitos), `docs/PLANO_DE_ENGENHARIA.md` (plano, ADRs, passo atual) e o `AGENTS.md` da app em que vais mexer.
 

@@ -9,7 +9,7 @@ import { BottomSheet, ErrorState, LoadingState, ProgressBar } from "@/components
 import { ExerciseRenderer } from "@/components/exercises/Exercises";
 import { useLesson } from "@/hooks/use-service";
 import { PhoneFrame } from "@/layouts/AppShell";
-import { APP_CONFIG } from "@stp/config";
+import { APP_CONFIG, APP_NAME } from "@stp/config";
 import { game } from "@/hooks/use-game";
 import { sound } from "@/lib/sound";
 import { z } from "zod";
@@ -18,12 +18,12 @@ export const Route = createFileRoute("/lesson/$lessonId")({
   validateSearch: (s) => z.object({ daily: z.boolean().optional().catch(undefined) }).parse(s),
   head: () => ({
     meta: [
-      { title: "Lição — Língua STP" },
+      { title: `Lição — ${APP_NAME}` },
       {
         name: "description",
         content: "Pratica com exercícios de escolha, áudio, ordem de palavras e pronúncia.",
       },
-      { property: "og:title", content: "Lição — Língua STP" },
+      { property: "og:title", content: `Lição — ${APP_NAME}` },
       { property: "og:description", content: "Uma lição curta de Forro / Santomé." },
     ],
   }),

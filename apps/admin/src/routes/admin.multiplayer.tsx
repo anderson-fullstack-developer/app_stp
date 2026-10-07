@@ -16,11 +16,12 @@ import {
 } from "@/admin/ui";
 import { adminGameService } from "@/services/admin";
 import { fmtDateTime } from "@/admin/format";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/multiplayer")({
   head: () => ({
     meta: [
-      { title: "Multiplayer — Admin Língua STP" },
+      { title: `Multiplayer — Admin ${APP_NAME}` },
       { name: "description", content: "Partidas, modos e histórico do multiplayer." },
     ],
   }),

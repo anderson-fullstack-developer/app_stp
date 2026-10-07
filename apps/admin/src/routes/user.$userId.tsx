@@ -6,13 +6,14 @@ import { AppButton } from "@/components/app/Buttons";
 import { ErrorState, LoadingState, StatCard } from "@/components/app/Primitives";
 import { useUser } from "@/hooks/use-service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/user/$userId")({
   head: () => ({
     meta: [
-      { title: "Perfil de utilizador — Língua STP" },
+      { title: `Perfil de utilizador — ${APP_NAME}` },
       { name: "description", content: "Nível, XP, sequência e conquistas de outro jogador." },
-      { property: "og:title", content: "Perfil de utilizador — Língua STP" },
+      { property: "og:title", content: `Perfil de utilizador — ${APP_NAME}` },
       { property: "og:description", content: "Vê o progresso de um amigo." },
     ],
   }),

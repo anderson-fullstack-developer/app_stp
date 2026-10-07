@@ -5,11 +5,12 @@ import { useAdminDB } from "@/services/admin";
 import type { PremiumProduct } from "@/admin/types";
 import { Btn, Field, PageHeader, Panel, Select, TextArea, TextInput } from "@/admin/ui";
 import { adminRewardService } from "@/services/admin";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/premium")({
   head: () => ({
     meta: [
-      { title: "Premium — Admin Língua STP" },
+      { title: `Premium — Admin ${APP_NAME}` },
       {
         name: "description",
         content: "Produtos Premium (futuro RevenueCat + Google Play Billing).",

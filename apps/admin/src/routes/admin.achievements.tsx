@@ -6,11 +6,12 @@ import { useAdminDB } from "@/services/admin";
 import type { AchievementType, AdminAchievement } from "@/admin/types";
 import { Btn, Drawer, Field, PageHeader, Select, StatusBadge, TextInput } from "@/admin/ui";
 import { adminRewardService } from "@/services/admin";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/achievements")({
   head: () => ({
     meta: [
-      { title: "Achievements — Admin Língua STP" },
+      { title: `Achievements — Admin ${APP_NAME}` },
       { name: "description", content: "Criar e gerir conquistas." },
     ],
   }),

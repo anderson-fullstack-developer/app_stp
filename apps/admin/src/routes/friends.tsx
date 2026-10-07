@@ -8,13 +8,14 @@ import { useFriends } from "@/hooks/use-service";
 import { AppHeader, TabLayout } from "@/layouts/AppShell";
 import { friendService } from "@/services";
 import { useTranslation } from "react-i18next";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/friends")({
   head: () => ({
     meta: [
-      { title: "Amigos — Língua STP" },
+      { title: `Amigos — ${APP_NAME}` },
       { name: "description", content: "Encontra amigos, aceita pedidos e desafia-os." },
-      { property: "og:title", content: "Amigos — Língua STP" },
+      { property: "og:title", content: `Amigos — ${APP_NAME}` },
       { property: "og:description", content: "Aprende e compete com amigos." },
     ],
   }),

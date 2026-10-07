@@ -1,9 +1,9 @@
-# Língua STP — Plano do Backend
+# Fala Neto — Plano do Backend
 
 > Complementa `docs/PLANO_DE_ENGENHARIA.md` (fases e ADRs). Este documento detalha **o que vamos usar, onde fica alojado e a ordem exata de construção** do backend.
 >
 > Estado (2026-10-07): fase 0 concluída; **B1 concluído** — `apps/api` com NestJS 12 (ESM), configuração validada com Zod 4, `/api/v1/health`, Helmet, CORS, rate limiting, erros uniformes, logs Pino, Sentry opcional, Swagger e testes e2e. **B2 parte 1 concluída:** Prisma 7 + Neon (eu-central-1), migração `init_core` (países, línguas, variantes, utilizadores, papéis por língua, curso/unidade/lição/exercício, vocabulário e frases com traduções por idioma, áudio, fontes/licenças, revisão, auditoria), seed com o Kriolu (1059 palavras DRAFT) e endpoints `/languages` e `/languages/:id/vocabulary`. **B2 parte 2 concluída (2026-10-07):** migração `progress_gamification` (estatísticas, livro-razão de XP e moedas, dias ativos, progresso e tentativas de lição, conquistas, regras de recompensa) com restrições na BD (saldo ≥ 0, máx. 2 proteções, 1 tentativa ativa por lição); regras puras testadas em `apps/api/src/progress/rules`; `GET /me` devolve XP, nível, moedas e streak calculados no fuso do utilizador. Tudo conforme `docs/REGRAS_DE_NEGOCIO.md`.
-> **B4 adiantado (frontend):** Clerk ligado à app web (`clerk init`, app `Língua STP`): login/registo reais com email+código, palavra-passe e Google; registo no fim do onboarding leva país, línguas faladas, idioma, língua a aprender, motivos e objetivo em `unsafeMetadata`; gestão de conta (incl. eliminar conta) em Definições → Conta; ecrãs em PT/EN com o tema da app. **B4 concluído na API (2026-10-07):** `ClerkAuthGuard` valida o token de sessão e carrega o utilizador (sincroniza na hora se o webhook ainda não chegou), `@Roles` com papéis (todos começam com `USER`; `SUPER_ADMIN` passa sempre), `GET /api/v1/me`, webhook `POST /api/v1/webhooks/clerk` com assinatura verificada (`user.created/updated` → cria/atualiza; `user.deleted` → anonimiza). Testado contra a Neon. **Falta configurar** o endpoint do webhook no painel do Clerk (signing secret) — até lá o `/me` cria o utilizador no primeiro pedido.
+> **B4 adiantado (frontend):** Clerk ligado à app web (`clerk init`, app `Fala Neto`): login/registo reais com email+código, palavra-passe e Google; registo no fim do onboarding leva país, línguas faladas, idioma, língua a aprender, motivos e objetivo em `unsafeMetadata`; gestão de conta (incl. eliminar conta) em Definições → Conta; ecrãs em PT/EN com o tema da app. **B4 concluído na API (2026-10-07):** `ClerkAuthGuard` valida o token de sessão e carrega o utilizador (sincroniza na hora se o webhook ainda não chegou), `@Roles` com papéis (todos começam com `USER`; `SUPER_ADMIN` passa sempre), `GET /api/v1/me`, webhook `POST /api/v1/webhooks/clerk` com assinatura verificada (`user.created/updated` → cria/atualiza; `user.deleted` → anonimiza). Testado contra a Neon. **Falta configurar** o endpoint do webhook no painel do Clerk (signing secret) — até lá o `/me` cria o utilizador no primeiro pedido.
 
 ---
 
@@ -107,7 +107,7 @@ R2_SECRET_ACCESS_KEY=
 R2_BUCKET=
 R2_PUBLIC_URL=            # ex.: https://media.<domínio>
 RESEND_API_KEY=
-EMAIL_FROM=               # ex.: "Língua STP <ola@<domínio>>"
+EMAIL_FROM=               # ex.: "Fala Neto <ola@<domínio>>"
 SENTRY_DSN=
 POSTHOG_KEY=
 # mais tarde
@@ -176,7 +176,7 @@ Criar com um email da equipa (não pessoal) e ativar autenticação de dois fato
 - [ ] **Cloudflare** — DNS do domínio + R2 (cartão necessário mesmo no plano gratuito).
 - [ ] **Neon** — projeto `lingua-stp`, região UE.
 - [ ] **Railway** — ligar ao repositório GitHub.
-- [ ] **Clerk** — aplicação `Língua STP`; ativar email + Google.
+- [ ] **Clerk** — aplicação `Fala Neto`; ativar email + Google.
 - [ ] **Resend** — adicionar e verificar o domínio.
 - [ ] **Sentry** — organização + projetos `api`, `admin`, `mobile` (região UE).
 - [ ] **PostHog** — projeto na cloud **UE**.

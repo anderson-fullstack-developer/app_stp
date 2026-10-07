@@ -21,11 +21,12 @@ import {
 } from "@/admin/ui";
 import { adminReviewService, adminVocabularyService } from "@/services/admin";
 import { fmtDate } from "@/admin/format";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/vocabulary")({
   head: () => ({
     meta: [
-      { title: "Vocabulário — Admin Língua STP" },
+      { title: `Vocabulário — Admin ${APP_NAME}` },
       { name: "description", content: "Gestão de palavras, traduções, áudios e revisão." },
     ],
   }),

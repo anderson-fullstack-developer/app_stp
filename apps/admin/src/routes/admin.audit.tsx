@@ -4,11 +4,12 @@ import { useAdminDB } from "@/services/admin";
 import type { AuditEntry } from "@/admin/types";
 import { DataTable, PageHeader, type Column } from "@/admin/ui";
 import { fmtDateTime } from "@/admin/format";
+import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/admin/audit")({
   head: () => ({
     meta: [
-      { title: "Audit Log — Admin Língua STP" },
+      { title: `Audit Log — Admin ${APP_NAME}` },
       { name: "description", content: "Histórico de ações administrativas." },
     ],
   }),

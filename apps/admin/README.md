@@ -1,4 +1,4 @@
-# Língua STP — "Aprende. Joga. Preserva."
+# Fala Neto — "Aprende. Joga. Preserva."
 
 Aplicação mobile de ensino das línguas de São Tomé e Príncipe (Forro/Santomé primeiro; depois Angolar e Lung'Ie/Principense), que combina **aprendizagem, gamificação, cultura, amigos e competição**.
 
@@ -8,7 +8,7 @@ Aplicação mobile de ensino das línguas de São Tomé e Príncipe (Forro/Santo
 
 ---
 
-## 1. O que é o Língua STP
+## 1. O que é o Fala Neto
 
 Um protótipo **frontend completo e clicável** do app, com o feel de uma aplicação Android (não um site responsivo):
 
