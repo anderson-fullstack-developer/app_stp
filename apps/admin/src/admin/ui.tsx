@@ -467,21 +467,3 @@ export const PlaceholderNote = () => (
     validado aqui pela equipa.
   </p>
 );
-
-export const fmtDate = (iso: string) => {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? iso
-    : d.toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" });
-};
-export const fmtDateTime = (iso: string) => {
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? iso
-    : d.toLocaleString("pt-PT", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-};

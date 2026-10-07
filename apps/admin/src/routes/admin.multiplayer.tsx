@@ -12,10 +12,10 @@ import {
   Panel,
   Select,
   StatusBadge,
-  fmtDateTime,
   type Column,
 } from "@/admin/ui";
 import { adminGameService } from "@/services/admin";
+import { fmtDateTime } from "@/admin/format";
 
 export const Route = createFileRoute("/admin/multiplayer")({
   head: () => ({

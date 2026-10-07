@@ -1,16 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  HistoryList,
-  KIND_LABEL,
-  PlayButton,
-  ReviewActions,
-  contentTitle,
-  contentTranslation,
-} from "@/admin/content";
+import { HistoryList, PlayButton, ReviewActions } from "@/admin/content";
 import { useAdminDB } from "@/services/admin";
 import type { ContentItem, ContentStatus } from "@/admin/types";
-import { DataTable, Drawer, PageHeader, StatusBadge, fmtDateTime, type Column } from "@/admin/ui";
+import { DataTable, Drawer, PageHeader, StatusBadge, type Column } from "@/admin/ui";
+import { KIND_LABEL, contentTitle, contentTranslation, fmtDateTime } from "@/admin/format";
 
 type S = Extract<ContentStatus, "UNDER_REVIEW" | "APPROVED" | "REJECTED">;
 export const Route = createFileRoute("/admin/review")({

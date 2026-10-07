@@ -202,6 +202,7 @@ function Survival() {
 
   // ---- setup: private room hand-off or public matchmaking ----
   useEffect(() => {
+    const timerList = timers.current; // o array é sempre o mesmo (só recebe push)
     const pending = session.peekPending();
     if (pending) {
       const seeds = pending.members.map((mb) => ({
@@ -220,10 +221,10 @@ function Survival() {
       });
       return () => {
         cancel();
-        timers.current.forEach(clearTimeout);
+        timerList.forEach(clearTimeout);
       };
     }
-    return () => timers.current.forEach(clearTimeout);
+    return () => timerList.forEach(clearTimeout);
   }, []);
 
   // full → countdown

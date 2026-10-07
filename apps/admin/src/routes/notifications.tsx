@@ -14,7 +14,7 @@ export const Route = createFileRoute("/notifications")({
       { property: "og:description", content: "As tuas notificações." },
     ],
   }),
-  component: () => {
+  component: function NotificationsPage() {
     const { data } = useNotifications();
     return (
       <PhoneFrame>

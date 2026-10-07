@@ -4,8 +4,9 @@ import { toast } from "sonner";
 import { adminAudioService, adminReviewService } from "@/services/admin";
 import { useAdminDB, useAdminSession } from "./store";
 import type { ContentItem } from "./types";
-import { Btn, Field, StatusBadge, TextArea, fmtDateTime } from "./ui";
+import { Btn, Field, StatusBadge, TextArea } from "./ui";
 import { canPerform, type ReviewAction } from "./workflow";
+import { fmtDateTime } from "./format";
 
 export function PlayButton({ seconds = 2 }: { seconds?: number }) {
   const [playing, setPlaying] = useState(false);
@@ -196,9 +197,3 @@ export function ReviewActions({
     </div>
   );
 }
-
-export const contentTitle = (c: ContentItem) =>
-  c.kind === "word" ? c.word : c.kind === "phrase" ? c.original : c.question;
-export const contentTranslation = (c: ContentItem) =>
-  c.kind === "exercise" ? (c.options[c.correctIndex] ?? "") : c.translation;
-export const KIND_LABEL = { word: "Palavra", phrase: "Frase", exercise: "Exercício" } as const;

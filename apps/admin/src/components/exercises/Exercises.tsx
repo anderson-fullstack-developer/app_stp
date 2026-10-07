@@ -163,7 +163,7 @@ function OrderWords({ exercise, checked, onReady }: Props) {
 }
 
 function MatchWords({ exercise, checked, onReady }: Props) {
-  const pairs = exercise.pairs ?? [];
+  const pairs = useMemo(() => exercise.pairs ?? [], [exercise.pairs]);
   const rights = useMemo(() => [...pairs].reverse().map((p) => p.right), [pairs]);
   const [left, setLeft] = useState<string | null>(null);
   const [done, setDone] = useState<string[]>([]);

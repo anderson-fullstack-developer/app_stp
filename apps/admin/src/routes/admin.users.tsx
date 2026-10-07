@@ -14,10 +14,10 @@ import {
   PageHeader,
   StatusBadge,
   TextInput,
-  fmtDate,
   type Column,
 } from "@/admin/ui";
 import { adminUserService } from "@/services/admin";
+import { fmtDate } from "@/admin/format";
 
 export const Route = createFileRoute("/admin/users")({
   head: () => ({
