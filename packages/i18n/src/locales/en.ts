@@ -22,6 +22,7 @@ export const en: Messages = {
     welcomeTitle: "Learn the languages of São Tomé and Príncipe and Cape Verde",
     welcomeText: "Discover the language and the culture, and compete with your friends.",
     welcomeImageAlt: "Tropical island with cocoa",
+    netoHello: "Hi! I'm Neto. Shall we learn together?",
     start: "Get started",
     haveAccount: "I already have an account",
     uiLanguageTitle: "Which language do you want to use the app in?",

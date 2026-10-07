@@ -24,6 +24,7 @@ export const pt = {
     welcomeTitle: "Aprende as línguas de São Tomé e Príncipe e Cabo Verde",
     welcomeText: "Descobre a língua, a cultura e compete com os teus amigos.",
     welcomeImageAlt: "Ilha tropical com cacau",
+    netoHello: "Olá! Eu sou o Neto. Vamos aprender juntos?",
     start: "Começar",
     haveAccount: "Já tenho conta",
     uiLanguageTitle: "Em que língua queres usar a app?",
