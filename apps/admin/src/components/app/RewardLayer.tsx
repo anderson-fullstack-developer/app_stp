@@ -1,12 +1,15 @@
-import { Coins, Flame, Star } from "lucide-react";
+import { Coins, Star } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { game, useGameEvents } from "@/hooks/use-game";
 import { sound } from "@/lib/sound";
 import { AppButton } from "./Buttons";
+import { Neto } from "./Neto";
 
 /** Global overlay for reward micro-interactions: +XP, +coins, streak kept, level up. */
 export function RewardLayer() {
   const events = useGameEvents();
+  const { t } = useTranslation();
   const toasts = events.filter((e) => e.kind === "xp" || e.kind === "coins");
   const big = events.find((e) => e.kind === "levelUp") ?? events.find((e) => e.kind === "streak");
 
@@ -33,17 +36,17 @@ export function RewardLayer() {
       aria-live="polite"
     >
       <div className="absolute inset-x-0 top-24 flex flex-col items-center gap-2">
-        {toasts.map((t) => (
+        {toasts.map((toast) => (
           <span
-            key={t.id}
+            key={toast.id}
             className="animate-xp-float inline-flex items-center gap-1.5 rounded-full bg-surface px-4 py-2 font-display text-lg font-bold shadow-float ring-1 ring-border/60"
           >
-            {t.kind === "xp" ? (
+            {toast.kind === "xp" ? (
               <Star className="size-5 fill-accent-deep text-accent-deep" />
             ) : (
               <Coins className="size-5 text-secondary" />
             )}
-            +{t.amount} {t.kind === "xp" ? "XP" : "moedas"}
+            +{toast.amount} {toast.kind === "xp" ? "XP" : "moedas"}
           </span>
         ))}
       </div>
@@ -52,30 +55,26 @@ export function RewardLayer() {
           <div className="animate-pop w-full rounded-[2rem] bg-surface p-6 text-center shadow-float">
             {big.kind === "levelUp" ? (
               <>
-                <div className="mx-auto grid size-24 place-items-center rounded-[2rem] bg-sun animate-float">
-                  <Star className="size-12 fill-accent-foreground text-accent-foreground" />
-                </div>
-                <p className="mt-4 font-display text-xs font-bold uppercase tracking-[0.2em] text-accent-deep">
-                  Subiste de nível
+                <Neto mood="celebrate" size={150} className="mx-auto animate-float" />
+                <p className="mt-2 font-display text-xs font-bold uppercase tracking-[0.2em] text-accent-deep">
+                  {t("neto.levelUpKicker")}
                 </p>
-                <p className="font-display text-4xl font-bold">Nível {big.level}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Continua assim — estás a preservar uma língua.
+                <p className="font-display text-3xl font-bold">
+                  {t("neto.levelUpTitle", { level: big.level })}
                 </p>
+                <p className="mt-1 text-sm text-muted-foreground">{t("neto.levelUpText")}</p>
               </>
             ) : (
               <>
-                <div className="mx-auto grid size-24 place-items-center rounded-full bg-coral text-destructive-foreground animate-float">
-                  <Flame className="size-12 fill-current" />
-                </div>
-                <p className="mt-4 font-display text-3xl font-bold">Sequência mantida!</p>
+                <Neto mood="happy" size={132} className="mx-auto animate-float" />
+                <p className="mt-2 font-display text-3xl font-bold">{t("neto.streakKept")}</p>
                 <p className="font-display text-xl font-bold text-destructive">
-                  🔥 {big.days} dias
+                  🔥 {t("neto.streakDays", { count: big.days })}
                 </p>
               </>
             )}
             <AppButton className="mt-5" onClick={() => game.dismissEvent(big.id)}>
-              Continuar
+              {t("common.continue")}
             </AppButton>
           </div>
         </div>
