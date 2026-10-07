@@ -8,6 +8,8 @@ import { GameResultStats, Podium, RewardRow } from "@/components/play/ResultUI";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { session } from "@/lib/multiplayer/session-store";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
+import { Neto } from "@/components/app/Neto";
 
 export const Route = createFileRoute("/play/results")({
   head: () => ({
@@ -22,6 +24,7 @@ export const Route = createFileRoute("/play/results")({
 });
 
 function Results() {
+  const { t } = useTranslation();
   const [r] = useState(() => session.getResult());
   if (!r) {
     return (
@@ -67,8 +70,13 @@ function Results() {
           ))}
         </ul>
         <div className="rounded-[1.75rem] bg-forest p-5 text-center text-primary-foreground">
+          <Neto
+            mood={r.myPlace === 1 ? "celebrate" : "happy"}
+            size={110}
+            className="mx-auto -mt-2 animate-pop"
+          />
           <p className="font-display text-3xl font-bold">
-            {r.myPlace === 1 ? "Venceste! 🏆" : `Ficaste em ${r.myPlace}.º!`}
+            {r.myPlace === 1 ? t("neto.resultWin") : t("neto.resultPlace", { place: r.myPlace })}
           </p>
           <div className="mt-3">
             <RewardRow reward={r.reward} />

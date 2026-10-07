@@ -1,4 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { AppButton } from "@/components/app/Buttons";
+import { Neto } from "@/components/app/Neto";
+import { useGame } from "@/hooks/use-game";
 import { BackButton } from "@/components/app/BackButton";
 import { EmptyState, LoadingState } from "@/components/app/Primitives";
 import { useNotifications } from "@/hooks/use-service";
@@ -16,14 +20,31 @@ export const Route = createFileRoute("/notifications")({
   }),
   component: function NotificationsPage() {
     const { data } = useNotifications();
+    const { t } = useTranslation();
+    const g = useGame();
+    const practisedToday = g.week[g.todayIndex];
     return (
       <PhoneFrame>
         <AppHeader left={<BackButton />} title="Notificações" />
         <main className="flex-1 space-y-2 px-4 pb-8">
+          {!practisedToday && (
+            <div className="card mb-3 flex items-center gap-3 rounded-3xl p-4 ring-2 ring-warning/50">
+              <Neto mood="worried" size={72} className="animate-float" />
+              <div className="flex-1">
+                <p className="font-display text-lg font-bold leading-tight">
+                  {t("neto.reminderTitle")}
+                </p>
+                <p className="text-sm text-muted-foreground">{t("neto.reminderText")}</p>
+                <Link to="/learn" className="mt-2 block">
+                  <AppButton size="md">{t("neto.reminderCta")}</AppButton>
+                </Link>
+              </div>
+            </div>
+          )}
           {!data ? (
             <LoadingState />
           ) : data.length === 0 ? (
-            <EmptyState title="Tudo em dia" />
+            <EmptyState title={t("neto.allCaughtUp")} />
           ) : (
             data.map((n) => (
               <div

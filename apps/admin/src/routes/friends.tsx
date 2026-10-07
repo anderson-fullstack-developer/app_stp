@@ -7,6 +7,7 @@ import { EmptyState, LoadingState, Modal, Tabs } from "@/components/app/Primitiv
 import { useFriends } from "@/hooks/use-service";
 import { AppHeader, TabLayout } from "@/layouts/AppShell";
 import { friendService } from "@/services";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/friends")({
   head: () => ({
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/friends")({
 type Tab = "friend" | "request" | "suggestion";
 
 function Friends() {
+  const { t } = useTranslation();
   const { data, isLoading } = useFriends();
   const [tab, setTab] = useState<Tab>("friend");
   const [q, setQ] = useState("");
@@ -79,8 +81,8 @@ function Friends() {
           <LoadingState />
         ) : list.length === 0 ? (
           <EmptyState
-            title={tab === "request" ? "Sem pedidos" : "Ninguém encontrado"}
-            text="Convida amigos para aprender contigo."
+            title={tab === "request" ? "Sem pedidos" : t("neto.noFriendsTitle")}
+            text={t("neto.noFriendsText")}
           />
         ) : (
           list.map((f) => <UserCard key={f.id} friend={f} />)

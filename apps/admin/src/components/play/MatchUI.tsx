@@ -7,6 +7,8 @@ import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 import type { AvatarColor } from "@/types";
 import type { QuizQuestion, RoundSummary, SurvivalPlayer } from "@stp/types/multiplayer";
+import { useTranslation } from "react-i18next";
+import { Neto } from "@/components/app/Neto";
 
 /* ---------- Lives ---------- */
 export function LivesIndicator({
@@ -298,12 +300,19 @@ export function CountdownOverlay({
   value: number | "go";
   title?: string | undefined;
 }) {
+  const { t } = useTranslation();
   useEffect(() => {
     sound.play(value === "go" ? "go" : "tick");
   }, [value]);
   return (
     <Overlay tone="forest">
-      {title && <p className="animate-rise font-display text-2xl font-bold">{title}</p>}
+      {title && (
+        <>
+          <Neto mood="happy" size={96} className="animate-float" />
+          <p className="animate-rise font-display text-2xl font-bold">{title}</p>
+          <p className="text-sm font-semibold opacity-80">{t("neto.arenaReady")}</p>
+        </>
+      )}
       <p
         key={String(value)}
         className="animate-pop font-display text-[7rem] font-bold leading-none"
@@ -420,11 +429,13 @@ export function PlayerEliminatedOverlay({
   onLeave: () => void;
 }) {
   const total = correct + wrong;
+  const { t } = useTranslation();
   return (
     <Overlay>
-      <p className="animate-pop text-7xl">💀</p>
-      <p className="font-display text-4xl font-bold">Eliminado</p>
-      <p className="text-lg font-bold">Terminaste em {place}.º</p>
+      <Neto mood="sad" size={120} className="animate-pop" />
+      <p className="font-display text-4xl font-bold">{t("neto.eliminatedTitle")}</p>
+      <p className="text-lg font-bold">{t("neto.eliminatedPlace", { place })}</p>
+      <p className="text-sm font-semibold opacity-80">{t("neto.eliminatedText")}</p>
       <div className="grid w-full grid-cols-3 gap-2">
         {[
           [correct, "corretas"],
@@ -509,14 +520,19 @@ export function WinnerOverlay({
   color: AvatarColor;
   isMe?: boolean | undefined;
 }) {
+  const { t } = useTranslation();
   return (
     <Overlay tone="forest">
       <Confetti />
       <p className="font-display text-lg font-bold">🏆 Último sobrevivente</p>
       <Avatar name={name} color={color} size={130} className="animate-pop ring-8 ring-accent" />
       <p className="animate-rise font-display text-4xl font-bold">
-        {isMe ? "Venceste!" : `${name} venceu!`}
+        {isMe ? t("neto.winnerMe") : t("neto.winnerOther", { name })}
       </p>
+      <div className="flex items-center gap-2">
+        <Neto mood="celebrate" size={72} className="animate-float" />
+        <p className="text-sm font-semibold opacity-90">{t("neto.winnerCheer")}</p>
+      </div>
     </Overlay>
   );
 }
