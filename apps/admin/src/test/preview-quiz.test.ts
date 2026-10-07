@@ -54,4 +54,15 @@ describe("quiz de pré-visualização", () => {
     const quiz = buildPreviewQuiz(entries, 10, 3, { locale: "en" });
     expect(quiz.every((q) => q.meaningSource === "en-source")).toBe(true);
   });
+
+  it("em português não pergunta palavras iguais à resposta (ex.: «abril» → abril)", () => {
+    const fold = (x: string) =>
+      x
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
+        .toLowerCase()
+        .trim();
+    const cards = toCards(entries, "pt", pt.translations);
+    expect(cards.some((c) => fold(c.word) === fold(c.gloss))).toBe(false);
+  });
 });

@@ -62,7 +62,7 @@ import { Route as PlayResultsRouteImport } from './routes/play.results'
 import { Route as PlaySurvivalRouteImport } from './routes/play.survival'
 import { Route as PlayTeamsRouteImport } from './routes/play.teams'
 import { Route as PlayTournamentsRouteImport } from './routes/play.tournaments'
-import { Route as PreviewKrioluRouteImport } from './routes/preview.kriolu'
+import { Route as PracticeKrioluRouteImport } from './routes/practice.kriolu'
 import { Route as UserUserIdRouteImport } from './routes/user.$userId'
 import { Route as AdminLessonsIndexRouteImport } from './routes/admin.lessons.index'
 import { Route as AdminLessonsLessonIdRouteImport } from './routes/admin.lessons.$lessonId'
@@ -332,9 +332,9 @@ const PlayTournamentsRoute = PlayTournamentsRouteImport.update({
   path: '/play/tournaments',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PreviewKrioluRoute = PreviewKrioluRouteImport.update({
-  id: '/preview/kriolu',
-  path: '/preview/kriolu',
+const PracticeKrioluRoute = PracticeKrioluRouteImport.update({
+  id: '/practice/kriolu',
+  path: '/practice/kriolu',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UserUserIdRoute = UserUserIdRouteImport.update({
@@ -406,7 +406,7 @@ export interface FileRoutesByFullPath {
   '/play/survival': typeof PlaySurvivalRoute
   '/play/teams': typeof PlayTeamsRoute
   '/play/tournaments': typeof PlayTournamentsRoute
-  '/preview/kriolu': typeof PreviewKrioluRoute
+  '/practice/kriolu': typeof PracticeKrioluRoute
   '/user/$userId': typeof UserUserIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
@@ -464,7 +464,7 @@ export interface FileRoutesByTo {
   '/play/survival': typeof PlaySurvivalRoute
   '/play/teams': typeof PlayTeamsRoute
   '/play/tournaments': typeof PlayTournamentsRoute
-  '/preview/kriolu': typeof PreviewKrioluRoute
+  '/practice/kriolu': typeof PracticeKrioluRoute
   '/user/$userId': typeof UserUserIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
@@ -524,7 +524,7 @@ export interface FileRoutesById {
   '/play/survival': typeof PlaySurvivalRoute
   '/play/teams': typeof PlayTeamsRoute
   '/play/tournaments': typeof PlayTournamentsRoute
-  '/preview/kriolu': typeof PreviewKrioluRoute
+  '/practice/kriolu': typeof PracticeKrioluRoute
   '/user/$userId': typeof UserUserIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
@@ -585,7 +585,7 @@ export interface FileRouteTypes {
     | '/play/survival'
     | '/play/teams'
     | '/play/tournaments'
-    | '/preview/kriolu'
+    | '/practice/kriolu'
     | '/user/$userId'
     | '/admin/'
     | '/admin/lessons/$lessonId'
@@ -643,7 +643,7 @@ export interface FileRouteTypes {
     | '/play/survival'
     | '/play/teams'
     | '/play/tournaments'
-    | '/preview/kriolu'
+    | '/practice/kriolu'
     | '/user/$userId'
     | '/admin'
     | '/admin/lessons/$lessonId'
@@ -702,7 +702,7 @@ export interface FileRouteTypes {
     | '/play/survival'
     | '/play/teams'
     | '/play/tournaments'
-    | '/preview/kriolu'
+    | '/practice/kriolu'
     | '/user/$userId'
     | '/admin/'
     | '/admin/lessons/$lessonId'
@@ -743,7 +743,7 @@ export interface RootRouteChildren {
   PlaySurvivalRoute: typeof PlaySurvivalRoute
   PlayTeamsRoute: typeof PlayTeamsRoute
   PlayTournamentsRoute: typeof PlayTournamentsRoute
-  PreviewKrioluRoute: typeof PreviewKrioluRoute
+  PracticeKrioluRoute: typeof PracticeKrioluRoute
   UserUserIdRoute: typeof UserUserIdRoute
 }
 
@@ -1120,11 +1120,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayTournamentsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/preview/kriolu': {
-      id: '/preview/kriolu'
-      path: '/preview/kriolu'
-      fullPath: '/preview/kriolu'
-      preLoaderRoute: typeof PreviewKrioluRouteImport
+    '/practice/kriolu': {
+      id: '/practice/kriolu'
+      path: '/practice/kriolu'
+      fullPath: '/practice/kriolu'
+      preLoaderRoute: typeof PracticeKrioluRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/user/$userId': {
@@ -1237,7 +1237,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlaySurvivalRoute: PlaySurvivalRoute,
   PlayTeamsRoute: PlayTeamsRoute,
   PlayTournamentsRoute: PlayTournamentsRoute,
-  PreviewKrioluRoute: PreviewKrioluRoute,
+  PracticeKrioluRoute: PracticeKrioluRoute,
   UserUserIdRoute: UserUserIdRoute,
 }
 export const routeTree = rootRouteImport

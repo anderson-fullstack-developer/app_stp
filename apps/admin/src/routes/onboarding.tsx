@@ -15,7 +15,6 @@ import { SoonBadge } from "@/components/app/Badges";
 import { ProgressBar } from "@/components/app/Primitives";
 import { settings, useSettings } from "@/hooks/use-settings";
 import { useCountries, useLanguages } from "@/hooks/use-service";
-import { PREVIEW_ENABLED } from "@/lib/preview-quiz";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
 import i18n from "@/i18n";
@@ -60,7 +59,7 @@ function Onboarding() {
   const [reasons, setReasons] = useState<ReasonId[]>([]);
   const [minutes, setMinutes] = useState<number | null>(null);
   const navigate = useNavigate();
-  const { locale } = useSettings();
+  const { locale, learning } = useSettings();
   const { data: langs } = useLanguages();
   const { data: countries } = useCountries();
   const currentLocale = locale ?? i18n.language;
@@ -160,23 +159,26 @@ function Onboarding() {
                     {langs
                       ?.filter((l) => l.countryId === c.id)
                       .map((l) => {
-                        // Em desenvolvimento, o Kriolu abre a pré-visualização com rascunhos.
-                        const preview = PREVIEW_ENABLED && !l.available && l.id === "kabuverdianu";
-                        const card = (
-                          <div
+                        const on = l.available && learning === l.id;
+                        return (
+                          <button
                             key={l.id}
+                            type="button"
+                            disabled={!l.available}
+                            onClick={() => settings.set({ learning: l.id })}
+                            aria-pressed={on}
                             className={cn(
-                              "flex items-center gap-4 rounded-3xl border-[1.5px] p-4",
-                              l.available
+                              "pressable flex w-full items-center gap-4 rounded-3xl border-[1.5px] p-4 text-left",
+                              on
                                 ? "border-primary bg-primary/5"
-                                : preview
-                                  ? "pressable border-accent bg-accent/10"
+                                : l.available
+                                  ? "border-border bg-surface"
                                   : "border-border bg-surface opacity-60",
                             )}
                           >
                             <div
                               className={cn(
-                                "grid size-14 place-items-center rounded-2xl font-display text-xl font-bold",
+                                "grid size-14 shrink-0 place-items-center rounded-2xl font-display text-xl font-bold",
                                 l.available
                                   ? "bg-forest text-primary-foreground"
                                   : "bg-muted text-muted-foreground",
@@ -188,25 +190,21 @@ function Onboarding() {
                               <p className="font-display font-bold">{l.name}</p>
                               <p className="text-xs text-muted-foreground">{l.region}</p>
                             </div>
-                            {l.available ? (
+                            {!l.available ? (
+                              <SoonBadge />
+                            ) : l.beta ? (
+                              <span className="shrink-0 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-accent-foreground">
+                                {t("kriolu.beta")}
+                              </span>
+                            ) : (
                               <span className="rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-bold uppercase text-success">
                                 {t("common.available")}
                               </span>
-                            ) : preview ? (
-                              <span className="shrink-0 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-accent-foreground">
-                                {t("onboarding.testDraft")}
-                              </span>
-                            ) : (
-                              <SoonBadge />
                             )}
-                          </div>
-                        );
-                        return preview ? (
-                          <Link key={l.id} to="/preview/kriolu" className="block">
-                            {card}
-                          </Link>
-                        ) : (
-                          card
+                            {on && (
+                              <Check className="size-5 shrink-0 rounded-full bg-primary p-0.5 text-primary-foreground" />
+                            )}
+                          </button>
                         );
                       })}
                   </div>

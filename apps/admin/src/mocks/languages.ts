@@ -30,7 +30,8 @@ export const languages: Language[] = [
     name: "Kriolu / Crioulo cabo-verdiano",
     countryId: "cv",
     region: "Cabo Verde (variantes por ilha)",
-    available: false,
+    available: true,
+    beta: true,
   },
 ];
 

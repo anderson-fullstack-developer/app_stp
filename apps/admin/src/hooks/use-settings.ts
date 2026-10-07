@@ -14,6 +14,8 @@ export interface Settings {
   notifications: boolean;
   /** Idioma da interface escolhido pelo utilizador; null = usar o idioma do dispositivo. */
   locale: string | null;
+  /** Língua que o utilizador está a aprender (Language.id). */
+  learning: string;
 }
 
 const KEY = "lstp-settings-v1";
@@ -23,6 +25,7 @@ const DEFAULTS: Settings = {
   haptics: true,
   notifications: true,
   locale: null,
+  learning: "forro",
 };
 
 let state: Settings = DEFAULTS;
