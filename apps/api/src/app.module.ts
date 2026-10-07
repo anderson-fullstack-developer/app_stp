@@ -9,6 +9,7 @@ import { DatabaseModule } from "./database/database.module.js";
 import { HealthController } from "./health/health.controller.js";
 import { LanguagesController } from "./languages/languages.controller.js";
 import { LanguagesService } from "./languages/languages.service.js";
+import { ProgressService } from "./progress/progress.service.js";
 import { MeController } from "./users/me.controller.js";
 import { UsersService } from "./users/users.service.js";
 import { ClerkWebhookController } from "./webhooks/clerk-webhook.controller.js";
@@ -44,6 +45,7 @@ export class AppModule {
         LanguagesService,
         UsersService,
         ClerkService,
+        ProgressService,
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_FILTER, useClass: AllExceptionsFilter },
       ],

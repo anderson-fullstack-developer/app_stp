@@ -1,6 +1,6 @@
 // Língua STP — modelo de dados (Prisma 7 + Neon PostgreSQL).
 // Migração 1: núcleo (países, línguas, utilizadores, papéis, conteúdo, revisão, auditoria).
-// Progresso, XP, streak, moedas e jogo entram na migração seguinte (depois de docs/REGRAS_DE_NEGOCIO.md).
+// Migração 3: progresso, XP, streak, moedas e conquistas (docs/REGRAS_DE_NEGOCIO.md). Jogo (Arena) depois.
 // Ligações à base de dados: prisma.config.ts (nunca neste ficheiro).
 
 generator client {
@@ -185,19 +185,26 @@ model User {
   updatedAt          DateTime      @updatedAt
   deletedAt          DateTime?
 
-  learningLanguage Language?       @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
-  roles            UserRole[]      @relation("RoleHolder")
-  rolesGranted     UserRole[]      @relation("RoleGranter")
+  learningLanguage Language?         @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
+  roles            UserRole[]        @relation("RoleHolder")
+  rolesGranted     UserRole[]        @relation("RoleGranter")
   reviews          ContentReview[]
   auditLogs        AdminAuditLog[]
-  createdVocab     Vocabulary[]    @relation("VocabCreatedBy")
-  reviewedVocab    Vocabulary[]    @relation("VocabReviewedBy")
-  createdPhrases   Phrase[]        @relation("PhraseCreatedBy")
-  reviewedPhrases  Phrase[]        @relation("PhraseReviewedBy")
-  createdExercises Exercise[]      @relation("ExerciseCreatedBy")
-  reviewedExercise Exercise[]      @relation("ExerciseReviewedBy")
-  createdLessons   Lesson[]        @relation("LessonCreatedBy")
-  createdAudio     AudioAsset[]    @relation("AudioCreatedBy")
+  createdVocab     Vocabulary[]      @relation("VocabCreatedBy")
+  reviewedVocab    Vocabulary[]      @relation("VocabReviewedBy")
+  createdPhrases   Phrase[]          @relation("PhraseCreatedBy")
+  reviewedPhrases  Phrase[]          @relation("PhraseReviewedBy")
+  createdExercises Exercise[]        @relation("ExerciseCreatedBy")
+  reviewedExercise Exercise[]        @relation("ExerciseReviewedBy")
+  createdLessons   Lesson[]          @relation("LessonCreatedBy")
+  createdAudio     AudioAsset[]      @relation("AudioCreatedBy")
+  stats            UserStats?
+  xpEvents         XpEvent[]
+  coinTransactions CoinTransaction[]
+  activityDays     ActivityDay[]
+  lessonProgress   LessonProgress[]
+  lessonAttempts   LessonAttempt[]
+  achievements     UserAchievement[]
 
   @@index([status])
   @@map("users")
@@ -276,20 +283,22 @@ model Unit {
 }
 
 model Lesson {
-  id               String        @id @default(uuid(7)) @db.Uuid
-  unitId           String        @db.Uuid
+  id               String           @id @default(uuid(7)) @db.Uuid
+  unitId           String           @db.Uuid
   title            String
   description      String?
-  order            Int           @default(0)
-  difficulty       Difficulty    @default(EASY)
-  estimatedMinutes Int           @default(5)
-  status           ContentStatus @default(DRAFT)
-  createdById      String        @db.Uuid
-  unit             Unit          @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  createdBy        User          @relation("LessonCreatedBy", fields: [createdById], references: [id])
+  order            Int              @default(0)
+  difficulty       Difficulty       @default(EASY)
+  estimatedMinutes Int              @default(5)
+  status           ContentStatus    @default(DRAFT)
+  createdById      String           @db.Uuid
+  unit             Unit             @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  createdBy        User             @relation("LessonCreatedBy", fields: [createdById], references: [id])
   exercises        Exercise[]
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  progress         LessonProgress[]
+  attempts         LessonAttempt[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   @@index([unitId, order])
   @@index([status])
@@ -297,30 +306,31 @@ model Lesson {
 }
 
 model Exercise {
-  id           String           @id @default(uuid(7)) @db.Uuid
+  id           String                @id @default(uuid(7)) @db.Uuid
   languageId   String
-  lessonId     String?          @db.Uuid
+  lessonId     String?               @db.Uuid
   type         ExerciseType
   prompt       String
   /// Dados específicos do tipo (pares, palavras a ordenar, ids de áudio…).
   payload      Json?
-  difficulty   Difficulty       @default(EASY)
+  difficulty   Difficulty            @default(EASY)
   /// Onde pode ser usado: learning, daily, arena, duel…
-  usage        String[]         @default(["learning"])
-  order        Int              @default(0)
-  status       ContentStatus    @default(DRAFT)
-  version      Int              @default(1)
-  aiGenerated  Boolean          @default(false)
-  createdById  String           @db.Uuid
-  reviewedById String?          @db.Uuid
+  usage        String[]              @default(["learning"])
+  order        Int                   @default(0)
+  status       ContentStatus         @default(DRAFT)
+  version      Int                   @default(1)
+  aiGenerated  Boolean               @default(false)
+  createdById  String                @db.Uuid
+  reviewedById String?               @db.Uuid
   approvedAt   DateTime?
-  language     Language         @relation(fields: [languageId], references: [id])
-  lesson       Lesson?          @relation(fields: [lessonId], references: [id], onDelete: SetNull)
-  createdBy    User             @relation("ExerciseCreatedBy", fields: [createdById], references: [id])
-  reviewedBy   User?            @relation("ExerciseReviewedBy", fields: [reviewedById], references: [id])
+  language     Language              @relation(fields: [languageId], references: [id])
+  lesson       Lesson?               @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  createdBy    User                  @relation("ExerciseCreatedBy", fields: [createdById], references: [id])
+  reviewedBy   User?                 @relation("ExerciseReviewedBy", fields: [reviewedById], references: [id])
   options      ExerciseOption[]
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  answers      LessonAttemptAnswer[]
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
 
   @@index([languageId, status])
   @@index([lessonId, order])
@@ -504,4 +514,210 @@ model AdminAuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
   @@map("admin_audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Progresso e gamificação (docs/REGRAS_DE_NEGOCIO.md). O servidor é a única fonte.
+// XP e moedas: livro-razão imutável + totais em user_stats na mesma transação.
+// ---------------------------------------------------------------------------
+
+enum XpReason {
+  ANSWER_CORRECT
+  LESSON_COMPLETE
+  LESSON_PERFECT
+  DAILY_CHALLENGE
+  ACHIEVEMENT
+  DUEL_WIN
+  ARENA_PLACE
+  ADMIN_ADJUSTMENT
+}
+
+enum CoinReason {
+  LESSON_COMPLETE
+  DAILY_CHALLENGE
+  ACHIEVEMENT
+  REWARDED_AD
+  ARENA_PLACE
+  STREAK_FREEZE
+  SHOP_ITEM
+  PREMIUM_FREEZE
+  ADMIN_ADJUSTMENT
+}
+
+enum ActivityDayKind {
+  ACTIVE
+  FROZEN
+}
+
+enum LessonProgressStatus {
+  UNLOCKED
+  COMPLETED
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+  ABANDONED
+}
+
+/// Totais atuais do utilizador (cópia do livro-razão, atualizada na mesma transação).
+model UserStats {
+  userId            String    @id @db.Uuid
+  xpTotal           Int       @default(0)
+  coins             Int       @default(0)
+  currentStreak     Int       @default(0)
+  longestStreak     Int       @default(0)
+  /// Último dia local com atividade válida (fuso do utilizador).
+  lastActiveDate    DateTime? @db.Date
+  /// Proteções de streak guardadas (0–2).
+  streakFreezes     Int       @default(0)
+  correctAnswers    Int       @default(0)
+  lessonsCompleted  Int       @default(0)
+  /// Última mudança de fuso horário (no máximo 1 por 24 h).
+  timezoneChangedAt DateTime?
+  updatedAt         DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_stats")
+}
+
+/// Livro-razão de XP. Uma linha por ganho; nunca se altera nem apaga.
+model XpEvent {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  userId     String   @db.Uuid
+  amount     Int
+  reason     XpReason
+  /// Origem do ganho (ex.: lesson_attempt, daily_challenge, achievement).
+  sourceType String
+  sourceId   String
+  /// Dia local do utilizador quando ganhou.
+  localDate  DateTime @db.Date
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reason, sourceType, sourceId])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("xp_events")
+}
+
+/// Livro-razão de moedas (ganhos positivos, gastos negativos). O saldo nunca fica negativo.
+model CoinTransaction {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  userId       String     @db.Uuid
+  amount       Int
+  balanceAfter Int
+  reason       CoinReason
+  sourceType   String
+  sourceId     String
+  localDate    DateTime   @db.Date
+  createdAt    DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reason, sourceType, sourceId])
+  @@index([userId, createdAt])
+  @@index([userId, reason, localDate])
+  @@map("coin_transactions")
+}
+
+/// Um registo por dia local ativo ou protegido por uma proteção de streak.
+model ActivityDay {
+  userId    String          @db.Uuid
+  localDate DateTime        @db.Date
+  kind      ActivityDayKind @default(ACTIVE)
+  createdAt DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, localDate])
+  @@map("activity_days")
+}
+
+/// Estado de cada lição para cada utilizador.
+model LessonProgress {
+  userId           String               @db.Uuid
+  lessonId         String               @db.Uuid
+  status           LessonProgressStatus @default(UNLOCKED)
+  bestAccuracy     Float?
+  completions      Int                  @default(0)
+  firstCompletedAt DateTime?
+  lastCompletedAt  DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@id([userId, lessonId])
+  @@map("lesson_progress")
+}
+
+/// Uma tentativa de lição. Tempos sempre do relógio do servidor.
+model LessonAttempt {
+  id              String        @id @default(uuid(7)) @db.Uuid
+  userId          String        @db.Uuid
+  lessonId        String        @db.Uuid
+  status          AttemptStatus @default(IN_PROGRESS)
+  /// Ordem dos exercícios escolhida pelo servidor (ids).
+  exerciseIds     String[]      @db.Uuid
+  total           Int
+  correctFirstTry Int           @default(0)
+  /// Duração implausível: concluída mas sem recompensa, para rever.
+  flagged         Boolean       @default(false)
+  startedAt       DateTime      @default(now())
+  expiresAt       DateTime
+  completedAt     DateTime?
+
+  user    User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson  Lesson                @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  answers LessonAttemptAnswer[]
+
+  @@index([userId, lessonId, status])
+  @@map("lesson_attempts")
+}
+
+/// Cada resposta dada numa tentativa (`round` 1 = primeira tentativa do exercício).
+model LessonAttemptAnswer {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  attemptId  String   @db.Uuid
+  exerciseId String   @db.Uuid
+  round      Int
+  optionId   String?  @db.Uuid
+  text       String?
+  correct    Boolean
+  answeredAt DateTime @default(now())
+
+  attempt  LessonAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  exercise Exercise      @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, exerciseId, round])
+  @@map("lesson_attempt_answers")
+}
+
+/// Conquistas ganhas (cada uma só uma vez).
+model UserAchievement {
+  userId         String   @db.Uuid
+  achievementKey String
+  earnedAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, achievementKey])
+  @@map("user_achievements")
+}
+
+/// Valores das recompensas (editáveis no admin; semente em src/progress/rules/rewards.ts).
+model RewardRule {
+  key         String   @id
+  xp          Int      @default(0)
+  coins       Int      @default(0)
+  /// Máximo de vezes por dia local (null = sem limite).
+  dailyLimit  Int?
+  active      Boolean  @default(true)
+  description String
+  updatedAt   DateTime @updatedAt
+
+  @@map("reward_rules")
 }

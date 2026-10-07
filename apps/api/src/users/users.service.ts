@@ -77,6 +77,7 @@ export class UsersService {
             ...(profile.uiLocale ? { uiLocale: profile.uiLocale } : {}),
             ...(learningLanguageId ? { learningLanguageId } : {}),
             roles: { create: { role: "USER" } },
+            stats: { create: {} },
           },
         });
       } catch (e) {
