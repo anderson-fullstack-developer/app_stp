@@ -2,7 +2,8 @@
  * Quiz de PRÉ-VISUALIZAÇÃO INTERNA a partir de rascunhos importados (ex.: Kabuverdianu do Wiktionary).
  *
  * Não é conteúdo aprovado: serve só para a equipa sentir o jogo antes da revisão linguística.
- * As perguntas são montadas mecanicamente a partir da fonte — nada é inventado ou traduzido.
+ * As perguntas são montadas mecanicamente a partir da fonte. Os significados aparecem no idioma
+ * de quem joga: inglês (fonte original) ou português (sugestão automática, por rever).
  */
 
 /** A pré-visualização com rascunhos só existe em desenvolvimento (nunca numa versão publicada). */
@@ -15,14 +16,26 @@ export interface SourceEntry {
   sourceUrl: string;
 }
 
+/** Idioma em que os significados são mostrados. */
+export type MeaningLocale = "pt" | "en";
+
+/**
+ * Sugestões de tradução para português, chave "classe|significado em inglês".
+ * São automáticas (DRAFT); "(confirmar)" marca as duvidosas.
+ */
+export type PtSuggestions = Record<string, string>;
+
 export interface PreviewQuestion {
   id: string;
   /** "meaning": mostra a palavra e pede o significado; "word": mostra o significado e pede a palavra. */
   mode: "meaning" | "word";
-  prompt: string;
-  /** Texto em destaque (palavra em Kriolu ou significado em inglês). */
+  /** Texto em destaque (palavra em Kriolu ou significado). */
   target: string;
-  hint: string;
+  /** Classe gramatical (chave de pos.* nas traduções da interface). */
+  pos: string;
+  variant: string;
+  /** De onde vem o significado mostrado: sugestão automática em português ou fonte em inglês. */
+  meaningSource: "pt-suggestion" | "en-source";
   options: string[];
   correctIndex: number;
   sourceUrl: string;
@@ -34,7 +47,11 @@ const PLAYABLE_POS = new Set(["substantivo", "verbo", "adjetivo", "advérbio", "
 export function shortGloss(gloss: string): string {
   const noParens = gloss.replace(/\([^)]*\)/g, " ");
   const first = noParens.split(/[;,]/)[0] ?? "";
-  return first.replace(/\s+/g, " ").trim();
+  // Tira espaços a mais e pontuação solta no fim ("baobab -", "sausage.").
+  return first
+    .replace(/\s+/g, " ")
+    .replace(/[\s.\-–]+$/, "")
+    .trim();
 }
 
 interface Card {
@@ -45,14 +62,25 @@ interface Card {
   sourceUrl: string;
 }
 
-export function toCards(entries: SourceEntry[]): Card[] {
+export function toCards(
+  entries: SourceEntry[],
+  locale: MeaningLocale = "en",
+  ptSuggestions: PtSuggestions = {},
+): Card[] {
   const cards: Card[] = [];
   const seenGloss = new Set<string>();
   for (const e of entries) {
     const sense = e.senses.find((s) => PLAYABLE_POS.has(s.partOfSpeech));
     if (!sense) continue;
-    const gloss = shortGloss(sense.glossEn);
-    if (gloss.length < 2 || gloss.length > 28) continue;
+    const glossEn = shortGloss(sense.glossEn);
+    if (glossEn.length < 2 || glossEn.length > 28) continue;
+    let gloss = glossEn;
+    if (locale === "pt") {
+      const pt = ptSuggestions[`${sense.partOfSpeech}|${glossEn}`];
+      // Sem tradução ou duvidosa → fica fora do quiz em português.
+      if (!pt || pt.includes("confirmar")) continue;
+      gloss = pt;
+    }
     // Evita duas palavras com o mesmo significado (tornaria a pergunta ambígua).
     const key = `${sense.partOfSpeech}:${gloss.toLowerCase()}`;
     if (seenGloss.has(key)) continue;
@@ -93,9 +121,11 @@ export function buildPreviewQuiz(
   entries: SourceEntry[],
   count = 10,
   seed = Date.now(),
+  opts: { locale?: MeaningLocale; ptSuggestions?: PtSuggestions } = {},
 ): PreviewQuestion[] {
   const rand = rng(seed);
-  const cards = toCards(entries);
+  const locale = opts.locale ?? "en";
+  const cards = toCards(entries, locale, opts.ptSuggestions);
   const picked = shuffle(cards, rand).slice(0, count);
 
   return picked.map((card, i) => {
@@ -109,16 +139,13 @@ export function buildPreviewQuiz(
     ).slice(0, 3);
     const all = shuffle([card, ...distractors], rand);
     const label = (c: Card) => (mode === "meaning" ? c.gloss : c.word);
-    const variant = card.variant ? ` · variante ${card.variant}` : "";
     return {
       id: `q${i + 1}-${card.word}`,
       mode,
-      prompt: mode === "meaning" ? "O que significa" : "Como se diz em Kriolu",
       target: mode === "meaning" ? card.word : card.gloss,
-      hint:
-        mode === "meaning"
-          ? `${card.pos}${variant} · significado em inglês (ainda por traduzir)`
-          : `${card.pos} · significado em inglês (ainda por traduzir)`,
+      pos: card.pos,
+      variant: card.variant,
+      meaningSource: locale === "pt" ? "pt-suggestion" : "en-source",
       options: all.map(label),
       correctIndex: all.indexOf(card),
       sourceUrl: card.sourceUrl,

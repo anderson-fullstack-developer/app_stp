@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import data from "@content/sources/wiktionary-kea/entries.json";
+import pt from "@content/sources/wiktionary-kea/pt-suggestions.json";
 import { buildPreviewQuiz, shortGloss, toCards, type SourceEntry } from "@/lib/preview-quiz";
 
 const entries = data.entries as SourceEntry[];
@@ -33,5 +34,24 @@ describe("quiz de pré-visualização", () => {
 
   it("a mesma semente dá o mesmo quiz", () => {
     expect(buildPreviewQuiz(entries, 10, 7)).toEqual(buildPreviewQuiz(entries, 10, 7));
+  });
+
+  it("em português usa as sugestões e deixa de fora as duvidosas", () => {
+    const quiz = buildPreviewQuiz(entries, 10, 3, { locale: "pt", ptSuggestions: pt.translations });
+    expect(quiz).toHaveLength(10);
+    const ptValues = new Set(Object.values(pt.translations as Record<string, string>));
+    for (const q of quiz) {
+      expect(q.meaningSource).toBe("pt-suggestion");
+      const meanings = q.mode === "meaning" ? q.options : [q.target];
+      for (const m of meanings) {
+        expect(ptValues.has(m)).toBe(true);
+        expect(m).not.toContain("confirmar");
+      }
+    }
+  });
+
+  it("em inglês mostra o significado original da fonte", () => {
+    const quiz = buildPreviewQuiz(entries, 10, 3, { locale: "en" });
+    expect(quiz.every((q) => q.meaningSource === "en-source")).toBe(true);
   });
 });

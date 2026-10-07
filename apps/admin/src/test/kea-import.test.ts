@@ -36,4 +36,12 @@ describe("importação Kabuverdianu (Wiktionary)", () => {
       KEA_WIKTIONARY_COUNT,
     );
   });
+
+  it("mostra a sugestão automática em português nas notas, sem a pôr na tradução oficial", () => {
+    const withSuggestion = drafts.filter((d) =>
+      d.notes.includes("Sugestão PT (automática, por rever)"),
+    );
+    expect(withSuggestion.length).toBeGreaterThan(500);
+    expect(withSuggestion.every((d) => d.translation === "")).toBe(true);
+  });
 });
