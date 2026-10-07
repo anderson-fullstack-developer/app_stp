@@ -121,6 +121,7 @@ Cada decisão fica registada com o motivo. Alterar uma decisão = novo ADR, não
 | ADR-11 | **Servidor é a fonte de verdade** para XP, moedas, streak, níveis, recompensas, vidas, respostas, tempo e classificação. | Aceite (especificação) | Anti-batota e consistência. | O cliente envia **intenções** (`lessonAttemptId`, `selectedOptionId`); nunca valores. |
 | ADR-13 | **Plataforma multilíngue e multipaís** (Adendo B): `Country → Language → Variant`; começa com São Tomé e Príncipe e Cabo Verde. | Aceite (2026-10-07) | Objetivo do produto é cobrir várias línguas e países. | Onboarding agrupa por país; conteúdo, rankings e cursos sempre filtrados por língua; nome da app tem de servir vários países (D-10); linguistas por língua. |
 | ADR-14 | **Kriolu (Cabo Verde) disponível em BETA** antes da revisão por falantes nativos: curso por temas gerado a partir dos rascunhos do Wiktionary, significados em português (sugestão automática) ou inglês (fonte). | Aceite (2026-10-07) — **decisão do dono do produto**, exceção à regra "só APPROVED chega à app" | Ter Cabo Verde utilizável já e recolher feedback. | Selo "Beta" e aviso "conteúdo em revisão" sempre visíveis; botão "Reportar erro"; palavras duvidosas fora do quiz. **Recomendação:** rever pelo menos as lições mais usadas com falantes nativos antes do lançamento na Google Play; quando houver conteúdo aprovado, substitui o Beta. |
+| ADR-15 | **Design system mobile com estilos nativos (StyleSheet) e tokens**, em vez de NativeWind. | Aceite (2026-10-07) | O NativeWind está acoplado a versões específicas de Tailwind/Reanimated; com o SDK 57 (RN 0.86, Reanimated 4) o risco de incompatibilidade é alto. | Tokens em `apps/mobile/src/design/tokens.ts` com as mesmas cores da web (OKLCH → hex); componentes em `src/design/` (texto, botões, cartões, gradientes, progresso, estados com o Neto, vibração); sombras com `boxShadow`. Ecrãs só usam o que sai de `@/design`. |
 | ADR-12 | **Contratos partilhados com Zod** em `packages/contracts` (DTOs REST + eventos Socket.IO), usados pela API, mobile e admin. | Proposto | Uma definição → validação no servidor + tipos no cliente; elimina divergências. | NestJS valida com pipe Zod (ou class-validator gerado); OpenAPI gerado a partir dos schemas. |
 
 ---
@@ -341,7 +342,7 @@ Dimensão do esforço: **S** (≤2 dias) · **M** (≤1 semana) · **L** (1–3 
 
 ### FASE 3 — App mobile MVP
 
-**Passo 3.1 — Design system mobile** · M
+**Passo 3.1 — Design system mobile** · M · ✅ 2026-10-07 (ADR-15)
 - Tokens do Lovable → NativeWind; componentes base (botões, cartões, barras de progresso, estados loading/erro/vazio/offline), animações e haptics.
 
 **Passo 3.2 — Onboarding + navegação** · M

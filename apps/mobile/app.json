@@ -1,20 +1,17 @@
 {
   "expo": {
-    "name": "Fala Ilha",
-    "slug": "mobile",
+    "name": "Fala Neto",
+    "slug": "fala-neto",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "falailha",
+    "scheme": "falaneto",
     "userInterfaceStyle": "light",
-    "ios": {
-      "icon": "./assets/expo.icon"
-    },
+    "ios": {},
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#F8C63F",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
@@ -28,11 +25,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0E7C5A",
+          "backgroundColor": "#F8C63F",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 200
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,
