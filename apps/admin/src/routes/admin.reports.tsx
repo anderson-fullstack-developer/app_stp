@@ -11,10 +11,10 @@ import {
   PageHeader,
   Select,
   StatusBadge,
-  fmtDate,
   type Column,
 } from "@/admin/ui";
 import { adminReportService } from "@/services/admin";
+import { fmtDate } from "@/admin/format";
 
 export const Route = createFileRoute("/admin/reports")({
   head: () => ({

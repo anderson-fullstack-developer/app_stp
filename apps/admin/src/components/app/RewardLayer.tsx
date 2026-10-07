@@ -17,9 +17,11 @@ export function RewardLayer() {
   useEffect(() => {
     if (coinIds) sound.play("coins");
   }, [coinIds]);
+  const bigId = big?.id;
+  const bigKind = big?.kind;
   useEffect(() => {
-    if (big) sound.play(big.kind === "levelUp" ? "levelUp" : "streak");
-  }, [big?.id]);
+    if (bigKind) sound.play(bigKind === "levelUp" ? "levelUp" : "streak");
+  }, [bigId, bigKind]);
   useEffect(() => {
     const timers = toasts.map((t) => setTimeout(() => game.dismissEvent(t.id), 1800));
     return () => timers.forEach(clearTimeout);

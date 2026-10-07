@@ -14,7 +14,7 @@ export const Route = createFileRoute("/achievements")({
       { property: "og:description", content: "Desbloqueia medalhas ao aprender." },
     ],
   }),
-  component: () => {
+  component: function AchievementsPage() {
     const { data } = useAchievements();
     const n = data?.filter((a) => a.unlocked).length ?? 0;
     return (

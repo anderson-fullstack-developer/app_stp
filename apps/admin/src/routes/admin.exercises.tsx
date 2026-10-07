@@ -18,11 +18,11 @@ import {
   Select,
   StatusBadge,
   TextInput,
-  fmtDate,
   type Column,
 } from "@/admin/ui";
 import { cn } from "@/lib/utils";
 import { adminExerciseService } from "@/services/admin";
+import { fmtDate } from "@/admin/format";
 
 export const Route = createFileRoute("/admin/exercises")({
   head: () => ({

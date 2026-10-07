@@ -66,4 +66,3 @@ export const PrimaryButton = (p: Omit<Props, "variant">) => <AppButton variant="
 export const SecondaryButton = (p: Omit<Props, "variant">) => (
   <AppButton variant="secondary" {...p} />
 );
-export { appButton };

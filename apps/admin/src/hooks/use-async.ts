@@ -25,6 +25,8 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[] = []) {
 
   useEffect(() => {
     void run();
+    // `deps` vem de quem chama (padrão de hook genérico); a lista é intencionalmente dinâmica.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run, online, ...deps]);
 
   return { state, retry: run };

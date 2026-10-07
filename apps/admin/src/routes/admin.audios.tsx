@@ -12,10 +12,10 @@ import {
   PageHeader,
   Select,
   StatusBadge,
-  fmtDate,
   type Column,
 } from "@/admin/ui";
 import { adminAudioService } from "@/services/admin";
+import { fmtDate } from "@/admin/format";
 
 export const Route = createFileRoute("/admin/audios")({
   head: () => ({

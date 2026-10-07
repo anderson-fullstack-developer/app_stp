@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ROLE_LABEL } from "@/admin/permissions";
 import { useAdminDB } from "@/services/admin";
 import type { AuditEntry } from "@/admin/types";
-import { DataTable, PageHeader, fmtDateTime, type Column } from "@/admin/ui";
+import { DataTable, PageHeader, type Column } from "@/admin/ui";
+import { fmtDateTime } from "@/admin/format";
 
 export const Route = createFileRoute("/admin/audit")({
   head: () => ({
