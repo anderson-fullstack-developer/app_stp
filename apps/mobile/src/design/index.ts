@@ -5,4 +5,4 @@ export { Neto, type NetoMood } from "./Neto";
 export { EmptyState, ErrorState, LoadingState, OfflineState } from "./States";
 export { Card, GradientCard, ProgressBar, StatPill } from "./Surfaces";
 export { AppText, type TextTone, type TextVariant } from "./Text";
-export { colors, fonts, gradients, radius, shadows, space } from "./tokens";
+export { colors, fonts, type GradientName, gradients, radius, shadows, space } from "./tokens";

@@ -30,7 +30,9 @@
           "imageWidth": 200
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "@clerk/expo",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
