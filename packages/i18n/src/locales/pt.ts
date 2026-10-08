@@ -66,6 +66,11 @@ export const pt = {
     submit: "Entrar",
     submitting: "A entrar…",
     createAccount: "Criar conta",
+    googleError: "Não foi possível entrar com o Google. Tenta outra vez.",
+  },
+  learn: {
+    hello: "Olá,",
+    soonInApp: "Este ecrã chega em breve à app.",
   },
   settings: {
     title: "Definições",

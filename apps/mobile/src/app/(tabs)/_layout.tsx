@@ -1,35 +1,62 @@
-import { Tabs } from 'expo-router/js-tabs';
-import { Text } from 'react-native';
+import { useAuth } from "@clerk/expo";
+import { Redirect, Tabs } from "expo-router";
+import { BookOpen, type LucideIcon, Swords, Trophy, User, Users } from "lucide-react-native";
+import { StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { colors, fonts, haptics } from "@/design";
 
-import { colors } from '@/theme/tokens';
+function TabIcon({ Icon, focused }: { Icon: LucideIcon; focused: boolean }) {
+  return (
+    <View style={[styles.pill, focused && styles.pillActive]}>
+      <Icon size={22} color={focused ? colors.primary : colors.mutedForeground} strokeWidth={2} />
+    </View>
+  );
+}
 
-const icon = (emoji: string) =>
-  function TabIcon({ focused }: { focused: boolean }) {
-    return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.45 }}>{emoji}</Text>;
-  };
-
+/** Abas principais (iguais à barra de baixo da web). Só com sessão iniciada. */
 export default function TabsLayout() {
+  const { t } = useTranslation();
+  const { isLoaded, isSignedIn } = useAuth();
+  if (isLoaded && !isSignedIn) return <Redirect href="/welcome" />;
+
+  const tab = (Icon: LucideIcon, title: string) => ({
+    title,
+    tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon Icon={Icon} focused={focused} />,
+  });
+
   return (
     <Tabs
+      screenListeners={{ tabPress: () => haptics.select() }}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.muted,
+        tabBarInactiveTintColor: colors.mutedForeground,
+        tabBarLabelStyle: { fontFamily: fonts.bodySemibold, fontSize: 11, marginTop: 2 },
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
-          borderTopWidth: 2,
-          height: 68,
-          paddingTop: 6,
-          paddingBottom: 8,
+          height: 72,
+          paddingTop: 8,
         },
-        tabBarLabelStyle: { fontWeight: '800', fontSize: 10, letterSpacing: 0.4 },
-      }}>
-      <Tabs.Screen name="aprender" options={{ title: 'APRENDER', tabBarIcon: icon('📖') }} />
-      <Tabs.Screen name="desafios" options={{ title: 'DESAFIOS', tabBarIcon: icon('⚔️') }} />
-      <Tabs.Screen name="amigos" options={{ title: 'AMIGOS', tabBarIcon: icon('🤝') }} />
-      <Tabs.Screen name="ranking" options={{ title: 'RANKING', tabBarIcon: icon('🏆') }} />
-      <Tabs.Screen name="perfil" options={{ title: 'PERFIL', tabBarIcon: icon('👤') }} />
+        sceneStyle: { backgroundColor: colors.background },
+      }}
+    >
+      <Tabs.Screen name="learn" options={tab(BookOpen, t("nav.learn"))} />
+      <Tabs.Screen name="play" options={tab(Swords, t("nav.play"))} />
+      <Tabs.Screen name="friends" options={tab(Users, t("nav.friends"))} />
+      <Tabs.Screen name="ranking" options={tab(Trophy, t("nav.ranking"))} />
+      <Tabs.Screen name="profile" options={tab(User, t("nav.profile"))} />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  pill: {
+    width: 56,
+    height: 30,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pillActive: { backgroundColor: colors.primarySoft },
+});

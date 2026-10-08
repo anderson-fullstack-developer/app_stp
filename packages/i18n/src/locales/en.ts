@@ -64,6 +64,11 @@ export const en: Messages = {
     submit: "Sign in",
     submitting: "Signing in…",
     createAccount: "Create account",
+    googleError: "Couldn't sign in with Google. Please try again.",
+  },
+  learn: {
+    hello: "Hi,",
+    soonInApp: "This screen is coming to the app soon.",
   },
   settings: {
     title: "Settings",

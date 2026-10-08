@@ -1,4 +1,6 @@
 import "@/i18n";
+import { ClerkProvider } from "@clerk/expo";
+import { tokenCache } from "@clerk/expo/token-cache";
 import {
   BricolageGrotesque_700Bold,
   BricolageGrotesque_800ExtraBold,
@@ -16,6 +18,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
+import { CLERK_PUBLISHABLE_KEY } from "@/config";
 import { colors } from "@/design";
 
 // O ecrã de abertura fica até as fontes estarem prontas (sem "salto" de tipo de letra).
@@ -40,26 +43,28 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <View style={styles.outer}>
-        {/* No navegador, limita a largura para simular um telemóvel. */}
-        <View style={styles.frame}>
-          <StatusBar style="dark" />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: colors.background },
-            }}
-          >
-            <Stack.Screen name="index" />
-            <Stack.Screen name="design" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="lesson/[id]" options={{ presentation: "fullScreenModal" }} />
-            <Stack.Screen name="arena/survival" options={{ presentation: "fullScreenModal" }} />
-          </Stack>
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
+      <QueryClientProvider client={queryClient}>
+        <View style={styles.outer}>
+          {/* No navegador, limita a largura para simular um telemóvel. */}
+          <View style={styles.frame}>
+            <StatusBar style="dark" />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.background },
+              }}
+            >
+              <Stack.Screen name="index" />
+              <Stack.Screen name="welcome" />
+              <Stack.Screen name="sign-in" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="design" />
+            </Stack>
+          </View>
         </View>
-      </View>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </ClerkProvider>
   );
 }
 
