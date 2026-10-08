@@ -9,6 +9,8 @@ import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { useGame } from "@/hooks/use-game";
 import { CheckCircle2 } from "lucide-react";
 import { APP_NAME } from "@stp/config";
+import { ServerDailyOverview } from "@/components/app/ServerDaily";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 
 export const Route = createFileRoute("/daily")({
   head: () => ({
@@ -22,7 +24,13 @@ export const Route = createFileRoute("/daily")({
   component: Daily,
 });
 
+/** Com sessão, o desafio vem do servidor; sem sessão, a demonstração. */
 function Daily() {
+  const server = useServerLessonsEnabled();
+  return server ? <ServerDailyOverview /> : <DemoDaily />;
+}
+
+function DemoDaily() {
   const { data } = useDaily();
   const { data: rank } = useRanking("global");
   const g = useGame();

@@ -54,6 +54,7 @@ import { Route as AdminForbiddenRouteImport } from './routes/admin_.forbidden'
 import { Route as AdminLoginRouteImport } from './routes/admin_.login'
 import { Route as AdminSessionExpiredRouteImport } from './routes/admin_.session-expired'
 import { Route as AdminUnauthorizedRouteImport } from './routes/admin_.unauthorized'
+import { Route as DailyPlayRouteImport } from './routes/daily_.play'
 import { Route as LessonLessonIdRouteImport } from './routes/lesson.$lessonId'
 import { Route as PlayDuelRouteImport } from './routes/play.duel'
 import { Route as PlayJoinRouteImport } from './routes/play.join'
@@ -295,6 +296,11 @@ const AdminUnauthorizedRoute = AdminUnauthorizedRouteImport.update({
   path: '/admin/unauthorized',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DailyPlayRoute = DailyPlayRouteImport.update({
+  id: '/daily_/play',
+  path: '/daily/play',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LessonLessonIdRoute = LessonLessonIdRouteImport.update({
   id: '/lesson/$lessonId',
   path: '/lesson/$lessonId',
@@ -416,6 +422,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/admin/session-expired': typeof AdminSessionExpiredRoute
   '/admin/unauthorized': typeof AdminUnauthorizedRoute
+  '/daily/play': typeof DailyPlayRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/play/duel': typeof PlayDuelRoute
   '/play/join': typeof PlayJoinRoute
@@ -477,6 +484,7 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/admin/session-expired': typeof AdminSessionExpiredRoute
   '/admin/unauthorized': typeof AdminUnauthorizedRoute
+  '/daily/play': typeof DailyPlayRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/play/duel': typeof PlayDuelRoute
   '/play/join': typeof PlayJoinRoute
@@ -540,6 +548,7 @@ export interface FileRoutesById {
   '/admin_/login': typeof AdminLoginRoute
   '/admin_/session-expired': typeof AdminSessionExpiredRoute
   '/admin_/unauthorized': typeof AdminUnauthorizedRoute
+  '/daily_/play': typeof DailyPlayRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/play/duel': typeof PlayDuelRoute
   '/play/join': typeof PlayJoinRoute
@@ -604,6 +613,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/session-expired'
     | '/admin/unauthorized'
+    | '/daily/play'
     | '/lesson/$lessonId'
     | '/play/duel'
     | '/play/join'
@@ -665,6 +675,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/session-expired'
     | '/admin/unauthorized'
+    | '/daily/play'
     | '/lesson/$lessonId'
     | '/play/duel'
     | '/play/join'
@@ -727,6 +738,7 @@ export interface FileRouteTypes {
     | '/admin_/login'
     | '/admin_/session-expired'
     | '/admin_/unauthorized'
+    | '/daily_/play'
     | '/lesson/$lessonId'
     | '/play/duel'
     | '/play/join'
@@ -771,6 +783,7 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminSessionExpiredRoute: typeof AdminSessionExpiredRoute
   AdminUnauthorizedRoute: typeof AdminUnauthorizedRoute
+  DailyPlayRoute: typeof DailyPlayRoute
   LessonLessonIdRoute: typeof LessonLessonIdRoute
   PlayDuelRoute: typeof PlayDuelRoute
   PlayJoinRoute: typeof PlayJoinRoute
@@ -1103,6 +1116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUnauthorizedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/daily_/play': {
+      id: '/daily_/play'
+      path: '/daily/play'
+      fullPath: '/daily/play'
+      preLoaderRoute: typeof DailyPlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lesson/$lessonId': {
       id: '/lesson/$lessonId'
       path: '/lesson/$lessonId'
@@ -1289,6 +1309,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminSessionExpiredRoute: AdminSessionExpiredRoute,
   AdminUnauthorizedRoute: AdminUnauthorizedRoute,
+  DailyPlayRoute: DailyPlayRoute,
   LessonLessonIdRoute: LessonLessonIdRoute,
   PlayDuelRoute: PlayDuelRoute,
   PlayJoinRoute: PlayJoinRoute,
