@@ -17,7 +17,7 @@ type Query = Record<string, string | undefined>;
 
 async function request<T>(
   getToken: () => Promise<string | null>,
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "PATCH" | "DELETE",
   path: string,
   body?: unknown,
   query?: Query,
@@ -37,7 +37,7 @@ async function request<T>(
     },
     body: body === undefined ? null : JSON.stringify(body),
   });
-  const data = (await res.json().catch(() => undefined)) as
+  const data = (res.status === 204 ? undefined : await res.json().catch(() => undefined)) as
     (T & { code?: string; message?: string }) | undefined;
   if (!res.ok) {
     throw new ApiError(
@@ -56,6 +56,8 @@ export function useApi() {
     () => ({
       get: <T>(path: string, query?: Query) => request<T>(getToken, "GET", path, undefined, query),
       post: <T>(path: string, body?: unknown) => request<T>(getToken, "POST", path, body ?? {}),
+      patch: <T>(path: string, body: unknown) => request<T>(getToken, "PATCH", path, body),
+      del: (path: string) => request<void>(getToken, "DELETE", path),
     }),
     [getToken],
   );
