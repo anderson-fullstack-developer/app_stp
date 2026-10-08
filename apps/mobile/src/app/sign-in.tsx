@@ -1,57 +1,17 @@
-import { useAuth, useSSO } from "@clerk/expo";
-import * as AuthSession from "expo-auth-session";
+import { useAuth } from "@clerk/expo";
 import { Redirect, router } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
-import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { AppButton, AppText, Card, colors, haptics, Neto, space } from "@/design";
+import { AppButton, AppText, Card, colors, Neto, space } from "@/design";
+import { useGoogleSignIn } from "@/features/auth/useGoogleSignIn";
 
-// Fecha o browser do login quando o Google devolve o controlo à app.
-WebBrowser.maybeCompleteAuthSession();
-
-/**
- * Entrar ou criar conta com Google, pelo browser do telemóvel (funciona no Expo Go).
- * A conta é a mesma da app web: o progresso fica no servidor.
- */
+/** Entrar com Google (a conta é a mesma da app web: o progresso fica no servidor). */
 export default function SignIn() {
   const { t } = useTranslation();
   const { isSignedIn } = useAuth();
-  const { startSSOFlow } = useSSO();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Abre o browser mais depressa no Android.
-  useEffect(() => {
-    void WebBrowser.warmUpAsync().catch(() => {});
-    return () => {
-      void WebBrowser.coolDownAsync().catch(() => {});
-    };
-  }, []);
-
+  const google = useGoogleSignIn();
   if (isSignedIn) return <Redirect href="/learn" />;
-
-  const google = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const { createdSessionId, setActive } = await startSSOFlow({
-        strategy: "oauth_google",
-        redirectUrl: AuthSession.makeRedirectUri({ path: "sign-in" }),
-      });
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
-        haptics.success();
-        router.replace("/learn");
-      }
-    } catch {
-      setError(t("login.googleError"));
-      haptics.error();
-    } finally {
-      setBusy(false);
-    }
-  };
 
   return (
     <SafeAreaView style={styles.page}>
@@ -65,12 +25,12 @@ export default function SignIn() {
         </AppText>
       </View>
       <Card style={styles.card}>
-        <AppButton variant="secondary" loading={busy} onPress={() => void google()}>
+        <AppButton variant="secondary" loading={google.busy} onPress={() => void google.signIn()}>
           {t("register.google")}
         </AppButton>
-        {error ? (
+        {google.error ? (
           <AppText variant="small" tone="danger" center style={{ marginTop: space.md }}>
-            {error}
+            {google.error}
           </AppText>
         ) : null}
       </Card>
