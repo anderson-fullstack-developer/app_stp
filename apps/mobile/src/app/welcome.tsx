@@ -36,7 +36,7 @@ export default function Welcome() {
           {t("onboarding.welcomeText")}
         </AppText>
         <View style={styles.actions}>
-          <AppButton onPress={() => router.push("/sign-in")}>{t("onboarding.start")}</AppButton>
+          <AppButton onPress={() => router.push("/onboarding")}>{t("onboarding.start")}</AppButton>
           <AppButton variant="ghost" size="md" onPress={() => router.push("/sign-in")}>
             {t("onboarding.haveAccount")}
           </AppButton>
