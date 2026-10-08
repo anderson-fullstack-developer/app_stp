@@ -2,7 +2,8 @@ import { useUser } from "@clerk/expo";
 import { useQueryClient } from "@tanstack/react-query";
 import { Bell, CheckCircle2, Coins, Flame, Star, Zap } from "lucide-react-native";
 import { useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { router } from "expo-router";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import {
@@ -157,46 +158,52 @@ export default function Learn() {
             />
 
             {daily.data ? (
-              dailyDone ? (
-                <Card style={[styles.daily, styles.dailyDone]}>
-                  <View style={styles.dailyIcon}>
-                    <CheckCircle2 size={24} color={colors.success} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <AppText variant="bodyStrong">{t("daily.title")}</AppText>
-                    <AppText variant="caption" tone="muted">
-                      {t("daily.score", {
-                        correct: daily.data.me!.correct,
-                        total: daily.data.me!.total,
-                      })}
-                    </AppText>
-                  </View>
-                </Card>
-              ) : (
-                <GradientCard gradient="sun" style={styles.daily}>
-                  <View style={styles.dailyIcon}>
-                    <Zap size={24} color={colors.accentForeground} fill={colors.accentForeground} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <AppText variant="bodyStrong" style={{ color: colors.accentForeground }}>
-                      {t("daily.title")}
-                    </AppText>
-                    <AppText
-                      variant="caption"
-                      style={{ color: colors.accentForeground, opacity: 0.8 }}
-                    >
-                      {t("daily.questions", { count: daily.data.questions })} · +
-                      {daily.data.xpReward} XP ·{" "}
-                      {t("kriolu.coinsGained", { count: daily.data.coinReward })}
-                    </AppText>
-                  </View>
-                  <View style={styles.dailyChip}>
-                    <AppText variant="caption" style={{ color: colors.accentForeground }}>
-                      {t("daily.completeToday")}
-                    </AppText>
-                  </View>
-                </GradientCard>
-              )
+              <Pressable accessibilityRole="button" onPress={() => router.push("/daily")}>
+                {dailyDone ? (
+                  <Card style={[styles.daily, styles.dailyDone]}>
+                    <View style={styles.dailyIcon}>
+                      <CheckCircle2 size={24} color={colors.success} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <AppText variant="bodyStrong">{t("daily.title")}</AppText>
+                      <AppText variant="caption" tone="muted">
+                        {t("daily.score", {
+                          correct: daily.data.me!.correct,
+                          total: daily.data.me!.total,
+                        })}
+                      </AppText>
+                    </View>
+                  </Card>
+                ) : (
+                  <GradientCard gradient="sun" style={styles.daily}>
+                    <View style={styles.dailyIcon}>
+                      <Zap
+                        size={24}
+                        color={colors.accentForeground}
+                        fill={colors.accentForeground}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <AppText variant="bodyStrong" style={{ color: colors.accentForeground }}>
+                        {t("daily.title")}
+                      </AppText>
+                      <AppText
+                        variant="caption"
+                        style={{ color: colors.accentForeground, opacity: 0.8 }}
+                      >
+                        {t("daily.questions", { count: daily.data.questions })} · +
+                        {daily.data.xpReward} XP ·{" "}
+                        {t("kriolu.coinsGained", { count: daily.data.coinReward })}
+                      </AppText>
+                    </View>
+                    <View style={styles.dailyChip}>
+                      <AppText variant="caption" style={{ color: colors.accentForeground }}>
+                        {t("daily.completeToday")}
+                      </AppText>
+                    </View>
+                  </GradientCard>
+                )}
+              </Pressable>
             ) : null}
 
             <LessonPath course={course.data} states={states} />
