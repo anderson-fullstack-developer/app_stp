@@ -1,12 +1,24 @@
 import { useClerk, useUser } from "@clerk/expo";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { ArrowLeft, LogOut } from "lucide-react-native";
+import { ArrowLeft, Check, ChevronRight, LogOut, Trash2 } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
+import {
+  Alert,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { LOCALES } from "@stp/i18n";
+import type { MeResponse } from "@stp/types/api";
+import { useApi } from "@/api/client";
+import { keys, useLanguages, useMe } from "@/api/queries";
 import {
   AppButton,
   AppText,
@@ -29,23 +41,90 @@ function Row({ label, children }: { label: string; children?: React.ReactNode })
   );
 }
 
-/** Definições (essencial da web): conta, idioma, vibração e terminar sessão. */
+/** Pergunta de confirmação (Alert no telemóvel; confirm() na pré-visualização web). */
+function confirmDanger(title: string, text: string, ok: string, cancel: string) {
+  if (Platform.OS === "web") return Promise.resolve(window.confirm(`${title}\n\n${text}`));
+  return new Promise<boolean>((resolve) =>
+    Alert.alert(title, text, [
+      { text: cancel, style: "cancel", onPress: () => resolve(false) },
+      { text: ok, style: "destructive", onPress: () => resolve(true) },
+    ]),
+  );
+}
+
+/** Definições: conta, idioma, língua a aprender, vibração, terminar sessão e eliminar conta. */
 export default function Settings() {
   const { t, i18n } = useTranslation();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const api = useApi();
   const qc = useQueryClient();
+  const me = useMe();
+  const languages = useLanguages();
   const [vibration, setVibration] = useState(true);
-  const [leaving, setLeaving] = useState(false);
+  const [busy, setBusy] = useState<"logout" | "delete" | "language" | null>(null);
+  const [picker, setPicker] = useState(false);
+
+  const available = (languages.data ?? []).flatMap((c) => c.languages).filter((l) => l.available);
+  const learning = available.find((l) => l.id === me.data?.learningLanguageId);
+
+  const save = async (patch: Partial<Pick<MeResponse, "uiLocale" | "learningLanguageId">>) => {
+    const updated = await api.patch<MeResponse>("/me", patch);
+    qc.setQueryData(keys.me, updated);
+    return updated;
+  };
+
+  const changeUiLocale = (id: string) => {
+    haptics.select();
+    void i18n.changeLanguage(id);
+    void save({ uiLocale: id }).catch(() => {});
+  };
+
+  const chooseLearning = async (id: string) => {
+    setPicker(false);
+    if (id === me.data?.learningLanguageId) return;
+    setBusy("language");
+    try {
+      await save({ learningLanguageId: id });
+      haptics.success();
+      void qc.invalidateQueries(); // curso, progresso e desafio da nova língua
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const leave = async () => {
+    await signOut();
+    qc.clear();
+    router.replace("/welcome");
+  };
 
   const logout = async () => {
-    setLeaving(true);
+    setBusy("logout");
     try {
-      await signOut();
-      qc.clear();
+      await leave();
     } finally {
-      setLeaving(false);
-      router.replace("/welcome");
+      setBusy(null);
+    }
+  };
+
+  const deleteAccount = async () => {
+    const ok = await confirmDanger(
+      t("settings.deleteTitle"),
+      t("settings.deleteText"),
+      t("settings.deleteConfirm"),
+      t("settings.cancel"),
+    );
+    if (!ok) return;
+    setBusy("delete");
+    try {
+      // O servidor apaga no Clerk e anonimiza os dados; depois só falta sair.
+      await api.del("/me");
+      haptics.success();
+      await leave();
+    } catch {
+      haptics.error();
+      setBusy(null);
     }
   };
 
@@ -83,10 +162,7 @@ export default function Settings() {
                     key={l.id}
                     accessibilityRole="radio"
                     accessibilityState={{ selected: on }}
-                    onPress={() => {
-                      haptics.select();
-                      void i18n.changeLanguage(l.id);
-                    }}
+                    onPress={() => changeUiLocale(l.id)}
                     style={[styles.segItem, on && styles.segOn]}
                   >
                     <AppText variant="caption" tone={on ? "primary" : "muted"}>
@@ -97,6 +173,15 @@ export default function Settings() {
               })}
             </View>
           </Row>
+          <View style={styles.sep} />
+          <Pressable accessibilityRole="button" onPress={() => setPicker(true)}>
+            <Row label={t("settings.learning")}>
+              <AppText variant="small" tone="muted" numberOfLines={1} style={{ maxWidth: 150 }}>
+                {busy === "language" ? "…" : (learning?.name ?? "")}
+              </AppText>
+              <ChevronRight size={18} color={colors.mutedForeground} />
+            </Row>
+          </Pressable>
         </Card>
 
         <AppText variant="overline" tone="muted" style={{ marginTop: space.lg }}>
@@ -120,15 +205,62 @@ export default function Settings() {
         </View>
         <AppButton
           variant="secondary"
-          loading={leaving}
+          loading={busy === "logout"}
           icon={<LogOut size={18} color={colors.destructive} />}
           onPress={() => void logout()}
         >
           <AppText variant="bodyStrong" tone="danger">
-            {leaving ? t("settings.signingOut") : t("settings.signOut")}
+            {busy === "logout" ? t("settings.signingOut") : t("settings.signOut")}
+          </AppText>
+        </AppButton>
+        <AppButton
+          variant="ghost"
+          size="md"
+          loading={busy === "delete"}
+          icon={<Trash2 size={16} color={colors.mutedForeground} />}
+          onPress={() => void deleteAccount()}
+        >
+          <AppText variant="small" tone="muted">
+            {busy === "delete" ? t("settings.deleting") : t("settings.deleteAccount")}
           </AppText>
         </AppButton>
       </ScrollView>
+
+      <Modal
+        visible={picker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPicker(false)}
+      >
+        <Pressable style={styles.backdrop} onPress={() => setPicker(false)} />
+        <View style={styles.sheet}>
+          <AppText variant="h3">{t("settings.chooseLanguage")}</AppText>
+          {available.map((l) => {
+            const on = l.id === me.data?.learningLanguageId;
+            return (
+              <Pressable
+                key={l.id}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on }}
+                onPress={() => void chooseLearning(l.id)}
+                style={[styles.option, on && styles.optionOn]}
+              >
+                <AppText variant="bodyStrong" style={{ flex: 1 }}>
+                  {l.name}
+                </AppText>
+                {l.beta ? (
+                  <View style={styles.beta}>
+                    <AppText variant="caption" style={{ fontSize: 11 }}>
+                      {t("kriolu.beta")}
+                    </AppText>
+                  </View>
+                ) : null}
+                {on ? <Check size={20} color={colors.primary} /> : null}
+              </Pressable>
+            );
+          })}
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -156,4 +288,30 @@ const styles = StyleSheet.create({
   segItem: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
   segOn: { backgroundColor: colors.surface },
   neto: { alignItems: "center", marginTop: space.xxl, marginBottom: space.md },
+  backdrop: { flex: 1, backgroundColor: "rgba(16,31,19,0.35)" },
+  sheet: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: space.xl,
+    paddingBottom: space.xxxl,
+    gap: space.md,
+  },
+  option: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space.md,
+    padding: space.lg,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  optionOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  beta: {
+    backgroundColor: colors.accent,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
 });
