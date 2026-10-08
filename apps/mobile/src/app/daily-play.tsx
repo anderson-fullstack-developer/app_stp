@@ -20,6 +20,7 @@ import {
   space,
 } from "@/design";
 import { FeedbackSheet } from "@/features/lesson/FeedbackSheet";
+import { CelebrationModal, celebrationsFor } from "@/features/neto/CelebrationModal";
 import { QuizOption } from "@/features/lesson/QuizOption";
 
 interface DailyStarted {
@@ -174,6 +175,7 @@ function DailyRun({ data, lang }: { data: DailyStarted; lang: string }) {
               {t("common.continue")}
             </AppButton>
           </View>
+          {!result.flagged ? <CelebrationModal items={celebrationsFor(result)} /> : null}
         </SafeAreaView>
       </GradientCard>
     );

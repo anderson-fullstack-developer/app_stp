@@ -19,6 +19,7 @@ import { LOCALES } from "@stp/i18n";
 import type { MeResponse } from "@stp/types/api";
 import { useApi } from "@/api/client";
 import { keys, useLanguages, useMe } from "@/api/queries";
+import { NetoIntro } from "@/features/neto/NetoIntro";
 import {
   AppButton,
   AppText,
@@ -67,6 +68,7 @@ export default function Settings() {
   const [soundOn, setSoundOn] = useState(isSoundEnabled);
   const [busy, setBusy] = useState<"logout" | "delete" | "language" | null>(null);
   const [picker, setPicker] = useState(false);
+  const [netoOpen, setNetoOpen] = useState(false);
 
   const available = (languages.data ?? []).flatMap((c) => c.languages).filter((l) => l.available);
   const learning = available.find((l) => l.id === me.data?.learningLanguageId);
@@ -214,9 +216,12 @@ export default function Settings() {
           </Row>
         </Card>
 
-        <View style={styles.neto}>
+        <Pressable accessibilityRole="button" onPress={() => setNetoOpen(true)} style={styles.neto}>
           <Neto mood="happy" size={88} />
-        </View>
+          <AppText variant="small" tone="primary" style={{ marginTop: space.sm }}>
+            {t("neto.aboutRow")}
+          </AppText>
+        </Pressable>
         <AppButton
           variant="secondary"
           loading={busy === "logout"}
@@ -275,6 +280,7 @@ export default function Settings() {
           })}
         </View>
       </Modal>
+      <NetoIntro open={netoOpen} onClose={() => setNetoOpen(false)} />
     </SafeAreaView>
   );
 }

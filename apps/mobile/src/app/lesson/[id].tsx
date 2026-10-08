@@ -20,6 +20,7 @@ import {
   space,
 } from "@/design";
 import { FeedbackSheet } from "@/features/lesson/FeedbackSheet";
+import { CelebrationModal, celebrationsFor } from "@/features/neto/CelebrationModal";
 import { QuizOption } from "@/features/lesson/QuizOption";
 
 const LETTERS = ["A", "B", "C", "D"];
@@ -209,6 +210,7 @@ function LessonRun({
               </AppText>
             </AppButton>
           </View>
+          {!result.flagged ? <CelebrationModal items={celebrationsFor(result)} /> : null}
         </SafeAreaView>
       </GradientCard>
     );
