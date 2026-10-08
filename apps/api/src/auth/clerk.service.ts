@@ -36,4 +36,15 @@ export class ClerkService {
     if (!this.client) throw new Error("Clerk não configurado");
     return fromApi(await this.client.users.getUser(clerkId));
   }
+
+  /** Apaga a conta no Clerk (pedido do próprio utilizador). Já apagada = sucesso. */
+  async deleteUser(clerkId: string): Promise<void> {
+    if (!this.client) throw new Error("Clerk não configurado");
+    try {
+      await this.client.users.deleteUser(clerkId);
+    } catch (e) {
+      const status = (e as { status?: number }).status;
+      if (status !== 404) throw e;
+    }
+  }
 }
