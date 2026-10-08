@@ -1,6 +1,13 @@
-import { Injectable, Logger } from "@nestjs/common";
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  UnprocessableEntityException,
+} from "@nestjs/common";
 import { randomInt } from "node:crypto";
 import { PrismaService } from "../database/prisma.service.js";
+import { isPubliclyListed } from "../languages/visibility.js";
+import { isValidTimeZone } from "../progress/rules/local-date.js";
 import { Prisma, type Role, type User } from "../generated/prisma/client.js";
 import {
   type ClerkUserInput,
@@ -8,6 +15,16 @@ import {
   parseOnboarding,
   usernameBase,
 } from "./clerk-user.mapper.js";
+
+/** Campos do perfil que o próprio utilizador pode mudar (validados no controller). */
+export interface ProfilePatch {
+  name?: string;
+  uiLocale?: "pt" | "en" | "fr";
+  learningLanguageId?: string;
+  countryCode?: string;
+  spokenLanguages?: string[];
+  timezone?: string;
+}
 
 /** Utilizador autenticado, anexado ao pedido pelo ClerkAuthGuard. */
 export interface AuthUser {
@@ -124,6 +141,64 @@ export class UsersService {
         roles: { select: { role: true, languageId: true } },
       },
     });
+  }
+
+  /**
+   * Atualiza o perfil (PATCH /me). Língua a aprender só se estiver disponível; fuso horário
+   * no máximo 1 vez por 24 h (docs/REGRAS_DE_NEGOCIO.md §6 — evita "ganhar" dias de streak).
+   */
+  async updateProfile(userId: string, patch: ProfilePatch, now = new Date()) {
+    const data: Prisma.UserUpdateInput = {};
+    if (patch.name !== undefined) data.name = patch.name;
+    if (patch.uiLocale !== undefined) data.uiLocale = patch.uiLocale;
+    if (patch.countryCode !== undefined) data.countryCode = patch.countryCode;
+    if (patch.spokenLanguages !== undefined) data.spokenLanguages = patch.spokenLanguages;
+    if (patch.learningLanguageId !== undefined) {
+      const lang = await this.prisma.language.findUnique({
+        where: { id: patch.learningLanguageId },
+        select: { id: true, status: true },
+      });
+      if (!lang || !isPubliclyListed(lang.status)) {
+        throw new UnprocessableEntityException({
+          code: "LANGUAGE_NOT_AVAILABLE",
+          message: "Esta língua ainda não está disponível.",
+        });
+      }
+      data.learningLanguage = { connect: { id: lang.id } };
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      if (patch.timezone !== undefined) {
+        if (!isValidTimeZone(patch.timezone)) {
+          throw new UnprocessableEntityException({
+            code: "INVALID_TIMEZONE",
+            message: "Fuso horário inválido.",
+          });
+        }
+        const current = await tx.user.findUniqueOrThrow({
+          where: { id: userId },
+          select: { timezone: true },
+        });
+        if (current.timezone !== patch.timezone) {
+          const stats = await tx.userStats.upsert({
+            where: { userId },
+            create: { userId },
+            update: {},
+          });
+          const last = stats.timezoneChangedAt?.getTime() ?? 0;
+          if (now.getTime() - last < 24 * 60 * 60 * 1000) {
+            throw new ConflictException({
+              code: "TIMEZONE_CHANGE_LIMIT",
+              message: "Só podes mudar o fuso horário uma vez por dia.",
+            });
+          }
+          data.timezone = patch.timezone;
+          await tx.userStats.update({ where: { userId }, data: { timezoneChangedAt: now } });
+        }
+      }
+      if (Object.keys(data).length) await tx.user.update({ where: { id: userId }, data });
+    });
+    return this.profile(userId);
   }
 
   /** Perfil devolvido em GET /me. */
