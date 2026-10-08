@@ -27,6 +27,7 @@ import {
 } from "@/design";
 import { LessonPath } from "@/features/learn/LessonPath";
 import { StreakCard } from "@/features/learn/StreakCard";
+import { NetoIntroOnce } from "@/features/neto/NetoIntro";
 
 /** Aprender (igual à web): cabeçalho, estatísticas, nível, sequência, desafio e caminho. */
 export default function Learn() {
@@ -71,9 +72,15 @@ export default function Learn() {
               {name}
             </AppText>
           </View>
-          <View style={styles.bell}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("settings.notifications")}
+            onPress={() => router.push("/notifications")}
+            style={styles.bell}
+          >
             <Bell size={20} color={colors.foreground} />
-          </View>
+            {p && !p.streak.activeToday ? <View style={styles.dot} /> : null}
+          </Pressable>
         </View>
         <View style={styles.pills}>
           <StatPill
@@ -210,6 +217,7 @@ export default function Learn() {
           </>
         )}
       </ScrollView>
+      <NetoIntroOnce />
     </SafeAreaView>
   );
 }
@@ -240,6 +248,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
+  },
+  dot: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.destructive,
   },
   pills: { flexDirection: "row", gap: space.sm, marginTop: space.md },
   content: { paddingHorizontal: space.lg, paddingBottom: 48, gap: space.md },

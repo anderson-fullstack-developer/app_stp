@@ -18,6 +18,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { CLERK_PUBLISHABLE_KEY } from "@/config";
 import { colors } from "@/design";
 
@@ -62,10 +63,12 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="lesson/[id]" options={{ presentation: "fullScreenModal" }} />
               <Stack.Screen name="settings" />
+              <Stack.Screen name="notifications" />
               <Stack.Screen name="daily" />
               <Stack.Screen name="daily-play" options={{ presentation: "fullScreenModal" }} />
               <Stack.Screen name="design" />
             </Stack>
+            <OfflineBanner />
           </View>
         </View>
       </QueryClientProvider>

@@ -7,6 +7,8 @@
     "@expo-google-fonts/bricolage-grotesque": "^0.4.1",
     "@expo-google-fonts/figtree": "^0.4.1",
     "@expo/ui": "~57.0.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/netinfo": "12.0.1",
     "@stp/config": "workspace:*",
     "@stp/i18n": "workspace:*",
     "@stp/types": "workspace:*",
