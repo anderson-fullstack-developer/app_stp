@@ -20,7 +20,6 @@ import {
   buildQuestions,
   evaluateAttempt,
   lessonAccess,
-  type QuizItem,
   type StoredQuestion,
   toPublicQuestion,
 } from "./lesson-rules.js";
