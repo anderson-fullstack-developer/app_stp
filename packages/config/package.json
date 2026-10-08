@@ -3,8 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "scripts": { "typecheck": "tsc --noEmit" },
+  "exports": {
+    ".": "./src/index.ts",
+    "./sounds": "./src/sounds.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {},
-  "devDependencies": { "@stp/tsconfig": "workspace:*", "typescript": "^5.8.3" }
+  "devDependencies": {
+    "@stp/tsconfig": "workspace:*",
+    "typescript": "^5.8.3"
+  }
 }

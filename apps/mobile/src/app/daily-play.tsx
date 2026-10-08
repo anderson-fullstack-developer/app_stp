@@ -16,6 +16,7 @@ import {
   haptics,
   Neto,
   ProgressBar,
+  sound,
   space,
 } from "@/design";
 import { FeedbackSheet } from "@/features/lesson/FeedbackSheet";
@@ -100,6 +101,7 @@ function DailyRun({ data, lang }: { data: DailyStarted; lang: string }) {
     try {
       const res = await api.post<DailyResult>(`/daily-attempts/${data.attemptId}/complete`);
       setResult(res);
+      sound.play(res.level.leveledUp ? "levelUp" : "complete");
       haptics.success();
       void qc.invalidateQueries({ queryKey: keys.me });
       void qc.invalidateQueries({ queryKey: keys.daily(lang) });
@@ -212,6 +214,7 @@ function DailyRun({ data, lang }: { data: DailyStarted; lang: string }) {
         optionId: selected,
       });
       setFeedback(fb);
+      sound.play(fb.correct ? "correct" : "wrong");
       if (fb.correct) haptics.success();
       else haptics.error();
     } catch {
