@@ -16,6 +16,7 @@ import {
   haptics,
   Neto,
   ProgressBar,
+  sound,
   space,
 } from "@/design";
 import { FeedbackSheet } from "@/features/lesson/FeedbackSheet";
@@ -253,6 +254,7 @@ function LessonRun({
         optionId: selected,
       });
       setFeedback(fb);
+      sound.play(fb.correct ? "correct" : "wrong");
       if (fb.correct) haptics.success();
       else haptics.error();
     } catch {
@@ -277,6 +279,7 @@ function LessonRun({
     try {
       const res = await api.post<LessonResultDto>(`/lesson-attempts/${data.attemptId}/complete`);
       setResult(res);
+      sound.play(res.level.leveledUp ? "levelUp" : "complete");
       haptics.success();
       onDone();
     } catch {

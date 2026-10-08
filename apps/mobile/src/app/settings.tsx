@@ -25,8 +25,10 @@ import {
   Card,
   colors,
   haptics,
+  isSoundEnabled,
   Neto,
   setHapticsEnabled,
+  setSoundEnabled,
   space,
 } from "@/design";
 
@@ -62,6 +64,7 @@ export default function Settings() {
   const me = useMe();
   const languages = useLanguages();
   const [vibration, setVibration] = useState(true);
+  const [soundOn, setSoundOn] = useState(isSoundEnabled);
   const [busy, setBusy] = useState<"logout" | "delete" | "language" | null>(null);
   const [picker, setPicker] = useState(false);
 
@@ -188,6 +191,17 @@ export default function Settings() {
           {t("settings.preferences")}
         </AppText>
         <Card style={styles.group}>
+          <Row label={t("settings.sound")}>
+            <Switch
+              value={soundOn}
+              onValueChange={(v) => {
+                setSoundOn(v);
+                setSoundEnabled(v);
+              }}
+              trackColor={{ true: colors.primary, false: colors.border }}
+            />
+          </Row>
+          <View style={styles.sep} />
           <Row label={t("settings.haptics")}>
             <Switch
               value={vibration}
