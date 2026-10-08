@@ -59,6 +59,7 @@ export default function RootLayout() {
               <Stack.Screen name="welcome" />
               <Stack.Screen name="sign-in" />
               <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="lesson/[id]" options={{ presentation: "fullScreenModal" }} />
               <Stack.Screen name="design" />
             </Stack>
           </View>
