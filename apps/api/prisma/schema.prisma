@@ -186,28 +186,32 @@ model User {
   updatedAt          DateTime      @updatedAt
   deletedAt          DateTime?
 
-  learningLanguage Language?               @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
-  roles            UserRole[]              @relation("RoleHolder")
-  rolesGranted     UserRole[]              @relation("RoleGranter")
-  reviews          ContentReview[]
-  auditLogs        AdminAuditLog[]
-  createdVocab     Vocabulary[]            @relation("VocabCreatedBy")
-  reviewedVocab    Vocabulary[]            @relation("VocabReviewedBy")
-  createdPhrases   Phrase[]                @relation("PhraseCreatedBy")
-  reviewedPhrases  Phrase[]                @relation("PhraseReviewedBy")
-  createdExercises Exercise[]              @relation("ExerciseCreatedBy")
-  reviewedExercise Exercise[]              @relation("ExerciseReviewedBy")
-  createdLessons   Lesson[]                @relation("LessonCreatedBy")
-  reviewedLessons  Lesson[]                @relation("LessonReviewedBy")
-  createdAudio     AudioAsset[]            @relation("AudioCreatedBy")
-  stats            UserStats?
-  xpEvents         XpEvent[]
-  coinTransactions CoinTransaction[]
-  activityDays     ActivityDay[]
-  lessonProgress   LessonProgress[]
-  lessonAttempts   LessonAttempt[]
-  achievements     UserAchievement[]
-  dailyAttempts    DailyChallengeAttempt[]
+  learningLanguage       Language?               @relation("LearningLanguage", fields: [learningLanguageId], references: [id])
+  roles                  UserRole[]              @relation("RoleHolder")
+  rolesGranted           UserRole[]              @relation("RoleGranter")
+  reviews                ContentReview[]
+  auditLogs              AdminAuditLog[]
+  createdVocab           Vocabulary[]            @relation("VocabCreatedBy")
+  reviewedVocab          Vocabulary[]            @relation("VocabReviewedBy")
+  createdPhrases         Phrase[]                @relation("PhraseCreatedBy")
+  reviewedPhrases        Phrase[]                @relation("PhraseReviewedBy")
+  createdExercises       Exercise[]              @relation("ExerciseCreatedBy")
+  reviewedExercise       Exercise[]              @relation("ExerciseReviewedBy")
+  createdLessons         Lesson[]                @relation("LessonCreatedBy")
+  reviewedLessons        Lesson[]                @relation("LessonReviewedBy")
+  createdAudio           AudioAsset[]            @relation("AudioCreatedBy")
+  stats                  UserStats?
+  xpEvents               XpEvent[]
+  coinTransactions       CoinTransaction[]
+  activityDays           ActivityDay[]
+  lessonProgress         LessonProgress[]
+  lessonAttempts         LessonAttempt[]
+  achievements           UserAchievement[]
+  dailyAttempts          DailyChallengeAttempt[]
+  friendRequestsSent     Friendship[]            @relation("FriendRequester")
+  friendRequestsReceived Friendship[]            @relation("FriendAddressee")
+  blocking               UserBlock[]             @relation("Blocker")
+  blockedBy              UserBlock[]             @relation("Blocked")
 
   @@index([status])
   @@map("users")
@@ -791,4 +795,39 @@ model DailyChallengeAttempt {
   @@unique([challengeId, userId])
   @@index([challengeId, status, correct, durationMs])
   @@map("daily_challenge_attempts")
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+}
+
+/// Amizade (pedido de requester para addressee). Recusar ou remover apaga a linha.
+model Friendship {
+  id          String           @id @default(uuid(7)) @db.Uuid
+  requesterId String           @db.Uuid
+  addresseeId String           @db.Uuid
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  acceptedAt  DateTime?
+
+  requester User @relation("FriendRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee User @relation("FriendAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId, status])
+  @@map("friendships")
+}
+
+/// Bloqueio: quem bloqueia deixa de ser encontrado e de receber pedidos de quem foi bloqueado.
+model UserBlock {
+  blockerId String   @db.Uuid
+  blockedId String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  blocker User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+  @@map("user_blocks")
 }
