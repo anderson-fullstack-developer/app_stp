@@ -8,6 +8,7 @@ export const pt = {
     continue: "Continuar",
     back: "Voltar",
     close: "Fechar",
+    cancel: "Cancelar",
     soon: "Em breve",
     available: "Disponível",
     loading: "A carregar…",
