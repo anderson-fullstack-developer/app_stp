@@ -9,6 +9,9 @@ import { CoursesController } from "./courses/courses.controller.js";
 import { CoursesService } from "./courses/courses.service.js";
 import { DailyController } from "./daily/daily.controller.js";
 import { DailyService } from "./daily/daily.service.js";
+import { RankingService } from "./social/ranking.service.js";
+import { SocialController } from "./social/social.controller.js";
+import { SocialService } from "./social/social.service.js";
 import { LessonsController } from "./lessons/lessons.controller.js";
 import { LessonsService } from "./lessons/lessons.service.js";
 import { AllExceptionsFilter } from "./common/all-exceptions.filter.js";
@@ -56,6 +59,7 @@ export class AppModule {
         ReviewController,
         LessonsController,
         DailyController,
+        SocialController,
       ],
       providers: [
         { provide: ENV, useValue: env },
@@ -67,6 +71,8 @@ export class AppModule {
         ReviewService,
         LessonsService,
         DailyService,
+        SocialService,
+        RankingService,
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_FILTER, useClass: AllExceptionsFilter },
       ],
