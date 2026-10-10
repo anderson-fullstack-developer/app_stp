@@ -5,6 +5,9 @@ import { Neto } from "@/components/app/Neto";
 import { useGame } from "@/hooks/use-game";
 import { BackButton } from "@/components/app/BackButton";
 import { EmptyState, LoadingState } from "@/components/app/Primitives";
+import { ServerNotificationsList } from "@/components/app/ServerNotifications";
+import { useAccountProfile } from "@/hooks/use-account";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { useNotifications } from "@/hooks/use-service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
@@ -20,10 +23,15 @@ export const Route = createFileRoute("/notifications")({
     ],
   }),
   component: function NotificationsPage() {
+    const server = useServerLessonsEnabled();
     const { data } = useNotifications();
+    const { data: account } = useAccountProfile();
     const { t } = useTranslation();
     const g = useGame();
-    const practisedToday = g.week[g.todayIndex];
+    // Com sessão, o lembrete usa a sequência do servidor.
+    const practisedToday = server
+      ? (account?.progress.streak.activeToday ?? true)
+      : g.week[g.todayIndex];
     return (
       <PhoneFrame>
         <AppHeader left={<BackButton />} title="Notificações" />
@@ -42,7 +50,9 @@ export const Route = createFileRoute("/notifications")({
               </div>
             </div>
           )}
-          {!data ? (
+          {server ? (
+            <ServerNotificationsList />
+          ) : !data ? (
             <LoadingState />
           ) : data.length === 0 ? (
             <EmptyState title={t("neto.allCaughtUp")} />

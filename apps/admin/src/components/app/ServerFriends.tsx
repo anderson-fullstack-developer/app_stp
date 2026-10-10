@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import type { PublicUserDto, RelationshipDto } from "@stp/types/api";
 import { Check, Flame, Search, UserMinus, UserPlus, X } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
@@ -243,12 +244,18 @@ function PersonCard({
   return (
     <div className="card animate-rise rounded-3xl p-4">
       <div className="flex items-center gap-3">
-        <Avatar name={user.name} color={avatarColor(user.avatarColor)} size={52} />
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display font-bold">{user.name}</p>
-          <p className="truncate text-xs font-semibold text-muted-foreground">@{user.username}</p>
-          <p className="text-xs text-muted-foreground">{detail}</p>
-        </div>
+        <Link
+          to="/user/$userId"
+          params={{ userId: user.id }}
+          className="flex min-w-0 flex-1 items-center gap-3"
+        >
+          <Avatar name={user.name} color={avatarColor(user.avatarColor)} size={52} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-display font-bold">{user.name}</p>
+            <p className="truncate text-xs font-semibold text-muted-foreground">@{user.username}</p>
+            <p className="text-xs text-muted-foreground">{detail}</p>
+          </div>
+        </Link>
         {inline ?? (
           <span className="inline-flex items-center gap-1 text-sm font-bold text-destructive">
             <Flame className="size-4 fill-current" />

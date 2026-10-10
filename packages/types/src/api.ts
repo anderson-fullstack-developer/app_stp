@@ -209,3 +209,25 @@ export interface RankingDto {
   top: RankingEntryDto[];
   me: RankingEntryDto | null;
 }
+
+/** GET /api/v1/users/:id */
+export interface PublicProfileDto extends PublicUserDto {
+  weeklyXp: number;
+  xpTotal: number;
+  longestStreak: number;
+  lessonsCompleted: number;
+  achievements: number;
+  memberSince: string;
+  isMe: boolean;
+  relationship: RelationshipDto;
+  /** Pedido pendente entre nós (para aceitar ou cancelar). */
+  requestId: string | null;
+}
+
+type NotificationUser = Pick<PublicUserDto, "id" | "username" | "name" | "avatarColor">;
+
+/** GET /api/v1/me/notifications */
+export type NotificationDto =
+  | { id: string; type: "friend_request"; at: string; requestId: string; user: NotificationUser }
+  | { id: string; type: "friend_accepted"; at: string; user: NotificationUser }
+  | { id: string; type: "achievement"; at: string; achievementKey: string };

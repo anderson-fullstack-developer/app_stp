@@ -4,6 +4,8 @@ import { BackButton } from "@/components/app/BackButton";
 import { Avatar } from "@/components/app/Badges";
 import { AppButton } from "@/components/app/Buttons";
 import { ErrorState, LoadingState, StatCard } from "@/components/app/Primitives";
+import { ServerUserProfile } from "@/components/app/ServerUserProfile";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { useUser } from "@/hooks/use-service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { APP_NAME } from "@stp/config";
@@ -20,8 +22,14 @@ export const Route = createFileRoute("/user/$userId")({
   component: UserProfile,
 });
 
+/** Com sessão, o perfil público vem do servidor; sem sessão, a demonstração. */
 function UserProfile() {
   const { userId } = Route.useParams();
+  const server = useServerLessonsEnabled();
+  return server ? <ServerUserProfile userId={userId} /> : <DemoUserProfile userId={userId} />;
+}
+
+function DemoUserProfile({ userId }: { userId: string }) {
   const { data: u, isLoading } = useUser(userId);
   return (
     <PhoneFrame>
