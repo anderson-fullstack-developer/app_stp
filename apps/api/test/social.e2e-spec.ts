@@ -7,6 +7,7 @@ import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/configure-app.js";
 import { loadEnv } from "../src/config/env.js";
 import { PrismaService } from "../src/database/prisma.service.js";
+import { NotificationsService } from "../src/social/notifications.service.js";
 import { RankingService } from "../src/social/ranking.service.js";
 import { SocialService } from "../src/social/social.service.js";
 import type { AuthUser } from "../src/users/users.service.js";
@@ -19,6 +20,7 @@ describe.skipIf(!dbUrl)("Amigos e rankings (e2e, base de dados real)", { timeout
   let prisma: PrismaService;
   let social: SocialService;
   let rankings: RankingService;
+  let notifications: NotificationsService;
   const tag = randomUUID().slice(0, 8);
   const ids: string[] = [];
   let ana: AuthUser;
@@ -62,6 +64,7 @@ describe.skipIf(!dbUrl)("Amigos e rankings (e2e, base de dados real)", { timeout
     prisma = app.get(PrismaService);
     social = app.get(SocialService);
     rankings = app.get(RankingService);
+    notifications = app.get(NotificationsService);
     ana = await makeUser("ana", 30);
     bruno = await makeUser("bruno", 50);
     carla = await makeUser("carla", 0);
@@ -107,6 +110,38 @@ describe.skipIf(!dbUrl)("Amigos e rankings (e2e, base de dados real)", { timeout
     expect(dup).toMatchObject({ status: 409, body: { code: "ALREADY_FRIENDS" } });
     const self = await fail(social.sendRequest(ana, ana.id));
     expect(self).toMatchObject({ status: 400, body: { code: "SELF_REQUEST" } });
+  });
+
+  it("perfil público e notificações", async () => {
+    const p = await social.profile(ana, bruno.id);
+    expect(p).toMatchObject({
+      id: bruno.id,
+      weeklyXp: 50,
+      xpTotal: 50,
+      relationship: "friends",
+      isMe: false,
+      requestId: null,
+    });
+    expect(p).not.toHaveProperty("email");
+    expect(p).not.toHaveProperty("coins");
+    expect((await social.profile(ana, ana.id)).isMe).toBe(true);
+
+    // Ana pediu primeiro e o Bruno aceitou (pedido inverso): a Ana vê "aceite".
+    const ofAna = await notifications.list(ana);
+    expect(ofAna).toContainEqual(
+      expect.objectContaining({
+        type: "friend_accepted",
+        user: expect.objectContaining({ id: bruno.id }),
+      }),
+    );
+
+    const r = await social.sendRequest(carla, bruno.id);
+    const ofBruno = await notifications.list(bruno);
+    expect(ofBruno).toContainEqual(
+      expect.objectContaining({ type: "friend_request", requestId: r.requestId }),
+    );
+    expect((await social.profile(bruno, carla.id)).relationship).toBe("pending_in");
+    await social.decline(bruno, r.requestId!);
   });
 
   it("recusar, cancelar e aceitar", async () => {
@@ -164,6 +199,7 @@ describe.skipIf(!dbUrl)("Amigos e rankings (e2e, base de dados real)", { timeout
     expect(await social.search(bruno, `teste_social_ana_${tag}`)).toEqual([]);
     const blocked = await fail(social.sendRequest(ana, bruno.id));
     expect(blocked).toMatchObject({ status: 404 });
+    expect(await fail(social.profile(ana, bruno.id))).toMatchObject({ status: 404 });
 
     await social.unblock(bruno, ana.id);
     expect(await social.search(ana, `teste_social_bruno_${tag}`)).toHaveLength(1);
