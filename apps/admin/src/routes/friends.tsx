@@ -4,6 +4,8 @@ import { useState } from "react";
 import { AppButton } from "@/components/app/Buttons";
 import { UserCard } from "@/components/app/Cards";
 import { EmptyState, LoadingState, Modal, Tabs } from "@/components/app/Primitives";
+import { ServerFriends } from "@/components/app/ServerFriends";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { useFriends } from "@/hooks/use-service";
 import { AppHeader, TabLayout } from "@/layouts/AppShell";
 import { friendService } from "@/services";
@@ -24,7 +26,13 @@ export const Route = createFileRoute("/friends")({
 
 type Tab = "friend" | "request" | "suggestion";
 
+/** Com sessão, amigos reais do servidor; sem sessão, a demonstração. */
 function Friends() {
+  const server = useServerLessonsEnabled();
+  return server ? <ServerFriends /> : <DemoFriends />;
+}
+
+function DemoFriends() {
   const { t } = useTranslation();
   const { data, isLoading } = useFriends();
   const [tab, setTab] = useState<Tab>("friend");

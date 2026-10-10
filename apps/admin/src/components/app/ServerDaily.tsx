@@ -1,6 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import type { AvatarColor } from "@stp/types";
 import { CheckCircle2, Coins, Flame, Star, Users, Volume2, Zap } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -14,14 +13,11 @@ import { QuizOption } from "@/components/exercises/Exercises";
 import { dailyKeys, useDailyLanguage } from "@/hooks/use-daily";
 import { playPronunciation, useMeaningLocale } from "@/hooks/use-kriolu";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
+import { avatarColor } from "@/lib/avatar";
 import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 import { type DailyResult, dailyApi } from "@/services/daily-api.service";
 import type { AnswerResult } from "@/services/lessons-api.service";
-
-const AVATAR_COLORS: AvatarColor[] = ["forest", "sun", "ocean", "cocoa", "coral"];
-const avatarColor = (c: string | null): AvatarColor =>
-  AVATAR_COLORS.includes(c as AvatarColor) ? (c as AvatarColor) : "ocean";
 
 /** Ecrã do desafio do dia com dados do servidor: recompensas, o meu estado e o ranking. */
 export function ServerDailyOverview() {

@@ -27,6 +27,8 @@ export const API_ENDPOINTS = {
   progress: `${API_PREFIX}/progress`,
   friends: `${API_PREFIX}/friends`,
   leaderboards: `${API_PREFIX}/leaderboards`,
+  rankings: `${API_PREFIX}/rankings`,
+  blocks: `${API_PREFIX}/blocks`,
   games: `${API_PREFIX}/games`,
   rooms: `${API_PREFIX}/rooms`,
   admin: `${API_PREFIX}/admin`,
