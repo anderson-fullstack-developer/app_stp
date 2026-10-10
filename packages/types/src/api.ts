@@ -231,3 +231,22 @@ export type NotificationDto =
   | { id: string; type: "friend_request"; at: string; requestId: string; user: NotificationUser }
   | { id: string; type: "friend_accepted"; at: string; user: NotificationUser }
   | { id: string; type: "achievement"; at: string; achievementKey: string };
+
+/** GET /api/v1/shop */
+export interface ShopDto {
+  coins: number;
+  items: {
+    id: "streak_freeze";
+    price: number;
+    owned: number;
+    max: number;
+    canBuy: boolean;
+  }[];
+}
+
+/** POST /api/v1/shop/streak-freeze */
+export interface ShopPurchaseDto {
+  coins: number;
+  streakFreezes: number;
+  charged: number;
+}

@@ -6,7 +6,9 @@ import { BackButton } from "@/components/app/BackButton";
 import { CoinBadge } from "@/components/app/Badges";
 import { AppButton } from "@/components/app/Buttons";
 import { LoadingState, Modal, SectionTitle } from "@/components/app/Primitives";
+import { ServerShop } from "@/components/app/ServerShop";
 import { game, useGame } from "@/hooks/use-game";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { useShop } from "@/hooks/use-service";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { cn } from "@/lib/utils";
@@ -27,7 +29,13 @@ export const Route = createFileRoute("/shop")({
   component: Shop,
 });
 
+/** Com sessão, a loja do servidor (moedas reais); sem sessão, a demonstração. */
 function Shop() {
+  const server = useServerLessonsEnabled();
+  return server ? <ServerShop /> : <DemoShop />;
+}
+
+function DemoShop() {
   const { data } = useShop();
   const g = useGame();
   const [msg, setMsg] = useState<string | null>(null);
