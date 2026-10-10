@@ -11,6 +11,8 @@ import { DailyController } from "./daily/daily.controller.js";
 import { DailyService } from "./daily/daily.service.js";
 import { NotificationsService } from "./social/notifications.service.js";
 import { RankingService } from "./social/ranking.service.js";
+import { ShopController } from "./shop/shop.controller.js";
+import { ShopService } from "./shop/shop.service.js";
 import { SocialController } from "./social/social.controller.js";
 import { SocialService } from "./social/social.service.js";
 import { LessonsController } from "./lessons/lessons.controller.js";
@@ -61,6 +63,7 @@ export class AppModule {
         LessonsController,
         DailyController,
         SocialController,
+        ShopController,
       ],
       providers: [
         { provide: ENV, useValue: env },
@@ -75,6 +78,7 @@ export class AppModule {
         SocialService,
         RankingService,
         NotificationsService,
+        ShopService,
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_FILTER, useClass: AllExceptionsFilter },
       ],
