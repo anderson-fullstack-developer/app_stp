@@ -127,6 +127,49 @@ export class SocialService {
     }));
   }
 
+  /**
+   * Perfil público de outra pessoa: só nível, XP, sequência e conquistas (nunca email ou
+   * moedas). Bloqueados ou contas inativas respondem 404, como se não existissem.
+   */
+  async profile(user: AuthUser, targetId: string) {
+    const hidden = await this.blockedIds(user.id);
+    const u = await this.prisma.user.findUnique({
+      where: { id: targetId },
+      select: {
+        ...PUBLIC_USER,
+        status: true,
+        createdAt: true,
+        stats: {
+          select: {
+            xpTotal: true,
+            currentStreak: true,
+            longestStreak: true,
+            lessonsCompleted: true,
+          },
+        },
+      },
+    });
+    if (!u || u.status !== "ACTIVE" || hidden.has(targetId)) {
+      throw new NotFoundException("Utilizador não encontrado.");
+    }
+    const [weekly, achievements, link] = await Promise.all([
+      this.weeklyXp([u.id]),
+      this.prisma.userAchievement.count({ where: { userId: u.id } }),
+      u.id === user.id ? null : this.friendshipBetween(user.id, u.id),
+    ]);
+    return {
+      ...this.publicUser(u, weekly.get(u.id) ?? 0),
+      xpTotal: u.stats?.xpTotal ?? 0,
+      longestStreak: u.stats?.longestStreak ?? 0,
+      lessonsCompleted: u.stats?.lessonsCompleted ?? 0,
+      achievements,
+      memberSince: u.createdAt,
+      isMe: u.id === user.id,
+      relationship: this.relationshipOf(user.id, link),
+      requestId: link?.status === "PENDING" ? link.id : null,
+    };
+  }
+
   /** Amigos (com XP da semana), pedidos recebidos e enviados. */
   async list(user: AuthUser) {
     const rows = await this.prisma.friendship.findMany({

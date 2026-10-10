@@ -9,6 +9,7 @@ import { CoursesController } from "./courses/courses.controller.js";
 import { CoursesService } from "./courses/courses.service.js";
 import { DailyController } from "./daily/daily.controller.js";
 import { DailyService } from "./daily/daily.service.js";
+import { NotificationsService } from "./social/notifications.service.js";
 import { RankingService } from "./social/ranking.service.js";
 import { SocialController } from "./social/social.controller.js";
 import { SocialService } from "./social/social.service.js";
@@ -73,6 +74,7 @@ export class AppModule {
         DailyService,
         SocialService,
         RankingService,
+        NotificationsService,
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_FILTER, useClass: AllExceptionsFilter },
       ],

@@ -15,6 +15,7 @@ import { CurrentUser } from "../auth/auth.decorators.js";
 import { ClerkAuthGuard } from "../auth/clerk-auth.guard.js";
 import { ZodPipe } from "../common/zod.pipe.js";
 import type { AuthUser } from "../users/users.service.js";
+import { NotificationsService } from "./notifications.service.js";
 import { RANKING_SCOPES, RankingService } from "./ranking.service.js";
 import { SocialService } from "./social.service.js";
 
@@ -32,7 +33,14 @@ export class SocialController {
   constructor(
     private readonly social: SocialService,
     private readonly rankings: RankingService,
+    private readonly notifications: NotificationsService,
   ) {}
+
+  @Get("me/notifications")
+  @ApiOkResponse({ description: "Pedidos de amizade, pedidos aceites e conquistas recentes." })
+  notificationsList(@CurrentUser() user: AuthUser) {
+    return this.notifications.list(user);
+  }
 
   @Get("users/search")
   @ApiOkResponse({ description: "Pesquisar pessoas por @username ou nome (com a relação comigo)." })
@@ -41,6 +49,12 @@ export class SocialController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.social.search(user, q.q);
+  }
+
+  @Get("users/:id")
+  @ApiOkResponse({ description: "Perfil público (nível, XP, sequência, conquistas, relação)." })
+  profile(@Param("id", new ZodPipe(Id)) id: string, @CurrentUser() user: AuthUser) {
+    return this.social.profile(user, id);
   }
 
   @Get("friends")
