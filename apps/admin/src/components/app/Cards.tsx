@@ -92,9 +92,11 @@ export function UserCard({ friend }: { friend: Friend }) {
 
 export function LeaderboardCard({ entry }: { entry: LeaderboardEntry }) {
   return (
-    <div
+    <Link
+      to="/user/$userId"
+      params={{ userId: entry.userId }}
       className={cn(
-        "flex items-center gap-3 rounded-2xl px-3 py-2.5",
+        "pressable flex items-center gap-3 rounded-2xl px-3 py-2.5",
         entry.isCurrentUser ? "bg-primary/8 ring-1 ring-primary/40" : "card",
       )}
     >
@@ -107,7 +109,7 @@ export function LeaderboardCard({ entry }: { entry: LeaderboardEntry }) {
         {entry.isCurrentUser && <span className="ml-1 text-xs text-primary">(tu)</span>}
       </span>
       <span className="font-display font-bold">{entry.xp.toLocaleString("pt-PT")} XP</span>
-    </div>
+    </Link>
   );
 }
 

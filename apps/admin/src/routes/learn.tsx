@@ -14,6 +14,7 @@ import { KrioluPath } from "@/components/app/KrioluPath";
 import { NetoIntroOnce } from "@/components/app/NetoIntro";
 import { useSettings } from "@/hooks/use-settings";
 import { useAccountProfile } from "@/hooks/use-account";
+import { useHasUnreadNotifications } from "@/hooks/use-notifications";
 import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
 import { cn } from "@/lib/utils";
 import { APP_NAME } from "@stp/config";
@@ -44,6 +45,7 @@ function Learn() {
   const { data: course } = useCourse();
   const { data: daily } = useDaily();
   const g = useGame();
+  const hasUnread = useHasUnreadNotifications();
   // Com sessão, os números vêm do servidor (fonte única); sem sessão, a demonstração local.
   const { data: serverProfile } = useAccountProfile();
   const sp = serverProfile?.progress;
@@ -101,7 +103,9 @@ function Learn() {
               className="relative grid size-10 place-items-center rounded-full bg-surface ring-2 ring-border"
             >
               <Bell className="size-5" />
-              <span className="absolute right-2 top-2 size-2 rounded-full bg-destructive" />
+              {hasUnread && (
+                <span className="absolute right-2 top-2 size-2 rounded-full bg-destructive" />
+              )}
             </Link>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2">
