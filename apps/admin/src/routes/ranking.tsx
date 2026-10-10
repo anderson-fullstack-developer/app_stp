@@ -1,12 +1,20 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import type { LeaderboardEntry } from "@stp/types";
+import type { RankingDto } from "@stp/types/api";
+import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, Shield, Crown } from "lucide-react";
 import { useState } from "react";
 import { Avatar } from "@/components/app/Badges";
 import { LeaderboardCard } from "@/components/app/Cards";
-import { LoadingState, Tabs } from "@/components/app/Primitives";
+import { EmptyState, ErrorState, LoadingState, Tabs } from "@/components/app/Primitives";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { useLeague, useRanking } from "@/hooks/use-service";
 import { AppHeader, TabLayout } from "@/layouts/AppShell";
+import { avatarColor } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
+import { ApiError } from "@/services/http";
+import { socialApi, socialKeys } from "@/services/social-api.service";
 import { APP_NAME } from "@stp/config";
 
 export const Route = createFileRoute("/ranking")({
@@ -28,10 +36,33 @@ type Scope = "friends" | "weekly" | "global" | "country";
 const TIERS = ["Bronze", "Silver", "Gold", "Diamond"] as const;
 const tierCls = { Bronze: "bg-bronze", Silver: "bg-silver", Gold: "bg-gold", Diamond: "bg-ocean" };
 
+const toEntry = (e: RankingDto["top"][number]): LeaderboardEntry => ({
+  rank: e.position,
+  userId: e.userId,
+  name: e.name,
+  avatarColor: avatarColor(e.avatarColor),
+  xp: e.xp,
+  isCurrentUser: e.isMe,
+});
+
+/** Com sessão, o ranking vem do servidor (sem ligas ainda); sem sessão, a demonstração. */
 function Ranking() {
+  const { t } = useTranslation();
+  const server = useServerLessonsEnabled();
   const [scope, setScope] = useState<Scope>("weekly");
-  const { data } = useRanking(scope);
-  const { data: league } = useLeague();
+  const demo = useRanking(scope);
+  const { data: demoLeague } = useLeague();
+  const live = useQuery({
+    queryKey: socialKeys.ranking(scope),
+    queryFn: () => socialApi.ranking(scope),
+    enabled: server,
+    retry: (n, e) => !(e instanceof ApiError && e.status === 422) && n < 2,
+  });
+  const league = server ? null : demoLeague;
+  const data = server ? live.data?.top.map(toEntry) : demo.data;
+  const meOutside =
+    server && live.data?.me && !live.data.top.some((e) => e.isMe) ? toEntry(live.data.me) : null;
+  const noCountry = live.error instanceof ApiError && live.error.status === 422;
   const top = data?.slice(0, 3) ?? [];
   const podium = [top[1], top[0], top[2]].filter((x): x is NonNullable<typeof x> => !!x);
   return (
@@ -71,15 +102,25 @@ function Ranking() {
           value={scope}
           onChange={setScope}
           items={[
-            { value: "friends", label: "Amigos" },
-            { value: "weekly", label: "Semanal" },
-            { value: "global", label: "Global" },
-            { value: "country", label: "País" },
+            { value: "friends", label: t("social.rankingFriends") },
+            { value: "weekly", label: t("social.rankingWeekly") },
+            { value: "global", label: t("social.rankingGlobal") },
+            { value: "country", label: t("social.rankingCountry") },
           ]}
         />
       </div>
-      {!data ? (
+      {server && noCountry ? (
+        <div className="mt-4">
+          <EmptyState title={t("social.rankingNoCountry")} />
+        </div>
+      ) : server && live.isError ? (
+        <ErrorState onRetry={() => void live.refetch()} />
+      ) : !data ? (
         <LoadingState />
+      ) : data.length === 0 ? (
+        <div className="mt-4">
+          <EmptyState title={t("social.rankingEmpty")} />
+        </div>
       ) : (
         <>
           <div className="mt-6 flex items-end justify-center gap-3">
@@ -119,6 +160,20 @@ function Ranking() {
               <LeaderboardCard key={e.userId} entry={e} />
             ))}
           </div>
+          {meOutside && (
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">
+                {t("social.rankingYourPlace")}
+              </p>
+              <LeaderboardCard entry={meOutside} />
+            </div>
+          )}
+          {server && live.data && (
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              {t("social.rankingParticipants", { count: live.data.participants })}
+              {live.data.weekStart ? ` · ${t("social.rankingResets")}` : ""}
+            </p>
+          )}
         </>
       )}
     </TabLayout>

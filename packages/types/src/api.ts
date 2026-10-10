@@ -164,3 +164,48 @@ export interface AchievementDto {
   earnedAt: string | null;
   progress: number;
 }
+
+/** Pessoa vista por outra (amigos, pesquisa). */
+export interface PublicUserDto {
+  id: string;
+  username: string;
+  name: string;
+  avatarColor: string | null;
+  countryCode: string | null;
+  level: number;
+  streak: number;
+}
+
+export type RelationshipDto = "none" | "friends" | "pending_out" | "pending_in";
+
+/** GET /api/v1/users/search?q= */
+export type UserSearchDto = (PublicUserDto & { relationship: RelationshipDto })[];
+
+/** GET /api/v1/friends */
+export interface FriendsDto {
+  friends: (PublicUserDto & { weeklyXp: number; since: string | null })[];
+  incoming: { requestId: string; user: PublicUserDto; sentAt: string }[];
+  outgoing: { requestId: string; user: PublicUserDto; sentAt: string }[];
+}
+
+export type RankingScopeDto = "weekly" | "global" | "friends" | "country";
+
+export interface RankingEntryDto {
+  position: number;
+  userId: string;
+  username: string;
+  name: string;
+  avatarColor: string | null;
+  xp: number;
+  level: number;
+  isMe: boolean;
+}
+
+/** GET /api/v1/rankings?scope= */
+export interface RankingDto {
+  scope: RankingScopeDto;
+  weekStart: string | null;
+  participants: number;
+  top: RankingEntryDto[];
+  me: RankingEntryDto | null;
+}
