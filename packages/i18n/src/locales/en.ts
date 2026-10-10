@@ -6,6 +6,7 @@ export const en: Messages = {
     continue: "Continue",
     back: "Back",
     close: "Close",
+    cancel: "Cancel",
     soon: "Coming soon",
     available: "Available",
     loading: "Loading…",
