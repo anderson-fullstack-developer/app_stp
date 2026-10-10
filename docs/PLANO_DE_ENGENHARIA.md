@@ -359,6 +359,7 @@ Dimensão do esforço: **S** (≤2 dias) · **M** (≤1 semana) · **L** (1–3 
 
 **Passo 3.5 — Perfil, amigos, rankings, desafio diário** · L
 - Pedidos de amizade, bloquear, pesquisar; rankings diário/semanal/mensal/global/amigos/país (queries agregadas sobre `XpTransaction`); desafio diário gerado de conteúdo aprovado, com ranking próprio.
+- ✅ **Amigos e rankings concluídos (2026-10-10, passo B8):** tabelas `friendships` e `user_blocks`; `GET /users/search`, `GET /friends`, pedidos (enviar, aceitar, recusar/cancelar), remover, bloquear/desbloquear; `GET /rankings?scope=weekly|global|friends|country` (top 50 + o meu lugar, a partir do livro-razão de XP). Web e app ligadas ao servidor; testes e2e contra a BD real. Falta: ranking mensal e ligas.
 
 **Passo 3.6 — Analytics e erros** · S
 - PostHog (eventos do funil: registo, 1.ª lição, retenção D1/D7) e Sentry no mobile.
