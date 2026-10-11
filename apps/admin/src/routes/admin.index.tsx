@@ -1,3 +1,5 @@
+import { ServerDashboard } from "@/admin/ServerAdminPages";
+import { useServerAdmin } from "@/admin/server";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAdminDB } from "@/services/admin";
@@ -17,7 +19,13 @@ export const Route = createFileRoute("/admin/")({
 
 type Overview = Awaited<ReturnType<typeof adminAnalyticsService.overview>>;
 
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
 function Dashboard() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerDashboard /> : <DemoDashboard />;
+}
+
+function DemoDashboard() {
   const db = useAdminDB();
   const [a, setA] = useState<Overview | null>(null);
   useEffect(() => {

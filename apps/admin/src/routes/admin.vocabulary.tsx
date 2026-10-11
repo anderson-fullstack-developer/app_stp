@@ -1,3 +1,5 @@
+import { ServerContentManager } from "@/admin/ServerAdminPages";
+import { useServerAdmin } from "@/admin/server";
 import { createFileRoute } from "@tanstack/react-router";
 import { Copy, Pencil, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -58,7 +60,13 @@ function blank(languageId: string): VocabItem {
   };
 }
 
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
 function Vocabulary() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerContentManager kind="vocabulary" /> : <DemoVocabulary />;
+}
+
+function DemoVocabulary() {
   const db = useAdminDB();
   const [lang, setLang] = useState("forro");
   const [status, setStatus] = useState<(typeof STATUSES)[number]>("Todos");
