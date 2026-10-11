@@ -57,6 +57,7 @@ import { Route as AdminUnauthorizedRouteImport } from './routes/admin_.unauthori
 import { Route as DailyPlayRouteImport } from './routes/daily_.play'
 import { Route as LessonLessonIdRouteImport } from './routes/lesson.$lessonId'
 import { Route as PlayDuelRouteImport } from './routes/play.duel'
+import { Route as PlayHistoryRouteImport } from './routes/play.history'
 import { Route as PlayJoinRouteImport } from './routes/play.join'
 import { Route as PlayPrivateRouteImport } from './routes/play.private'
 import { Route as PlayResultsRouteImport } from './routes/play.results'
@@ -311,6 +312,11 @@ const PlayDuelRoute = PlayDuelRouteImport.update({
   path: '/play/duel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayHistoryRoute = PlayHistoryRouteImport.update({
+  id: '/play/history',
+  path: '/play/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlayJoinRoute = PlayJoinRouteImport.update({
   id: '/play/join',
   path: '/play/join',
@@ -425,6 +431,7 @@ export interface FileRoutesByFullPath {
   '/daily/play': typeof DailyPlayRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/play/duel': typeof PlayDuelRoute
+  '/play/history': typeof PlayHistoryRoute
   '/play/join': typeof PlayJoinRoute
   '/play/private': typeof PlayPrivateRoute
   '/play/results': typeof PlayResultsRoute
@@ -487,6 +494,7 @@ export interface FileRoutesByTo {
   '/daily/play': typeof DailyPlayRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/play/duel': typeof PlayDuelRoute
+  '/play/history': typeof PlayHistoryRoute
   '/play/join': typeof PlayJoinRoute
   '/play/private': typeof PlayPrivateRoute
   '/play/results': typeof PlayResultsRoute
@@ -551,6 +559,7 @@ export interface FileRoutesById {
   '/daily_/play': typeof DailyPlayRoute
   '/lesson/$lessonId': typeof LessonLessonIdRoute
   '/play/duel': typeof PlayDuelRoute
+  '/play/history': typeof PlayHistoryRoute
   '/play/join': typeof PlayJoinRoute
   '/play/private': typeof PlayPrivateRoute
   '/play/results': typeof PlayResultsRoute
@@ -616,6 +625,7 @@ export interface FileRouteTypes {
     | '/daily/play'
     | '/lesson/$lessonId'
     | '/play/duel'
+    | '/play/history'
     | '/play/join'
     | '/play/private'
     | '/play/results'
@@ -678,6 +688,7 @@ export interface FileRouteTypes {
     | '/daily/play'
     | '/lesson/$lessonId'
     | '/play/duel'
+    | '/play/history'
     | '/play/join'
     | '/play/private'
     | '/play/results'
@@ -741,6 +752,7 @@ export interface FileRouteTypes {
     | '/daily_/play'
     | '/lesson/$lessonId'
     | '/play/duel'
+    | '/play/history'
     | '/play/join'
     | '/play/private'
     | '/play/results'
@@ -786,6 +798,7 @@ export interface RootRouteChildren {
   DailyPlayRoute: typeof DailyPlayRoute
   LessonLessonIdRoute: typeof LessonLessonIdRoute
   PlayDuelRoute: typeof PlayDuelRoute
+  PlayHistoryRoute: typeof PlayHistoryRoute
   PlayJoinRoute: typeof PlayJoinRoute
   PlayPrivateRoute: typeof PlayPrivateRoute
   PlayResultsRoute: typeof PlayResultsRoute
@@ -1137,6 +1150,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayDuelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/history': {
+      id: '/play/history'
+      path: '/play/history'
+      fullPath: '/play/history'
+      preLoaderRoute: typeof PlayHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/play/join': {
       id: '/play/join'
       path: '/play/join'
@@ -1312,6 +1332,7 @@ const rootRouteChildren: RootRouteChildren = {
   DailyPlayRoute: DailyPlayRoute,
   LessonLessonIdRoute: LessonLessonIdRoute,
   PlayDuelRoute: PlayDuelRoute,
+  PlayHistoryRoute: PlayHistoryRoute,
   PlayJoinRoute: PlayJoinRoute,
   PlayPrivateRoute: PlayPrivateRoute,
   PlayResultsRoute: PlayResultsRoute,

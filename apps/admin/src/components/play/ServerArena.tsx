@@ -2,15 +2,17 @@
  * Arena com o servidor em tempo real: criar/entrar numa sala, sala de espera e partida de
  * Sobrevivência. Os ecrãs só mostram o que o servidor envia e mandam a opção escolhida.
  */
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { MULTIPLAYER_CONFIG } from "@stp/config";
 import type { ArenaConfigDto, ArenaRoomDto } from "@stp/types/arena";
 import type { LobbyMember, QuizQuestion, SurvivalPlayer } from "@stp/types/multiplayer";
-import { KeyRound, LogOut, Plus } from "lucide-react";
+import { KeyRound, LogOut, Plus, UserPlus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { BackButton } from "@/components/app/BackButton";
 import { AppButton } from "@/components/app/Buttons";
-import { LoadingState, SectionTitle } from "@/components/app/Primitives";
+import { Avatar } from "@/components/app/Badges";
+import { LoadingState, Modal, SectionTitle } from "@/components/app/Primitives";
 import { LobbyPlayer, OptionPicker, RoomCode } from "@/components/play/LobbyUI";
 import {
   AnswerFeedback,
@@ -34,6 +36,7 @@ import { arena, type ArenaState, useArena } from "@/lib/multiplayer/arena-client
 import { session } from "@/lib/multiplayer/session-store";
 import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
+import { socialApi, socialKeys } from "@/services/social-api.service";
 
 const ERROR_TEXT: Record<string, string> = {
   ROOM_NOT_FOUND: "Não existe nenhuma sala com esse código.",
@@ -45,6 +48,9 @@ const ERROR_TEXT: Record<string, string> = {
   NO_QUESTIONS: "Ainda não há perguntas suficientes nesta língua.",
   LANGUAGE_NOT_AVAILABLE: "Esta língua ainda não está disponível.",
   OFFLINE: "Sem ligação ao servidor da Arena.",
+  NOT_FRIENDS: "Só podes convidar amigos.",
+  ALREADY_IN_ROOM: "Já está na sala.",
+  TOO_MANY_INVITES: "Já enviaste convites suficientes.",
 };
 /** Última partida cujo resultado já foi mostrado (para não o repetir). */
 let shownMatchId: string | null = null;
@@ -76,7 +82,7 @@ const lobbyMembers = (room: ArenaRoomDto, me: string | null): LobbyMember[] =>
 
 /* -------------------------------- Sala privada -------------------------------- */
 
-export function ServerPrivateRoom() {
+export function ServerPrivateRoom({ code }: { code?: string | undefined }) {
   const s = useArena(true);
   const navigate = useNavigate();
   const [step, setStep] = useState<"choose" | "setup">("choose");
@@ -86,11 +92,23 @@ export function ServerPrivateRoom() {
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const triedCode = useRef<string | null>(null);
 
   // A partida começou: ir para o ecrã de jogo.
   useEffect(() => {
     if (s.match && s.match.phase !== "finished") navigate({ to: "/play/survival" });
   }, [s.match, navigate]);
+
+  // Veio de um convite (?code=…): entra sozinho, uma vez.
+  useEffect(() => {
+    if (!code || s.status !== "ready" || s.room?.code === code || triedCode.current === code) {
+      return;
+    }
+    triedCode.current = code;
+    void arena.join(code).then((r) => {
+      if (!r.ok) setError(errorText(r));
+    });
+  }, [code, s.status, s.room?.code]);
 
   const create = async () => {
     setBusy(true);
@@ -104,6 +122,22 @@ export function ServerPrivateRoom() {
     <PhoneFrame>
       <AppHeader left={<BackButton />} title="Sala privada" />
       <ConnectionNote s={s} />
+      {s.invite && s.invite.code !== s.room?.code && (
+        <InviteBanner
+          name={s.invite.from.name}
+          onJoin={() => {
+            const c = s.invite!.code;
+            arena.dismissInvite();
+            void arena.join(c).then((r) => {
+              if (!r.ok) setError(errorText(r));
+            });
+          }}
+          onDismiss={arena.dismissInvite}
+        />
+      )}
+      {error && !s.room && step === "choose" && (
+        <p className="mx-4 mb-3 text-center font-bold text-destructive">{error}</p>
+      )}
       {s.room ? (
         <ServerLobby room={s.room} me={s.me} />
       ) : step === "choose" ? (
@@ -172,6 +206,7 @@ export function ServerPrivateRoom() {
 function ServerLobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const members = lobbyMembers(room, me);
   const mine = members.find((m) => m.isMe);
   const isHost = room.hostId === me;
@@ -216,11 +251,27 @@ function ServerLobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
             <LobbyPlayer key={m.id} m={m} />
           ))}
         </div>
+        {room.members.length < room.config.players && (
+          <AppButton
+            variant="secondary"
+            size="md"
+            className="mt-3 w-full"
+            onClick={() => setInviteOpen(true)}
+          >
+            <UserPlus className="size-4" />
+            Convidar amigos
+          </AppButton>
+        )}
         <p className="mt-4 text-center text-xs font-semibold text-muted-foreground">
-          Partilha o código com os teus amigos. As recompensas (XP e moedas) só contam em salas com
-          4 ou mais jogadores.
+          Convida amigos ou partilha o código. As recompensas (XP e moedas) só contam em salas com 4
+          ou mais jogadores.
         </p>
       </main>
+      <InviteFriends
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        exclude={room.members.map((m) => m.userId)}
+      />
       <div className="absolute inset-x-0 bottom-0 space-y-2 bg-background px-5 pt-3 pb-5 safe-bottom">
         {error && <p className="text-center text-sm font-bold text-destructive">{error}</p>}
         {isHost ? (
@@ -246,6 +297,87 @@ function ServerLobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
         </AppButton>
       </div>
     </>
+  );
+}
+
+/** Lista de amigos para convidar (o servidor confirma que são mesmo amigos). */
+function InviteFriends({
+  open,
+  onClose,
+  exclude,
+}: {
+  open: boolean;
+  onClose: () => void;
+  exclude: string[];
+}) {
+  const friends = useQuery({
+    queryKey: socialKeys.friends,
+    queryFn: socialApi.friends,
+    enabled: open,
+  });
+  const [sent, setSent] = useState<Record<string, "sent" | string>>({});
+  const list = (friends.data?.friends ?? []).filter((f) => !exclude.includes(f.id));
+  return (
+    <Modal open={open} onClose={onClose}>
+      <p className="mb-3 font-display text-xl font-bold">Convidar amigos</p>
+      {friends.isPending ? (
+        <LoadingState />
+      ) : list.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Ainda não tens amigos para convidar. Adiciona amigos no separador Amigos.
+        </p>
+      ) : (
+        <div className="max-h-80 space-y-2 overflow-y-auto">
+          {list.map((f) => {
+            const state = sent[f.id];
+            return (
+              <div key={f.id} className="flex items-center gap-3">
+                <Avatar name={f.name} color={avatarColor(f.avatarColor)} size={36} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-bold">{f.name}</p>
+                  {state && state !== "sent" && (
+                    <p className="text-xs font-semibold text-destructive">{state}</p>
+                  )}
+                </div>
+                <AppButton
+                  size="sm"
+                  variant={state === "sent" ? "secondary" : "primary"}
+                  disabled={state === "sent"}
+                  onClick={async () => {
+                    const r = await arena.invite(f.id);
+                    setSent((s) => ({ ...s, [f.id]: r.ok ? "sent" : errorText(r) }));
+                  }}
+                >
+                  {state === "sent" ? "Convidado" : "Convidar"}
+                </AppButton>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+function InviteBanner({
+  name,
+  onJoin,
+  onDismiss,
+}: {
+  name: string;
+  onJoin: () => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <div className="animate-rise mx-4 mb-3 flex items-center gap-3 rounded-2xl bg-sun p-3 text-accent-foreground">
+      <p className="flex-1 text-sm font-bold">{name} convidou-te para uma sala da Arena!</p>
+      <AppButton size="sm" onClick={onJoin}>
+        Entrar
+      </AppButton>
+      <button type="button" onClick={onDismiss} aria-label="Ignorar convite" className="px-1">
+        <X className="size-4" />
+      </button>
+    </div>
   );
 }
 
