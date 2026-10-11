@@ -1,6 +1,7 @@
 import { type INestApplication, VersioningType } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import helmet from "helmet";
+import { ArenaIoAdapter } from "./arena/arena-io.adapter.js";
 import type { Env } from "./config/env.js";
 
 /**
@@ -18,6 +19,8 @@ export function configureApp(app: INestApplication, env: Env): void {
   app.setGlobalPrefix("api");
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: "1" });
   app.enableShutdownHooks();
+  // Arena em tempo real (Socket.IO em /socket.io, namespace /arena).
+  app.useWebSocketAdapter(new ArenaIoAdapter(app, env.CORS_ORIGINS));
 
   // Documentação interativa da API — nunca exposta em produção.
   if (env.NODE_ENV !== "production") {

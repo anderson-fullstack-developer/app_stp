@@ -12,6 +12,9 @@ import { DailyService } from "./daily/daily.service.js";
 import { NotificationsService } from "./social/notifications.service.js";
 import { RankingService } from "./social/ranking.service.js";
 import { AdminContentService } from "./admin/admin-content.service.js";
+import { ArenaAuthService } from "./arena/arena-auth.service.js";
+import { ArenaGateway } from "./arena/arena.gateway.js";
+import { ARENA_TIMINGS, ArenaService, DEFAULT_ARENA_TIMINGS } from "./arena/arena.service.js";
 import { AdminUsersService } from "./admin/admin-users.service.js";
 import { AdminController } from "./admin/admin.controller.js";
 import { ShopController } from "./shop/shop.controller.js";
@@ -85,6 +88,10 @@ export class AppModule {
         ShopService,
         AdminContentService,
         AdminUsersService,
+        ArenaService,
+        ArenaAuthService,
+        ArenaGateway,
+        { provide: ARENA_TIMINGS, useValue: DEFAULT_ARENA_TIMINGS },
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_FILTER, useClass: AllExceptionsFilter },
       ],
