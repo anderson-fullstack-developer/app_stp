@@ -1,3 +1,5 @@
+import { ServerJoin } from "@/components/play/ServerArena";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { BackButton } from "@/components/app/BackButton";
@@ -25,7 +27,13 @@ const ERRORS = {
   started: "A partida já começou",
 } as const;
 
+/** Com sessão, a Arena real do servidor; sem sessão, a demonstração com bots. */
 function Join() {
+  const server = useServerLessonsEnabled();
+  return server ? <ServerJoin /> : <DemoJoin />;
+}
+
+function DemoJoin() {
   const navigate = useNavigate();
   const [digits, setDigits] = useState("");
   const [state, setState] = useState<"idle" | "loading" | keyof typeof ERRORS>("idle");

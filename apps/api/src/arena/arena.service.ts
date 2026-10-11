@@ -93,7 +93,10 @@ interface Match {
   players: ArenaPlayer[];
   answers: Map<string, { optionId: string; at: number }>;
   deadlineAt: number | null;
+  /** Saíram ainda vivos: abandono, sem recompensa. */
   left: Set<string>;
+  /** Todos os que saíram (incluindo eliminados que deixaram de ver). */
+  departed: Set<string>;
   finalShown: boolean;
   timer: ReturnType<typeof setTimeout> | null;
 }
@@ -196,8 +199,11 @@ export class ArenaService implements OnModuleDestroy {
     const member = room.members.get(userId);
     if (member?.graceTimer) clearTimeout(member.graceTimer);
     if (room.match && room.match.players.some((p) => p.id === userId)) {
-      // A meio da partida: abandona (sem recompensa) e deixa de bloquear as rondas.
-      room.match.left.add(userId);
+      // A meio da partida: quem ainda está vivo abandona (sem recompensa); quem já foi
+      // eliminado só deixa de ver — mantém o lugar e a recompensa.
+      const alive = room.match.players.some((p) => p.id === userId && p.lives > 0);
+      if (alive) room.match.left.add(userId);
+      room.match.departed.add(userId);
       if (member) member.connected = false;
       this.roomOf.delete(userId);
       this.maybeResolveEarly(room);
@@ -308,6 +314,7 @@ export class ArenaService implements OnModuleDestroy {
       answers: new Map(),
       deadlineAt: null,
       left: new Set(),
+      departed: new Set(),
       finalShown: false,
       timer: null,
     };
@@ -327,7 +334,7 @@ export class ArenaService implements OnModuleDestroy {
     const room = code ? this.rooms.get(code) : undefined;
     const match = room?.match;
     const player = match?.players.find((p) => p.id === userId);
-    if (!room || !match || !player || match.left.has(userId)) {
+    if (!room || !match || !player || match.departed.has(userId)) {
       return { accepted: false, reason: "not_in_match" };
     }
     if (player.lives <= 0) return { accepted: false, reason: "eliminated" };
@@ -521,7 +528,7 @@ export class ArenaService implements OnModuleDestroy {
 
     // A sala volta à espera para poderem jogar outra vez; quem saiu já não está nela.
     room.match = null;
-    for (const id of match.left) room.members.delete(id);
+    for (const id of match.departed) room.members.delete(id);
     for (const m of room.members.values()) m.ready = false;
     if (room.members.size === 0) this.closeRoom(room, "empty");
     else {
