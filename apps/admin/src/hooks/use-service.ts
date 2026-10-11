@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   challengeService,
   friendService,
-  gameService,
   lessonService,
   leaderboardService as rankingService,
   notificationService,
@@ -32,7 +31,6 @@ export const useAchievements = () =>
 export const useNotifications = () =>
   useQuery({ queryKey: ["notifications"], queryFn: notificationService.list });
 export const useDaily = () => useQuery({ queryKey: ["daily"], queryFn: challengeService.getDaily });
-export const useRoom = () => useQuery({ queryKey: ["room"], queryFn: () => gameService.getRoom() });
 export const usePlans = () =>
   useQuery({ queryKey: ["plans"], queryFn: subscriptionService.getPlans });
 export const useShop = () => useQuery({ queryKey: ["shop"], queryFn: shopService.getItems });
