@@ -14,7 +14,6 @@ import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ChallengesRouteImport } from './routes/challenges'
 import { Route as DailyRouteImport } from './routes/daily'
-import { Route as EliminationRouteImport } from './routes/elimination'
 import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as LearnRouteImport } from './routes/learn'
 import { Route as LessonResultRouteImport } from './routes/lesson-result'
@@ -23,9 +22,7 @@ import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as QuizRouteImport } from './routes/quiz'
 import { Route as RankingRouteImport } from './routes/ranking'
-import { Route as RoomRouteImport } from './routes/room'
 import { Route as SchoolsRouteImport } from './routes/schools'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ShopRouteImport } from './routes/shop'
@@ -97,11 +94,6 @@ const DailyRoute = DailyRouteImport.update({
   path: '/daily',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EliminationRoute = EliminationRouteImport.update({
-  id: '/elimination',
-  path: '/elimination',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const FriendsRoute = FriendsRouteImport.update({
   id: '/friends',
   path: '/friends',
@@ -142,19 +134,9 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const QuizRoute = QuizRouteImport.update({
-  id: '/quiz',
-  path: '/quiz',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const RankingRoute = RankingRouteImport.update({
   id: '/ranking',
   path: '/ranking',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RoomRoute = RoomRouteImport.update({
-  id: '/room',
-  path: '/room',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SchoolsRoute = SchoolsRouteImport.update({
@@ -389,7 +371,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/challenges': typeof ChallengesRoute
   '/daily': typeof DailyRoute
-  '/elimination': typeof EliminationRoute
   '/friends': typeof FriendsRoute
   '/learn': typeof LearnRoute
   '/lesson-result': typeof LessonResultRoute
@@ -398,9 +379,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
-  '/quiz': typeof QuizRoute
   '/ranking': typeof RankingRoute
-  '/room': typeof RoomRoute
   '/schools': typeof SchoolsRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
@@ -452,7 +431,6 @@ export interface FileRoutesByTo {
   '/achievements': typeof AchievementsRoute
   '/challenges': typeof ChallengesRoute
   '/daily': typeof DailyRoute
-  '/elimination': typeof EliminationRoute
   '/friends': typeof FriendsRoute
   '/learn': typeof LearnRoute
   '/lesson-result': typeof LessonResultRoute
@@ -461,9 +439,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
-  '/quiz': typeof QuizRoute
   '/ranking': typeof RankingRoute
-  '/room': typeof RoomRoute
   '/schools': typeof SchoolsRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
@@ -517,7 +493,6 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/challenges': typeof ChallengesRoute
   '/daily': typeof DailyRoute
-  '/elimination': typeof EliminationRoute
   '/friends': typeof FriendsRoute
   '/learn': typeof LearnRoute
   '/lesson-result': typeof LessonResultRoute
@@ -526,9 +501,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
-  '/quiz': typeof QuizRoute
   '/ranking': typeof RankingRoute
-  '/room': typeof RoomRoute
   '/schools': typeof SchoolsRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
@@ -583,7 +556,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/challenges'
     | '/daily'
-    | '/elimination'
     | '/friends'
     | '/learn'
     | '/lesson-result'
@@ -592,9 +564,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/premium'
     | '/profile'
-    | '/quiz'
     | '/ranking'
-    | '/room'
     | '/schools'
     | '/settings'
     | '/shop'
@@ -646,7 +616,6 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/challenges'
     | '/daily'
-    | '/elimination'
     | '/friends'
     | '/learn'
     | '/lesson-result'
@@ -655,9 +624,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/premium'
     | '/profile'
-    | '/quiz'
     | '/ranking'
-    | '/room'
     | '/schools'
     | '/settings'
     | '/shop'
@@ -710,7 +677,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/challenges'
     | '/daily'
-    | '/elimination'
     | '/friends'
     | '/learn'
     | '/lesson-result'
@@ -719,9 +685,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/premium'
     | '/profile'
-    | '/quiz'
     | '/ranking'
-    | '/room'
     | '/schools'
     | '/settings'
     | '/shop'
@@ -775,7 +739,6 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   ChallengesRoute: typeof ChallengesRoute
   DailyRoute: typeof DailyRoute
-  EliminationRoute: typeof EliminationRoute
   FriendsRoute: typeof FriendsRoute
   LearnRoute: typeof LearnRoute
   LessonResultRoute: typeof LessonResultRoute
@@ -784,9 +747,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   PremiumRoute: typeof PremiumRoute
   ProfileRoute: typeof ProfileRoute
-  QuizRoute: typeof QuizRoute
   RankingRoute: typeof RankingRoute
-  RoomRoute: typeof RoomRoute
   SchoolsRoute: typeof SchoolsRoute
   SettingsRoute: typeof SettingsRoute
   ShopRoute: typeof ShopRoute
@@ -849,13 +810,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DailyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/elimination': {
-      id: '/elimination'
-      path: '/elimination'
-      fullPath: '/elimination'
-      preLoaderRoute: typeof EliminationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/friends': {
       id: '/friends'
       path: '/friends'
@@ -912,25 +866,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/quiz': {
-      id: '/quiz'
-      path: '/quiz'
-      fullPath: '/quiz'
-      preLoaderRoute: typeof QuizRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/ranking': {
       id: '/ranking'
       path: '/ranking'
       fullPath: '/ranking'
       preLoaderRoute: typeof RankingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/room': {
-      id: '/room'
-      path: '/room'
-      fullPath: '/room'
-      preLoaderRoute: typeof RoomRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/schools': {
@@ -1309,7 +1249,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   ChallengesRoute: ChallengesRoute,
   DailyRoute: DailyRoute,
-  EliminationRoute: EliminationRoute,
   FriendsRoute: FriendsRoute,
   LearnRoute: LearnRoute,
   LessonResultRoute: LessonResultRoute,
@@ -1318,9 +1257,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PremiumRoute: PremiumRoute,
   ProfileRoute: ProfileRoute,
-  QuizRoute: QuizRoute,
   RankingRoute: RankingRoute,
-  RoomRoute: RoomRoute,
   SchoolsRoute: SchoolsRoute,
   SettingsRoute: SettingsRoute,
   ShopRoute: ShopRoute,

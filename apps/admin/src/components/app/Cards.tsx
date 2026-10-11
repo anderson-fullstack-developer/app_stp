@@ -2,7 +2,7 @@ import { isFeatureOn, APP_NAME } from "@stp/config";
 import { Link } from "@tanstack/react-router";
 import { Check, Crown, Flame, Lock, Star, Swords, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Achievement, Friend, GamePlayer, LeaderboardEntry, Lesson } from "@/types";
+import type { Achievement, Friend, LeaderboardEntry, Lesson } from "@/types";
 import { Avatar } from "./Badges";
 import { AppButton } from "./Buttons";
 
@@ -137,30 +137,6 @@ export function AchievementBadge({ a }: { a: Achievement }) {
         <div className="mt-1.5 h-1.5 w-full rounded-full bg-border">
           <div className="h-full rounded-full bg-accent-deep" style={{ width: `${a.progress}%` }} />
         </div>
-      )}
-    </div>
-  );
-}
-
-export function RoomPlayer({ p }: { p: GamePlayer }) {
-  return (
-    <div className="flex items-center gap-3 card rounded-2xl px-3 py-2.5">
-      <Avatar name={p.name} color={p.avatarColor} size={40} />
-      <span className="flex-1 font-semibold">{p.name}</span>
-      {p.isHost ? (
-        <span className="inline-flex items-center gap-1 rounded-full bg-accent/30 px-2 py-0.5 text-[11px] font-semibold text-accent-foreground">
-          <Crown className="size-3" />
-          Anfitrião
-        </span>
-      ) : (
-        <span
-          className={cn(
-            "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-            p.ready ? "bg-success-soft text-success" : "bg-muted text-muted-foreground",
-          )}
-        >
-          {p.ready ? "Pronto" : "À espera"}
-        </span>
       )}
     </div>
   );
