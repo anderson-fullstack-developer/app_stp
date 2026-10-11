@@ -1,3 +1,5 @@
+import { ServerPrivateRoom } from "@/components/play/ServerArena";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { useBlockAds } from "@/config/ads";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { KeyRound, Plus, UserPlus } from "lucide-react";
@@ -32,7 +34,13 @@ export const Route = createFileRoute("/play/private")({
   component: PrivateRoomPage,
 });
 
+/** Com sessão, a Arena real do servidor; sem sessão, a demonstração com bots. */
 function PrivateRoomPage() {
+  const server = useServerLessonsEnabled();
+  return server ? <ServerPrivateRoom /> : <DemoPrivateRoomPage />;
+}
+
+function DemoPrivateRoomPage() {
   useBlockAds("multiplayer");
   const { code } = Route.useSearch();
   const [step, setStep] = useState<"choose" | "setup" | "lobby">(code ? "lobby" : "choose");

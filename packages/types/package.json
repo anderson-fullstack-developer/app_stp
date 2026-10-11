@@ -8,7 +8,8 @@
     "./multiplayer": "./src/multiplayer.ts",
     "./game-contract": "./src/game-contract.ts",
     "./async": "./src/async.ts",
-    "./api": "./src/api.ts"
+    "./api": "./src/api.ts",
+    "./arena": "./src/arena.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

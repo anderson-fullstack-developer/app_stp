@@ -1,3 +1,5 @@
+import { ServerSurvival } from "@/components/play/ServerArena";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { useBlockAds } from "@/config/ads";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useReducer, useRef } from "react";
@@ -88,7 +90,13 @@ interface MatchRef {
 
 const skillOf = (id: string) => opponentSkill(id);
 
+/** Com sessão, a Arena real do servidor; sem sessão, a demonstração com bots. */
 function Survival() {
+  const server = useServerLessonsEnabled();
+  return server ? <ServerSurvival /> : <DemoSurvival />;
+}
+
+function DemoSurvival() {
   useBlockAds("multiplayer");
   const navigate = useNavigate();
   const [, bump] = useReducer((x: number) => x + 1, 0);
