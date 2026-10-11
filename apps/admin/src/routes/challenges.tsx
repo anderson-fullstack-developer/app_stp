@@ -94,6 +94,12 @@ function Play() {
             />
           </Link>
         </div>
+        <Link
+          to="/play/history"
+          className="block text-center text-sm font-bold text-primary underline-offset-2 hover:underline"
+        >
+          Ver o meu histórico de partidas
+        </Link>
         <Link to="/play/tournaments" className="block">
           <GameModeCard
             icon={Trophy}

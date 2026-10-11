@@ -10,6 +10,7 @@ import type {
   ArenaConfigDto,
   ArenaCountdownEvent,
   ArenaFinishedEvent,
+  ArenaInviteEvent,
   ArenaMatchDto,
   ArenaPlayerDto,
   ArenaQuestionDto,
@@ -46,6 +47,8 @@ export interface ArenaState {
   match: ArenaMatchState | null;
   finished: ArenaFinishedEvent | null;
   reward: ArenaRewardEvent | null;
+  /** Convite recebido agora (mostrado como aviso). */
+  invite: ArenaInviteEvent | null;
 }
 
 const initial: ArenaState = {
@@ -56,6 +59,7 @@ const initial: ArenaState = {
   match: null,
   finished: null,
   reward: null,
+  invite: null,
 };
 
 let state: ArenaState = initial;
@@ -151,6 +155,7 @@ function connect() {
     setMatch({ phase: "finished" });
   });
   socket.on("match:reward", (p: ArenaRewardEvent) => set({ reward: p }));
+  socket.on("arena:invite", (p: ArenaInviteEvent) => set({ invite: p }));
 }
 
 function ack<T extends object>(event: string, body?: unknown): Promise<ArenaAck<T>> {
@@ -206,6 +211,8 @@ export const arena = {
   },
   ready: (ready: boolean) => ack<{ room: ArenaRoomDto }>("room:ready", { ready }),
   start: () => ack("room:start"),
+  invite: (userId: string) => ack("room:invite", { userId }),
+  dismissInvite: () => set({ invite: null }),
   async answer(optionId: string): Promise<ArenaAnswerAck> {
     const m = state.match;
     if (!socket || !m?.question || m.selected) return { accepted: false, reason: "duplicate" };

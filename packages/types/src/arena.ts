@@ -127,6 +127,13 @@ export interface ArenaRewardEvent {
   reason: "ok" | "private_small" | "daily_limit" | "left";
 }
 
+export interface ArenaInviteEvent {
+  code: string;
+  from: { userId: string; username: string; name: string; avatarColor: string | null };
+  at: number;
+  expiresAt: number;
+}
+
 export type ArenaAck<T = object> =
   | ({ ok: true } & T)
   | { ok: false; code: string; message: string };

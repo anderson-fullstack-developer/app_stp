@@ -40,6 +40,7 @@ export function ServerNotificationsList() {
   const text = (n: NotificationDto) => {
     if (n.type === "friend_request") return t("social.notifFriendRequest", { name: n.user.name });
     if (n.type === "friend_accepted") return t("social.notifFriendAccepted", { name: n.user.name });
+    if (n.type === "arena_invite") return t("social.notifArenaInvite", { name: n.user.name });
     const titles = t("achievementsList", { returnObjects: true }) as Record<
       string,
       { title: string }
@@ -72,6 +73,11 @@ export function ServerNotificationsList() {
             <p className="font-semibold leading-tight">{text(n)}</p>
             <p className="text-xs text-muted-foreground">{when(n.at)}</p>
           </div>
+          {n.type === "arena_invite" && (
+            <Link to="/play/private" search={{ code: n.code }}>
+              <AppButton size="sm">{t("social.join")}</AppButton>
+            </Link>
+          )}
           {n.type === "friend_request" && (
             <div className="flex flex-col gap-1.5">
               <AppButton size="sm" onClick={() => act.mutate(() => socialApi.accept(n.requestId))}>

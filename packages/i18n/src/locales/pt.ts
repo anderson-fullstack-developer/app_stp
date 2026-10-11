@@ -309,6 +309,8 @@ export const pt = {
     rankingResets: "O ranking semanal recomeça à segunda-feira.",
     notifFriendRequest: "{{name}} quer ser teu amigo.",
     notifFriendAccepted: "{{name}} aceitou o teu pedido de amizade.",
+    notifArenaInvite: "{{name}} convidou-te para uma sala da Arena.",
+    join: "Entrar",
     notifAchievement: "Nova conquista: {{title}}",
     profileTitle: "Perfil",
     notFound: "Utilizador não encontrado.",

@@ -307,6 +307,8 @@ export const en: Messages = {
     rankingResets: "The weekly ranking restarts on Monday.",
     notifFriendRequest: "{{name}} wants to be your friend.",
     notifFriendAccepted: "{{name}} accepted your friend request.",
+    notifArenaInvite: "{{name}} invited you to an Arena room.",
+    join: "Join",
     notifAchievement: "New achievement: {{title}}",
     profileTitle: "Profile",
     notFound: "User not found.",

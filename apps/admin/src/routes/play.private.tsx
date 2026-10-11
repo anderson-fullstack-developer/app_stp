@@ -37,7 +37,8 @@ export const Route = createFileRoute("/play/private")({
 /** Com sessão, a Arena real do servidor; sem sessão, a demonstração com bots. */
 function PrivateRoomPage() {
   const server = useServerLessonsEnabled();
-  return server ? <ServerPrivateRoom /> : <DemoPrivateRoomPage />;
+  const { code } = Route.useSearch();
+  return server ? <ServerPrivateRoom code={code} /> : <DemoPrivateRoomPage />;
 }
 
 function DemoPrivateRoomPage() {

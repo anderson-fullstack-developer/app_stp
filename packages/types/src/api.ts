@@ -230,7 +230,34 @@ type NotificationUser = Pick<PublicUserDto, "id" | "username" | "name" | "avatar
 export type NotificationDto =
   | { id: string; type: "friend_request"; at: string; requestId: string; user: NotificationUser }
   | { id: string; type: "friend_accepted"; at: string; user: NotificationUser }
-  | { id: string; type: "achievement"; at: string; achievementKey: string };
+  | { id: string; type: "achievement"; at: string; achievementKey: string }
+  | {
+      id: string;
+      type: "arena_invite";
+      at: string;
+      code: string;
+      expiresAt: string;
+      user: NotificationUser;
+    };
+
+/** GET /api/v1/arena/matches */
+export interface ArenaHistoryDto {
+  matchId: string;
+  mode: string;
+  languageId: string;
+  roomCode: string | null;
+  finishedAt: string;
+  rounds: number;
+  players: number;
+  rewarded: boolean;
+  place: number | null;
+  correct: number;
+  wrong: number;
+  timeouts: number;
+  left: boolean;
+  xp: number;
+  coins: number;
+}
 
 /** GET /api/v1/shop */
 export interface ShopDto {
