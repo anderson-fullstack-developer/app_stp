@@ -3,7 +3,9 @@ import { randomUUID } from "node:crypto";
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { io, type Socket } from "socket.io-client";
+import { ArenaController } from "../src/arena/arena.controller.js";
 import { ArenaAuthService } from "../src/arena/arena-auth.service.js";
+import { NotificationsService } from "../src/social/notifications.service.js";
 import { ARENA_TIMINGS, ArenaService } from "../src/arena/arena.service.js";
 import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/configure-app.js";
@@ -247,6 +249,55 @@ describe.skipIf(!dbUrl)(
       expect(await rewardB).toMatchObject({ xp: 0, reason: "left" });
       a.off("match:question");
       await ack(a, "room:leave");
+    });
+
+    it("convidar amigos (só amigos) e histórico de partidas", async () => {
+      await prisma.friendship.create({
+        data: {
+          requesterId: ids["ana"]!,
+          addresseeId: ids["bia"]!,
+          status: "ACCEPTED",
+          acceptedAt: new Date(),
+        },
+      });
+      const a = await connect(ids["ana"]!);
+      const b = await connect(ids["bia"]!);
+      const { room } = await ack(a, "room:create", {
+        config: { players: 4, lives: 1, seconds: 5 },
+      });
+      const got = next(b, "arena:invite");
+      expect(await ack(a, "room:invite", { userId: ids["bia"] })).toEqual({ ok: true });
+      const invite = await got;
+      expect(invite).toMatchObject({ code: room.code, from: { userId: ids["ana"] } });
+      expect(await ack(a, "room:invite", { userId: ids["caio"] })).toMatchObject({
+        ok: false,
+        code: "NOT_FRIENDS",
+      });
+
+      const asBia = { id: ids["bia"]!, clerkId: "", roles: [] };
+      const notes = await app.get(NotificationsService).list(asBia);
+      expect(notes[0]).toMatchObject({
+        type: "arena_invite",
+        code: room.code,
+        user: { id: ids["ana"] },
+      });
+
+      await ack(b, "room:join", { code: room.code });
+      // Já está na sala: o convite deixa de aparecer.
+      const after = await app.get(NotificationsService).list(asBia);
+      expect(after.some((n) => n.type === "arena_invite")).toBe(false);
+      await ack(a, "room:leave");
+      await ack(b, "room:leave");
+
+      const history = await app
+        .get(ArenaController)
+        .matches({ id: ids["ana"]!, clerkId: "", roles: [] });
+      expect(history.length).toBeGreaterThanOrEqual(2);
+      expect(history.find((h) => h.players === 4)).toMatchObject({
+        place: 1,
+        xp: 250,
+        rewarded: true,
+      });
     });
   },
 );

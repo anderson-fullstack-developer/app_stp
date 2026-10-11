@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
 import { PrismaService } from "../database/prisma.service.js";
+import { SocialService } from "../social/social.service.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import { isPubliclyListed, visibleContentStatuses } from "../languages/visibility.js";
 import { buildQuestions, type StoredQuestion, toPublicQuestion } from "../lessons/lesson-rules.js";
@@ -101,7 +102,19 @@ interface Match {
   timer: ReturnType<typeof setTimeout> | null;
 }
 
+/** Convite para uma sala (em memória; expira ou deixa de valer quando a sala começa/fecha). */
+export interface ArenaInvite {
+  code: string;
+  from: { userId: string; username: string; name: string; avatarColor: string | null };
+  at: number;
+  expiresAt: number;
+}
+
+const INVITE_TTL_MS = 10 * 60 * 1000;
+const MAX_INVITES_PER_ROOM = 30;
+
 interface Room {
+  invitesSent: number;
   code: string;
   hostId: string;
   config: ArenaConfig;
@@ -124,10 +137,12 @@ export class ArenaService implements OnModuleDestroy {
   private readonly logger = new Logger(ArenaService.name);
   private readonly rooms = new Map<string, Room>();
   private readonly roomOf = new Map<string, string>();
+  private readonly invites = new Map<string, ArenaInvite[]>();
   private emit: ArenaEmit = () => {};
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly social: SocialService,
     @Inject(ARENA_TIMINGS) private readonly timings: ArenaTimings,
   ) {}
 
@@ -165,6 +180,7 @@ export class ArenaService implements OnModuleDestroy {
       locale: LOCALES.includes(who.uiLocale) ? who.uiLocale : "en",
       members: new Map(),
       match: null,
+      invitesSent: 0,
     };
     this.rooms.set(code, room);
     this.addMember(room, who);
@@ -257,6 +273,63 @@ export class ArenaService implements OnModuleDestroy {
     if (!room || !member) return null;
     this.markConnected(room, member, true);
     return { room: this.view(room), match: room.match ? this.matchView(room.match) : null };
+  }
+
+  /**
+   * Convidar um amigo (amizade aceite, sem bloqueios) para a minha sala à espera.
+   * Chega em tempo real (se estiver ligado) e aparece nas notificações.
+   */
+  async invite(who: ArenaIdentity, friendId: string): Promise<void> {
+    const room = this.requireRoom(who.userId);
+    if (room.match) throw new ArenaError("ROOM_STARTED", "A partida já começou.");
+    if (room.members.has(friendId)) {
+      throw new ArenaError("ALREADY_IN_ROOM", "Já está na sala.");
+    }
+    if (room.members.size >= room.config.players) {
+      throw new ArenaError("ROOM_FULL", "A sala está cheia.");
+    }
+    if (room.invitesSent >= MAX_INVITES_PER_ROOM) {
+      throw new ArenaError("TOO_MANY_INVITES", "Já enviaste convites suficientes.");
+    }
+    const friends = await this.social.friendIds(who.userId);
+    if (!friends.includes(friendId)) {
+      throw new ArenaError("NOT_FRIENDS", "Só podes convidar amigos.");
+    }
+    room.invitesSent += 1;
+    const invite: ArenaInvite = {
+      code: room.code,
+      from: {
+        userId: who.userId,
+        username: who.username,
+        name: who.name,
+        avatarColor: who.avatarColor,
+      },
+      at: Date.now(),
+      expiresAt: Date.now() + INVITE_TTL_MS,
+    };
+    const list = (this.invites.get(friendId) ?? []).filter(
+      (i) => !(i.code === room.code && i.from.userId === who.userId),
+    );
+    this.invites.set(friendId, [...list, invite]);
+    this.emit({ user: friendId }, "arena:invite", invite);
+  }
+
+  /** Convites ainda válidos (sala existe, à espera e com lugar). */
+  invitesFor(userId: string): ArenaInvite[] {
+    const now = Date.now();
+    const valid = (this.invites.get(userId) ?? []).filter((i) => {
+      const room = this.rooms.get(i.code);
+      return (
+        i.expiresAt > now &&
+        room &&
+        !room.match &&
+        !room.members.has(userId) &&
+        room.members.size < room.config.players
+      );
+    });
+    if (valid.length) this.invites.set(userId, valid);
+    else this.invites.delete(userId);
+    return valid;
   }
 
   /** Nome da sala no Socket.IO onde está o utilizador (para o gateway juntar o socket). */

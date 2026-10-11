@@ -68,6 +68,12 @@ export interface MatchStanding {
 
 /** Eventos servidor → cliente. */
 export interface ArenaServerEvents {
+  "arena:invite": (p: {
+    code: string;
+    from: { userId: string; username: string; name: string; avatarColor: string | null };
+    at: number;
+    expiresAt: number;
+  }) => void;
   "room:state": (room: RoomView) => void;
   "room:closed": (p: { code: string; reason: "host_left" | "empty" }) => void;
   "match:countdown": (p: { matchId: string; startsAt: number; serverNow: number }) => void;

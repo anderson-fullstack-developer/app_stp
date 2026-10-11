@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { ArenaService } from "../arena/arena.service.js";
 import { PrismaService } from "../database/prisma.service.js";
 import type { AuthUser } from "../users/users.service.js";
 
@@ -14,7 +15,10 @@ const WHO = { id: true, username: true, name: true, avatarColor: true } as const
  */
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly arena: ArenaService,
+  ) {}
 
   async list(user: AuthUser, now = new Date()) {
     const since = new Date(now.getTime() - WINDOW_DAYS * 24 * 60 * 60 * 1000);
@@ -42,7 +46,21 @@ export class NotificationsService {
         take: LIMIT,
       }),
     ]);
+    const invites = this.arena.invitesFor(user.id);
     const items = [
+      ...invites.map((i) => ({
+        id: `arena_invite:${i.code}:${i.from.userId}`,
+        type: "arena_invite" as const,
+        at: new Date(i.at).toISOString(),
+        code: i.code,
+        expiresAt: new Date(i.expiresAt).toISOString(),
+        user: {
+          id: i.from.userId,
+          username: i.from.username,
+          name: i.from.name,
+          avatarColor: i.from.avatarColor,
+        },
+      })),
       ...requests.map((r) => ({
         id: `friend_request:${r.id}`,
         type: "friend_request" as const,

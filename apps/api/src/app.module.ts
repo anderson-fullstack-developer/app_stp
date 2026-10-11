@@ -13,6 +13,7 @@ import { NotificationsService } from "./social/notifications.service.js";
 import { RankingService } from "./social/ranking.service.js";
 import { AdminContentService } from "./admin/admin-content.service.js";
 import { ArenaAuthService } from "./arena/arena-auth.service.js";
+import { ArenaController } from "./arena/arena.controller.js";
 import { ArenaGateway } from "./arena/arena.gateway.js";
 import { ARENA_TIMINGS, ArenaService, DEFAULT_ARENA_TIMINGS } from "./arena/arena.service.js";
 import { AdminUsersService } from "./admin/admin-users.service.js";
@@ -71,6 +72,7 @@ export class AppModule {
         SocialController,
         ShopController,
         AdminController,
+        ArenaController,
       ],
       providers: [
         { provide: ENV, useValue: env },
