@@ -199,7 +199,7 @@ export interface FriendRequest {
 export type {
   QuizQuestion, MatchPlayerSeed, SurvivalPlayer, MatchConfig, MatchResult, PrivateRoom, LobbyMember, RoomMode,
   RoundSummary as GameRound, MatchResult as GameResult,
-} from "./multiplayer";
+} from "./multiplayer.js";
 export interface GameAnswer {
   matchId: string;
   questionId: string;

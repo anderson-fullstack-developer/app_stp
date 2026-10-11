@@ -1,4 +1,4 @@
-import type { AvatarColor } from "./index";
+import type { AvatarColor } from "./index.js";
 
 /** Quiz types supported by the multiplayer UI. MULTIPLE_CHOICE is the v1 default. */
 export type QuizType = "MULTIPLE_CHOICE" | "LISTEN_AND_CHOOSE" | "IMAGE_SELECT" | "TRUE_FALSE";

@@ -133,6 +133,7 @@ model Language {
   variants        LanguageVariant[]
   courses         Course[]
   dailyChallenges DailyChallenge[]
+  arenaMatches    ArenaMatch[]
   vocabulary      Vocabulary[]
   phrases         Phrase[]
   exercises       Exercise[]
@@ -212,6 +213,8 @@ model User {
   friendRequestsReceived Friendship[]            @relation("FriendAddressee")
   blocking               UserBlock[]             @relation("Blocker")
   blockedBy              UserBlock[]             @relation("Blocked")
+  arenaMatchesHosted     ArenaMatch[]            @relation("ArenaHost")
+  arenaResults           ArenaMatchPlayer[]
 
   @@index([status])
   @@map("users")
@@ -830,4 +833,56 @@ model UserBlock {
 
   @@id([blockerId, blockedId])
   @@map("user_blocks")
+}
+
+enum ArenaMatchStatus {
+  IN_PROGRESS
+  FINISHED
+  CANCELLED
+}
+
+/// Partida da Arena (registo do servidor; o estado ao vivo fica em memória — ADR-08).
+model ArenaMatch {
+  id         String           @id @default(uuid(7)) @db.Uuid
+  /// Código da sala privada (null em partidas públicas).
+  roomCode   String?
+  mode       String
+  languageId String
+  locale     String
+  hostId     String?          @db.Uuid
+  lives      Int
+  seconds    Int
+  status     ArenaMatchStatus @default(IN_PROGRESS)
+  rounds     Int              @default(0)
+  /// Pagou recompensas (pública ou sala privada com ≥ 4 jogadores reais).
+  rewarded   Boolean          @default(false)
+  startedAt  DateTime         @default(now())
+  finishedAt DateTime?
+
+  language Language           @relation(fields: [languageId], references: [id])
+  host     User?              @relation("ArenaHost", fields: [hostId], references: [id], onDelete: SetNull)
+  players  ArenaMatchPlayer[]
+
+  @@index([startedAt])
+  @@map("arena_matches")
+}
+
+model ArenaMatchPlayer {
+  matchId  String  @db.Uuid
+  userId   String  @db.Uuid
+  place    Int?
+  correct  Int     @default(0)
+  wrong    Int     @default(0)
+  timeouts Int     @default(0)
+  /// Saiu a meio (sem recompensa).
+  left     Boolean @default(false)
+  xp       Int     @default(0)
+  coins    Int     @default(0)
+
+  match ArenaMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([matchId, userId])
+  @@index([userId])
+  @@map("arena_match_players")
 }

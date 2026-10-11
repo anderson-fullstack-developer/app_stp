@@ -6,7 +6,7 @@
  * (find match, ready, chosen option) and RENDERS snapshots/events it receives.
  * Fields below marked "server" must never be computed by the client in production.
  */
-import type { JoinRoomResult, MatchConfig, MatchPlayerSeed, PrivateRoom, RoomMode } from "./multiplayer";
+import type { JoinRoomResult, MatchConfig, MatchPlayerSeed, PrivateRoom, RoomMode } from "./multiplayer.js";
 
 export type GamePhase = "waiting" | "countdown" | "question" | "reveal" | "round_summary" | "finished";
 
