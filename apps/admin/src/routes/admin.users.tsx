@@ -1,3 +1,5 @@
+import { ServerUsers } from "@/admin/ServerAdminPages";
+import { useServerAdmin } from "@/admin/server";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -30,7 +32,13 @@ export const Route = createFileRoute("/admin/users")({
   component: Users,
 });
 
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
 function Users() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerUsers /> : <DemoUsers />;
+}
+
+function DemoUsers() {
   const db = useAdminDB();
   const [q, setQ] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);

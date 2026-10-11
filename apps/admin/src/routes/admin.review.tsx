@@ -1,3 +1,5 @@
+import { ServerReviewQueue } from "@/admin/ServerAdminPages";
+import { useServerAdmin } from "@/admin/server";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { HistoryList, PlayButton, ReviewActions } from "@/admin/content";
@@ -27,7 +29,14 @@ const TITLE: Record<S, string> = {
   REJECTED: "Conteúdo rejeitado",
 };
 
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
 function Review() {
+  const server = useServerAdmin();
+  const { status } = Route.useSearch();
+  return server.enabled ? <ServerReviewQueue status={status} /> : <DemoReview />;
+}
+
+function DemoReview() {
   const { status } = Route.useSearch();
   const db = useAdminDB();
   const [openId, setOpenId] = useState<string | null>(null);

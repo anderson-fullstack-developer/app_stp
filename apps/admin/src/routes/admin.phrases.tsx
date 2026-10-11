@@ -1,3 +1,5 @@
+import { ServerContentManager } from "@/admin/ServerAdminPages";
+import { useServerAdmin } from "@/admin/server";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -55,7 +57,13 @@ const blank = (): PhraseItem => ({
   history: [],
 });
 
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
 function Phrases() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerContentManager kind="phrase" /> : <DemoPhrases />;
+}
+
+function DemoPhrases() {
   const db = useAdminDB();
   const [status, setStatus] = useState("Todos");
   const [editing, setEditing] = useState<PhraseItem | null>(null);

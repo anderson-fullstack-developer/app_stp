@@ -1,3 +1,4 @@
+import { useClerk } from "@clerk/tanstack-react-start";
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useHydrated } from "@tanstack/react-router";
 import { LogOut, PanelLeftClose, PanelLeftOpen, Search, ShieldAlert } from "lucide-react";
@@ -7,25 +8,31 @@ import { APP_CONFIG } from "@stp/config";
 import { cn } from "@/lib/utils";
 import { ADMIN_NAV, permissionFor } from "./nav";
 import { can, ROLE_LABEL } from "./permissions";
+import { SERVER_ADMIN_ROUTES, useServerAdmin } from "./server";
 import { adminAuth, useAdminSession } from "./store";
 import type { AdminRole } from "./types";
 import { Btn, Select } from "./ui";
 
 export function AdminShell() {
   const hydrated = useHydrated();
-  const session = useAdminSession();
+  const demoSession = useAdminSession();
+  const server = useServerAdmin();
+  const { signOut } = useClerk();
+  // Com sessão Clerk, o papel vem do servidor; sem sessão, o modo de demonstração.
+  const session = server.enabled ? server.session : demoSession;
   const navigate = useNavigate();
   const loc = useRouterState({ select: (s) => s.location });
   const [collapsed, setCollapsed] = useState(false);
   const [q, setQ] = useState("");
 
   useEffect(() => {
-    if (!hydrated) return;
-    if (!session) navigate({ to: "/admin/unauthorized" });
-    else if (session.expiresAt < Date.now()) navigate({ to: "/admin/session-expired" });
-  }, [hydrated, session, navigate]);
+    if (!hydrated || server.loading) return;
+    if (!session) {
+      navigate({ to: server.enabled ? "/admin/forbidden" : "/admin/unauthorized" });
+    } else if (session.expiresAt < Date.now()) navigate({ to: "/admin/session-expired" });
+  }, [hydrated, session, server.enabled, server.loading, navigate]);
 
-  if (!hydrated || !session || session.expiresAt < Date.now()) {
+  if (!hydrated || server.loading || !session || session.expiresAt < Date.now()) {
     return (
       <div className="grid min-h-screen place-items-center bg-muted text-sm text-muted-foreground">
         A carregar painel…
@@ -132,24 +139,34 @@ export function AdminShell() {
             />
           </form>
           <div className="ml-auto flex items-center gap-2">
-            <span className="hidden text-xs text-muted-foreground lg:inline">Perfil (demo):</span>
-            <Select<AdminRole>
-              value={session.role}
-              onChange={(r) => adminAuth.switchRole(r)}
-              className="h-8 w-44 text-xs"
-              options={(Object.keys(ROLE_LABEL) as AdminRole[]).map((r) => ({
-                value: r,
-                label: ROLE_LABEL[r],
-              }))}
-            />
+            {!server.enabled && (
+              <>
+                <span className="hidden text-xs text-muted-foreground lg:inline">
+                  Perfil (demo):
+                </span>
+                <Select<AdminRole>
+                  value={session.role}
+                  onChange={(r) => adminAuth.switchRole(r)}
+                  className="h-8 w-44 text-xs"
+                  options={(Object.keys(ROLE_LABEL) as AdminRole[]).map((r) => ({
+                    value: r,
+                    label: ROLE_LABEL[r],
+                  }))}
+                />
+              </>
+            )}
             <div className="hidden text-right leading-tight md:block">
               <p className="text-sm font-semibold">{session.email}</p>
-              <p className="text-[11px] text-muted-foreground">{session.role}</p>
+              <p className="text-[11px] text-muted-foreground">{ROLE_LABEL[session.role]}</p>
             </div>
             <Btn
               variant="ghost"
               size="sm"
               onClick={() => {
+                if (server.enabled) {
+                  void signOut({ redirectUrl: "/" });
+                  return;
+                }
                 adminAuth.logout();
                 navigate({ to: "/admin/login" });
               }}
@@ -160,12 +177,22 @@ export function AdminShell() {
           </div>
         </header>
         <main className="flex-1 p-6">
+          {server.enabled && !isServerRoute(loc.pathname) && (
+            <p className="mb-4 rounded-lg border border-warning/60 bg-warning/10 px-3 py-2 text-sm font-medium">
+              Dados de demonstração — esta área ainda não está ligada ao servidor.
+            </p>
+          )}
           {allowed ? <Outlet /> : <ForbiddenInline role={session.role} />}
         </main>
       </div>
     </div>
   );
 }
+
+const isServerRoute = (path: string) => {
+  const p = path.replace(/\/+$/, "") || "/admin";
+  return SERVER_ADMIN_ROUTES.includes(p);
+};
 
 function ForbiddenInline({ role }: { role: AdminRole }) {
   return (
