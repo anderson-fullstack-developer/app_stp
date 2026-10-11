@@ -3,7 +3,7 @@
  * tem ninguém no painel que lho dê). Depois disso, os papéis dão-se no painel.
  *
  *   pnpm --filter @stp/api exec tsx scripts/grant-role.ts --list
- *   pnpm --filter @stp/api exec tsx scripts/grant-role.ts <email> <PAPEL> [língua]
+ *   pnpm --filter @stp/api exec tsx scripts/grant-role.ts <email|@username> <PAPEL> [língua]
  */
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -30,7 +30,9 @@ async function main() {
   if (!first || !ROLES.includes(role)) {
     throw new Error(`Uso: grant-role.ts <email> <${ROLES.join("|")}> [língua]`);
   }
-  const user = await prisma.user.findUnique({ where: { email: first.toLowerCase() } });
+  const user = first.startsWith("@")
+    ? await prisma.user.findUnique({ where: { username: first.slice(1) } })
+    : await prisma.user.findUnique({ where: { email: first.toLowerCase() } });
   if (!user) throw new Error("Conta não encontrada (entra primeiro na app com esse email).");
   const existing = await prisma.userRole.findFirst({
     where: { userId: user.id, role, languageId },
