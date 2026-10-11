@@ -26,6 +26,7 @@ const CreateBody = z.object({
 });
 const JoinBody = z.object({ code: z.string().trim().min(4).max(12) });
 const ReadyBody = z.object({ ready: z.boolean() });
+const InviteBody = z.object({ userId: z.uuid() });
 const AnswerBody = z.object({ questionId: z.string().max(80), optionId: z.string().max(80) });
 
 type ArenaSocket = Socket & { data: { identity?: ArenaIdentity } };
@@ -119,6 +120,14 @@ export class ArenaGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     return this.run(socket, async (who) => ({
       room: this.arena.setReady(who.userId, ReadyBody.parse(body).ready),
     }));
+  }
+
+  @SubscribeMessage("room:invite")
+  invite(@ConnectedSocket() socket: ArenaSocket, @MessageBody() body: unknown) {
+    return this.run(socket, async (who) => {
+      await this.arena.invite(who, InviteBody.parse(body).userId);
+      return {};
+    });
   }
 
   @SubscribeMessage("room:start")
