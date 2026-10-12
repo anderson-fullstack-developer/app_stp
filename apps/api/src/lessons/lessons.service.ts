@@ -77,7 +77,7 @@ export class LessonsService {
   /** Palavras de uma unidade com o significado no idioma pedido (fonte em inglês resumida). */
   /** Palavras de uma unidade com o significado no idioma pedido. */
   private unitItems(unitId: string, visible: ContentStatus[], locale: string) {
-    return loadQuizItems(this.prisma, { lesson: { unitId }, status: { in: visible } }, locale);
+    return loadQuizItems(this.prisma, { lesson: { unitId } }, locale, visible);
   }
 
   async start(user: AuthUser, lessonId: string, requestedLocale?: string) {

@@ -82,6 +82,19 @@ export class ReviewService {
     }
 
     const approving = decision.to === "APPROVED";
+    if (approving && kind === "exercise") {
+      // Um exercício aprovado mostraria a palavra: ela tem de estar aprovada primeiro.
+      const ex = await this.prisma.exercise.findUnique({
+        where: { id },
+        select: { vocabulary: { select: { status: true } } },
+      });
+      if (ex?.vocabulary && ex.vocabulary.status !== "APPROVED") {
+        throw new UnprocessableEntityException({
+          code: "VOCABULARY_NOT_APPROVED",
+          message: "Aprova primeiro a palavra deste exercício.",
+        });
+      }
+    }
     const reviewing = action !== "submit" && action !== "archive";
     const data = {
       status: decision.to,

@@ -71,7 +71,10 @@ export class DailyService {
       where: {
         languageId,
         status: { in: visibleContentStatuses(language.status) },
-        vocabulary: { AND: BOTH_LOCALES.map((l) => ({ translations: { some: { locale: l } } })) },
+        vocabulary: {
+          status: { in: visibleContentStatuses(language.status) },
+          AND: BOTH_LOCALES.map((l) => ({ translations: { some: { locale: l } } })),
+        },
       },
       select: { id: true },
     });
@@ -197,14 +200,16 @@ export class DailyService {
       this.prisma,
       { id: { in: challenge.exerciseIds } },
       useLocale,
+      visible,
     );
     const unitIds = [
       ...new Set(chosen.map((c) => c.unitId).filter((u): u is string => Boolean(u))),
     ];
     const pool = await loadQuizItems(
       this.prisma,
-      { lesson: { unitId: { in: unitIds } }, status: { in: visible } },
+      { lesson: { unitId: { in: unitIds } } },
       useLocale,
+      visible,
     );
     const questions = buildQuestions(chosen, pool, Math.random);
     try {

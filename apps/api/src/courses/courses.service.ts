@@ -59,8 +59,8 @@ export class CoursesService {
                     exercises: {
                       where: {
                         status: visible,
-                        // Só palavras com significado no idioma de quem joga.
-                        vocabulary: { translations: { some: { locale } } },
+                        // Só palavras visíveis e com significado no idioma de quem joga.
+                        vocabulary: { status: visible, translations: { some: { locale } } },
                       },
                     },
                   },
