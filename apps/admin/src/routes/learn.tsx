@@ -1,3 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
+import { dailyKeys, useDailyLanguage } from "@/hooks/use-daily";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
+import { dailyApi } from "@/services/daily-api.service";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bell, CheckCircle2, ChevronRight, Plane, School, ShoppingBag, Zap } from "lucide-react";
 import { AdSlot, RewardedAdCard } from "@/components/app/Ads";
@@ -79,8 +83,33 @@ function Learn() {
   const displayName = account?.firstName ?? serverProfile?.name ?? account?.fullName ?? user?.name;
   const { learning } = useSettings();
   const { data: langs } = useLanguages();
+  // Com sessão, a língua é a da conta (servidor); sem sessão, a das definições locais.
+  const learningId = serverProfile?.learningLanguageId ?? learning;
   const learningLang =
-    langs?.find((l) => l.id === learning) ?? langs?.find((l) => l.id === "forro");
+    langs?.find((l) => l.id === learningId) ?? langs?.find((l) => l.id === "forro");
+
+  // Cartão do desafio do dia: com sessão, números e estado vêm do servidor.
+  const serverMode = useServerLessonsEnabled();
+  const dailyLang = useDailyLanguage();
+  const serverDaily = useQuery({
+    queryKey: dailyKeys.overview(dailyLang),
+    queryFn: () => dailyApi.overview(dailyLang),
+    enabled: serverMode,
+    retry: false,
+  });
+  const dailyCard = serverMode
+    ? serverDaily.data && {
+        questions: serverDaily.data.questions,
+        xpReward: serverDaily.data.xpReward,
+        coinReward: serverDaily.data.coinReward,
+        done: serverDaily.data.me?.status === "COMPLETED",
+      }
+    : daily && {
+        questions: daily.questions,
+        xpReward: daily.xpReward,
+        coinReward: daily.coinReward,
+        done: g.dailyDone,
+      };
   const isKriolu = learningLang?.id === KRIOLU_LANGUAGE_ID;
 
   return (
@@ -159,18 +188,18 @@ function Learn() {
             />
           </div>
 
-          {daily && (
+          {dailyCard && (
             <Link
               to="/daily"
               className={cn(
                 "pressable mt-3 flex items-center gap-3 overflow-hidden rounded-3xl p-4",
-                g.dailyDone
+                dailyCard.done
                   ? "border-[1.5px] border-success bg-success-soft"
                   : "bg-sun text-accent-foreground",
               )}
             >
               <div className="grid size-12 place-items-center rounded-2xl bg-surface/50">
-                {g.dailyDone ? (
+                {dailyCard.done ? (
                   <CheckCircle2 className="size-6 text-success" />
                 ) : (
                   <Zap className="size-6 fill-current" />
@@ -179,16 +208,17 @@ function Learn() {
               <div className="flex-1">
                 <p className="font-display font-bold">Desafio do dia</p>
                 <p className="text-xs font-semibold opacity-80">
-                  {daily.questions} perguntas · +{daily.xpReward} XP · +{daily.coinReward} moedas
+                  {dailyCard.questions} perguntas · +{dailyCard.xpReward} XP · +
+                  {dailyCard.coinReward} moedas
                 </p>
               </div>
               <span
                 className={cn(
                   "rounded-full px-2.5 py-1 text-[11px] font-bold",
-                  g.dailyDone ? "bg-success text-primary-foreground" : "bg-surface/60",
+                  dailyCard.done ? "bg-success text-primary-foreground" : "bg-surface/60",
                 )}
               >
-                {g.dailyDone ? "✓ Concluído" : "Completa hoje"}
+                {dailyCard.done ? "✓ Concluído" : "Completa hoje"}
               </span>
             </Link>
           )}
