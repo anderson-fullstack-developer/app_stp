@@ -551,7 +551,6 @@ export function ServerSurvival() {
   const navigate = useNavigate();
   const [now, setNow] = useState(() => Date.now());
   const [spectating, setSpectating] = useState(false);
-  const revealAt = useRef(0);
   const m = s.match;
   const room = s.room;
   const me = s.me;
@@ -561,9 +560,6 @@ export function ServerSurvival() {
     const id = setInterval(() => setNow(Date.now()), 100);
     return () => clearInterval(id);
   }, []);
-  useEffect(() => {
-    if (m?.phase === "reveal") revealAt.current = Date.now();
-  }, [m?.phase, m?.round]);
 
   // Sem partida (ou já mostrada): volta à sala.
   const done = Boolean(s.finished && s.finished.matchId === shownMatchId);
@@ -670,7 +666,7 @@ export function ServerSurvival() {
     if (id === m.selected) return "wrong";
     return "dim";
   };
-  const showFeedback = m.phase === "reveal" && myOutcome && now - revealAt.current < 1700;
+  const showFeedback = m.phase === "reveal" && myOutcome && now - (m.revealedAt ?? 0) < 1700;
   const showSummary = m.phase === "reveal" && m.reveal && !showFeedback;
   const eliminatedNow = !amAlive && m.round > 0 && !spectating && !s.finished;
   const countdown =
