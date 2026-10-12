@@ -16,13 +16,18 @@ import {
   space,
 } from "@/design";
 import { QuizOption } from "@/features/lesson/QuizOption";
+import { useTranslation } from "react-i18next";
 
 /** Barra do tempo da pergunta (fica laranja nos últimos 3 s). */
 export function TimerBar({ left, total }: { left: number; total: number }) {
+  const { t } = useTranslation();
   const pct = total > 0 ? Math.max(0, Math.min(1, left / total)) : 0;
   const urgent = left > 0 && left <= 3;
   return (
-    <View style={styles.timerTrack} accessibilityLabel={`${Math.ceil(left)} segundos`}>
+    <View
+      style={styles.timerTrack}
+      accessibilityLabel={t("arena.secondsLeft", { count: Math.ceil(left) })}
+    >
       <View
         style={[
           styles.timerFill,
@@ -35,6 +40,7 @@ export function TimerBar({ left, total }: { left: number; total: number }) {
 
 /** Ecrã por cima com 3, 2, 1, JÁ! (som em cada número). */
 export function CountdownOverlay({ value, title }: { value: number | "go"; title?: string }) {
+  const { t } = useTranslation();
   useEffect(() => {
     sound.play(value === "go" ? "go" : "tick");
     haptics.tap();
@@ -48,7 +54,7 @@ export function CountdownOverlay({ value, title }: { value: number | "go"; title
           </AppText>
         ) : null}
         <AppText variant="display" tone="inverse" center style={styles.countdownNumber}>
-          {value === "go" ? "JÁ!" : value}
+          {value === "go" ? t("arena.go") : value}
         </AppText>
       </View>
     </Modal>
@@ -56,8 +62,9 @@ export function CountdownOverlay({ value, title }: { value: number | "go"; title
 }
 
 export function Lives({ lives, max, size = 22 }: { lives: number; max: number; size?: number }) {
+  const { t } = useTranslation();
   return (
-    <View style={styles.lives} accessibilityLabel={`${lives} de ${max} vidas`}>
+    <View style={styles.lives} accessibilityLabel={t("arena.livesOf", { lives, max })}>
       {Array.from({ length: max }, (_, i) => (
         <Heart
           key={i}
@@ -191,15 +198,16 @@ export function InviteBanner({
   onJoin: () => void;
   onDismiss: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={[styles.invite, shadows.card]}>
       <AppText variant="bodyStrong" style={{ flex: 1, color: colors.accentForeground }}>
-        {duel ? `${name} desafiou-te para um duelo!` : `${name} convidou-te para uma sala!`}
+        {duel ? t("arena.inviteDuel", { name }) : t("arena.inviteRoom", { name })}
       </AppText>
       <AppButton size="md" onPress={onJoin}>
-        Entrar
+        {t("arena.join")}
       </AppButton>
-      <Pressable accessibilityLabel="Ignorar convite" onPress={onDismiss} hitSlop={10}>
+      <Pressable accessibilityLabel={t("arena.dismissInvite")} onPress={onDismiss} hitSlop={10}>
         <X size={18} color={colors.accentForeground} />
       </Pressable>
     </View>

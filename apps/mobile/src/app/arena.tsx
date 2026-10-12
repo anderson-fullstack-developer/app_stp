@@ -5,6 +5,7 @@ import { ArrowLeft, Crown, LogOut, Plus, Share2, UserPlus } from "lucide-react-n
 import { useEffect, useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, Share, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { useFriends } from "@/api/queries";
 import {
   AppButton,
@@ -67,6 +68,7 @@ function Picker<T extends string | number>({
 
 /** Sala privada (igual à web): criar, entrar pelo convite, sala de espera e equipas. */
 export default function ArenaRoom() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ code?: string; mode?: string }>();
   const s = useArena();
   const [step, setStep] = useState<"choose" | "setup">(
@@ -114,14 +116,12 @@ export default function ArenaRoom() {
         <Pressable accessibilityRole="button" onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={24} color={colors.foreground} />
         </Pressable>
-        <AppText variant="h3">Sala privada</AppText>
+        <AppText variant="h3">{t("arena.privateRoom")}</AppText>
         <View style={{ width: 24 }} />
       </View>
       {s.status !== "ready" && s.status !== "idle" && (
         <AppText variant="small" tone="muted" center style={{ marginBottom: space.sm }}>
-          {s.status === "connecting"
-            ? "A ligar ao servidor da Arena…"
-            : "Sem ligação. A tentar de novo…"}
+          {s.status === "connecting" ? t("arena.connecting") : t("arena.offline")}
         </AppText>
       )}
       {s.invite && s.invite.code !== s.room?.code && (
@@ -153,62 +153,62 @@ export default function ArenaRoom() {
             <GradientCard gradient="ocean" style={styles.bigCard}>
               <Plus size={34} color="#ffffff" />
               <AppText variant="h2" tone="inverse">
-                Criar sala
+                {t("arena.createRoom")}
               </AppText>
               <AppText variant="small" tone="inverse" style={{ opacity: 0.85 }}>
-                Tu és o host e escolhes as regras.
+                {t("arena.createRoomText")}
               </AppText>
             </GradientCard>
           </Pressable>
           <Pressable accessibilityRole="button" onPress={() => router.push("/arena-join")}>
             <GradientCard gradient="cocoa" style={styles.bigCard}>
               <AppText variant="h2" tone="inverse">
-                Entrar com código
+                {t("arena.joinWithCode")}
               </AppText>
               <AppText variant="small" tone="inverse" style={{ opacity: 0.85 }}>
-                Recebeste um código? Entra aqui.
+                {t("arena.joinWithCodeText")}
               </AppText>
             </GradientCard>
           </Pressable>
           {s.closed && (
             <AppText variant="small" tone="muted" center>
-              A sala anterior foi fechada.
+              {t("arena.roomClosed")}
             </AppText>
           )}
         </ScrollView>
       ) : (
         <ScrollView contentContainerStyle={styles.content}>
           <Picker
-            label="Modo"
+            label={t("arena.mode")}
             value={mode}
             options={["survival", "teams"] as const}
             onChange={setMode}
-            format={(v) => (v === "survival" ? "💀 Sobrevivência" : "👥 2 contra 2")}
+            format={(v) => (v === "survival" ? t("arena.survival") : t("arena.teams"))}
           />
           <Card>
             <AppText variant="small">
               {mode === "survival"
-                ? "Todos respondem à mesma pergunta; errar tira uma vida; o último a sobreviver ganha."
-                : `Duas equipas de 2. São ${MULTIPLAYER_CONFIG.teams.questions} perguntas; cada certa vale pontos (mais se for rápida) e a equipa soma os dos dois.`}
+                ? t("arena.survivalRules")
+                : t("arena.teamsRules", { count: MULTIPLAYER_CONFIG.teams.questions })}
             </AppText>
           </Card>
           {mode === "survival" && (
             <>
               <Picker
-                label="Jogadores (máximo)"
+                label={t("arena.maxPlayers")}
                 value={config.players}
                 options={MULTIPLAYER_CONFIG.playerOptions}
                 onChange={(players) => setConfig({ ...config, players })}
               />
               <Picker
-                label="Vidas"
+                label={t("arena.lives")}
                 value={config.lives}
                 options={MULTIPLAYER_CONFIG.livesOptions}
                 onChange={(lives) => setConfig({ ...config, lives })}
                 format={(v) => `${v} ❤️`}
               />
               <Picker
-                label="Tempo por pergunta"
+                label={t("arena.secondsPerQuestion")}
                 value={config.seconds}
                 options={MULTIPLAYER_CONFIG.timeOptions}
                 onChange={(seconds) => setConfig({ ...config, seconds })}
@@ -222,7 +222,7 @@ export default function ArenaRoom() {
             </AppText>
           )}
           <AppButton onPress={() => void create()} loading={busy} disabled={s.status !== "ready"}>
-            Criar sala
+            {t("arena.createRoom")}
           </AppButton>
         </ScrollView>
       )}
@@ -231,6 +231,7 @@ export default function ArenaRoom() {
 }
 
 function Lobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -260,9 +261,7 @@ function Lobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
   };
 
   const share = () =>
-    void Share.share({ message: `Junta-te à minha sala no Fala Neto: ${room.code}` }).catch(
-      () => {},
-    );
+    void Share.share({ message: t("arena.shareMessage", { code: room.code }) }).catch(() => {});
 
   const Member = ({ m }: { m: ArenaRoomDto["members"][number] }) => (
     <View style={styles.member}>
@@ -270,21 +269,21 @@ function Lobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
       <View style={{ flex: 1 }}>
         <AppText variant="bodyStrong" numberOfLines={1}>
           {m.name}
-          {m.userId === me ? " (tu)" : ""}
-          {m.connected ? "" : " · desligado"}
+          {m.userId === me ? ` (${t("arena.you")})` : ""}
+          {m.connected ? "" : ` · ${t("arena.disconnected")}`}
         </AppText>
         {m.isHost && (
           <View style={styles.hostTag}>
             <Crown size={12} color={colors.accentDeep} />
             <AppText variant="caption" tone="accent">
-              Host
+              {t("arena.host")}
             </AppText>
           </View>
         )}
       </View>
       <View style={[styles.readyPill, m.ready && { backgroundColor: colors.successSoft }]}>
         <AppText variant="caption" tone={m.ready ? "success" : "muted"}>
-          {m.ready ? "PRONTO" : "A PREPARAR-SE"}
+          {m.ready ? t("arena.ready") : t("arena.preparing")}
         </AppText>
       </View>
     </View>
@@ -295,7 +294,7 @@ function Lobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 200 }]}>
         <Card style={styles.codeCard}>
           <AppText variant="overline" tone="muted">
-            Código da sala
+            {t("arena.roomCode")}
           </AppText>
           <AppText variant="display" style={{ letterSpacing: 6 }}>
             {room.code}
@@ -307,43 +306,47 @@ function Lobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
               icon={<Share2 size={16} color={colors.foreground} />}
               onPress={share}
             >
-              Partilhar
+              {t("arena.share")}
             </AppButton>
           </View>
         </Card>
         <AppText variant="small" tone="muted" center>
           {teams
-            ? `👥 2 contra 2 · ${room.config.seconds}s`
-            : `💀 Sobrevivência · até ${room.config.players} · ${room.config.lives} ❤️ · ${room.config.seconds}s`}
+            ? t("arena.summaryTeams", { seconds: room.config.seconds })
+            : t("arena.summarySurvival", {
+                players: room.config.players,
+                lives: room.config.lives,
+                seconds: room.config.seconds,
+              })}
         </AppText>
 
         {teams ? (
           <View style={{ gap: space.md }}>
-            {(["A", "B"] as const).map((t) => (
+            {(["A", "B"] as const).map((team) => (
               <Card
-                key={t}
+                key={team}
                 style={{
                   gap: space.sm,
-                  borderColor: t === "A" ? colors.primary : colors.destructive,
+                  borderColor: team === "A" ? colors.primary : colors.destructive,
                 }}
               >
-                <AppText variant="h3">Equipa {t}</AppText>
-                {inTeam(t).map((m) => (
+                <AppText variant="h3">{t("arena.team", { team })}</AppText>
+                {inTeam(team).map((m) => (
                   <Member key={m.userId} m={m} />
                 ))}
-                {inTeam(t).length < 2 && (
+                {inTeam(team).length < 2 && (
                   <AppText variant="small" tone="muted">
-                    Lugar livre
+                    {t("arena.freeSpot")}
                   </AppText>
                 )}
-                {mine?.team && mine.team !== t && inTeam(t).length < 2 && (
+                {mine?.team && mine.team !== team && inTeam(team).length < 2 && (
                   <AppButton
                     size="md"
                     variant="secondary"
                     disabled={busy}
-                    onPress={() => void run(() => arena.setTeam(t))}
+                    onPress={() => void run(() => arena.setTeam(team))}
                   >
-                    {`Mudar para a ${t}`}
+                    {t("arena.switchTeam", { team })}
                   </AppButton>
                 )}
               </Card>
@@ -352,7 +355,7 @@ function Lobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
         ) : (
           <View style={{ gap: space.sm }}>
             <AppText variant="h3">
-              Jogadores · {ready}/{connected.length} prontos
+              {t("arena.playersReady", { ready, total: connected.length })}
             </AppText>
             {room.members.map((m) => (
               <Card key={m.userId}>
@@ -368,13 +371,11 @@ function Lobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
             icon={<UserPlus size={16} color={colors.foreground} />}
             onPress={() => setInviteOpen(true)}
           >
-            Convidar amigos
+            {t("arena.inviteFriends")}
           </AppButton>
         )}
         <AppText variant="caption" tone="muted" center>
-          {teams
-            ? "São precisas 2 pessoas em cada equipa."
-            : "As recompensas (XP e moedas) só contam em salas com 4 ou mais jogadores."}
+          {teams ? t("arena.needTwoPerTeam") : t("arena.rewardsNote")}
         </AppText>
       </ScrollView>
       <View style={[styles.footer, shadows.float]}>
@@ -386,12 +387,12 @@ function Lobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
         {isHost ? (
           <AppButton onPress={() => void run(arena.start)} disabled={!canStart} loading={busy}>
             {canStart
-              ? "Começar partida"
+              ? t("arena.startMatch")
               : connected.length < 2
-                ? "À espera de jogadores…"
+                ? t("arena.waitingPlayers")
                 : !teamsReady
-                  ? "São precisas 2 pessoas em cada equipa"
-                  : "À espera que todos fiquem prontos"}
+                  ? t("arena.needTwoPerTeam")
+                  : t("arena.waitingReady")}
           </AppButton>
         ) : (
           <AppButton
@@ -399,7 +400,7 @@ function Lobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
             loading={busy}
             onPress={() => void run(() => arena.ready(!mine?.ready))}
           >
-            {mine?.ready ? "Não estou pronto" : "Estou pronto"}
+            {mine?.ready ? t("arena.notReady") : t("arena.imReady")}
           </AppButton>
         )}
         <AppButton
@@ -408,7 +409,7 @@ function Lobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
           icon={<LogOut size={16} color={colors.primary} />}
           onPress={() => void arena.leave()}
         >
-          Sair da sala
+          {t("arena.leaveRoom")}
         </AppButton>
       </View>
       <InviteFriends
@@ -430,6 +431,7 @@ function InviteFriends({
   onClose: () => void;
   exclude: string[];
 }) {
+  const { t } = useTranslation();
   const friends = useFriends();
   const [sent, setSent] = useState<Record<string, string>>({});
   const list = (friends.data?.friends ?? []).filter((f) => !exclude.includes(f.id));
@@ -437,12 +439,12 @@ function InviteFriends({
     <Modal transparent animationType="slide" visible={open} onRequestClose={onClose}>
       <Pressable style={styles.sheetBackdrop} onPress={onClose} />
       <View style={[styles.sheet, shadows.float]}>
-        <AppText variant="h2">Convidar amigos</AppText>
+        <AppText variant="h2">{t("arena.inviteFriends")}</AppText>
         {friends.isPending ? (
           <LoadingState rows={2} />
         ) : list.length === 0 ? (
           <AppText variant="small" tone="muted">
-            Ainda não tens amigos para convidar. Adiciona amigos no separador Amigos.
+            {t("arena.noFriendsToInvite")}
           </AppText>
         ) : (
           <ScrollView style={{ maxHeight: 360 }} contentContainerStyle={{ gap: space.sm }}>
@@ -471,7 +473,7 @@ function InviteFriends({
                       setSent((s) => ({ ...s, [f.id]: r.ok ? "sent" : arenaError(r) }));
                     }}
                   >
-                    {state === "sent" ? "Convidado" : "Convidar"}
+                    {state === "sent" ? t("arena.invited") : t("arena.invite")}
                   </AppButton>
                 </View>
               );
@@ -479,7 +481,7 @@ function InviteFriends({
           </ScrollView>
         )}
         <AppButton variant="secondary" onPress={onClose}>
-          Fechar
+          {t("arena.close")}
         </AppButton>
       </View>
     </Modal>

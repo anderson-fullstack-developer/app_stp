@@ -10,8 +10,10 @@ import {
   INITIAL_ARENA_STATE,
 } from "@stp/arena-client";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Alert, BackHandler } from "react-native";
 import { API_URL } from "@/config";
 import { haptics, sound } from "@/design";
+import { exists as i18nExists, t as i18nT } from "i18next";
 
 export { countdownValue, secondsLeft } from "@stp/arena-client";
 export type { ArenaMatchState, ArenaState };
@@ -76,31 +78,32 @@ export function useUrgencySound(secondsLeftNow: number, phase: ArenaMatchState["
   }, [whole]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-/** Mensagens dos códigos de erro do servidor da Arena. */
-export const ARENA_ERRORS: Record<string, string> = {
-  ROOM_NOT_FOUND: "Não existe nenhuma sala com esse código.",
-  ROOM_FULL: "A sala está cheia.",
-  ROOM_STARTED: "A partida já começou.",
-  IN_MATCH: "Estás a meio de uma partida.",
-  NOT_READY: "Ainda há jogadores que não estão prontos.",
-  NOT_ENOUGH_PLAYERS: "São precisos pelo menos 2 jogadores.",
-  NO_QUESTIONS: "Ainda não há perguntas suficientes nesta língua.",
-  LANGUAGE_NOT_AVAILABLE: "Esta língua ainda não está disponível.",
-  TEAM_FULL: "Essa equipa já tem 2 jogadores.",
-  TEAMS_INCOMPLETE: "São precisas 2 pessoas em cada equipa.",
-  NOT_FRIENDS: "Só podes convidar amigos.",
-  ALREADY_IN_ROOM: "Já está na sala.",
-  TOO_MANY_INVITES: "Já enviaste convites suficientes.",
-  OFFLINE: "Sem ligação ao servidor da Arena.",
-  TIMEOUT: "O servidor não respondeu.",
-};
-export const arenaError = (r: { code: string; message: string }) =>
-  ARENA_ERRORS[r.code] ?? r.message;
+/** Mensagem traduzida para um código de erro do servidor da Arena. */
+export function arenaError(r: { code: string; message: string }): string {
+  const key = `arena.errors.${r.code}`;
+  return i18nExists(key) ? i18nT(key as never) : r.message || i18nT("arena.errors.generic");
+}
 
-export const REWARD_NOTE: Record<string, string> = {
-  private_small: "As recompensas só contam em salas com 4 ou mais jogadores.",
-  duel_limit: "Já fizeste os 3 duelos premiados de hoje — este foi só pela glória.",
-  daily_limit: "Já chegaste às 10 partidas premiadas de hoje.",
-  left: "Saíste a meio: sem recompensa.",
-  error: "Não foi possível registar a recompensa. Tenta outra vez mais tarde.",
-};
+/** Porque não houve recompensa (sala pequena, limites diários, saiu a meio, erro). */
+export function rewardNote(reason: string): string | undefined {
+  const key = `arena.rewardNote.${reason}`;
+  return i18nExists(key) ? i18nT(key as never) : undefined;
+}
+
+/**
+ * Botão "voltar" do Android a meio de uma partida: pergunta antes de sair. Se a pessoa
+ * confirmar, sai a sério (o servidor aplica as regras de abandono) e volta a Jogar.
+ */
+export function useConfirmLeaveOnBack(active: boolean, onLeave: () => void) {
+  useEffect(() => {
+    if (!active) return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      Alert.alert(i18nT("arena.leaveMatchTitle"), i18nT("arena.leaveMatchText"), [
+        { text: i18nT("arena.keepPlaying"), style: "cancel" },
+        { text: i18nT("arena.leave"), style: "destructive", onPress: onLeave },
+      ]);
+      return true; // não fecha o ecrã sozinho
+    });
+    return () => sub.remove();
+  }, [active, onLeave]);
+}

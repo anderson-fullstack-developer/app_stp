@@ -3,6 +3,7 @@ import { Coins, Skull, Trophy, Zap } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import {
   AppButton,
   AppText,
@@ -19,9 +20,10 @@ import {
 import {
   arena,
   countdownValue,
-  REWARD_NOTE,
+  rewardNote,
   secondsLeft,
   useArena,
+  useConfirmLeaveOnBack,
   useNow,
   useUrgencySound,
 } from "@/features/arena/arena";
@@ -38,12 +40,18 @@ const KRIOLU = "kabuverdianu";
 
 /** Partida de Sobrevivência (igual à web): tudo vem do servidor; aqui só se mostra. */
 export default function ArenaMatch() {
+  const { t } = useTranslation();
   const s = useArena();
   const now = useNow();
   const [spectating, setSpectating] = useState(false);
   const m = s.match;
   const room = s.room;
   const me = s.me;
+  // Android: o botão voltar pergunta antes de abandonar a partida.
+  useConfirmLeaveOnBack(Boolean(m && m.phase !== "finished" && !s.finished), () => {
+    void arena.leave();
+    router.replace("/play");
+  });
 
   // Som e vibração da minha resposta em cada ronda.
   const myOutcome = m?.reveal && me ? m.reveal.outcomes[me] : undefined;
@@ -98,8 +106,8 @@ export default function ArenaMatch() {
       {m.question && m.round > 0 ? (
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.top}>
-            <Chip label={`Ronda ${m.round}`} />
-            <Chip label={`${alive.length} vivos`} />
+            <Chip label={t("arena.round", { n: m.round })} />
+            <Chip label={t("arena.alive", { count: alive.length })} />
             <AppText variant="h3">{Math.ceil(left)}s</AppText>
           </View>
           <TimerBar left={left} total={room.config.seconds} />
@@ -109,41 +117,46 @@ export default function ArenaMatch() {
             selected={m.selected}
             correctOptionId={m.phase === "question" ? null : (m.reveal?.correctOptionId ?? null)}
             canAnswer={m.phase === "question" && amAlive && !m.selected}
-            hint={`${m.question.mode === "meaning" ? "O que significa?" : "Como se diz?"}${room.languageId === KRIOLU ? " · Kriolu (Beta)" : ""}`}
+            hint={`${m.question.mode === "meaning" ? t("arena.hintMeaning") : t("arena.hintWord")}${room.languageId === KRIOLU ? t("arena.krioluBeta") : ""}`}
             onAnswer={(id) => void arena.answer(id)}
           />
           {m.phase === "question" && m.selected && (
             <AppText variant="small" tone="muted" center>
-              Resposta enviada · {m.answeredCount}/{alive.length} já responderam
+              {t("arena.answerSent", { done: m.answeredCount, total: alive.length })}
             </AppText>
           )}
           {showFeedback && myOutcome && (
             <Card style={[styles.banner, myOutcome === "correct" ? styles.good : styles.bad]}>
               <AppText variant="h3" center>
                 {myOutcome === "correct"
-                  ? "✅ Correto"
+                  ? t("arena.correct")
                   : myOutcome === "wrong"
-                    ? "❌ Errado"
-                    : "⏱️ Sem resposta"}
+                    ? t("arena.wrong")
+                    : t("arena.timeout")}
               </AppText>
               <AppText variant="small" center>
-                {myOutcome === "correct" ? "Continuas vivo!" : `Perdeste uma vida.`}
+                {myOutcome === "correct" ? t("arena.stillAlive") : t("arena.lostLife")}
               </AppText>
             </Card>
           )}
           {m.phase === "reveal" && !showFeedback && m.reveal && (
             <Card style={styles.banner}>
               <AppText variant="bodyStrong" center>
-                Ronda {m.reveal.summary.round}: {m.reveal.summary.correct} certas ·{" "}
-                {m.reveal.summary.wrong + m.reveal.summary.noAnswer} falharam
+                {t("arena.roundSummary", {
+                  round: m.reveal.summary.round,
+                  correct: m.reveal.summary.correct,
+                  failed: m.reveal.summary.wrong + m.reveal.summary.noAnswer,
+                })}
               </AppText>
               {m.reveal.summary.voided ? (
                 <AppText variant="small" tone="muted" center>
-                  Toda a gente ia ser eliminada: ronda anulada, ninguém perde vidas.
+                  {t("arena.voided")}
                 </AppText>
               ) : m.reveal.summary.eliminated.length > 0 ? (
                 <AppText variant="small" tone="danger" center>
-                  Eliminados: {m.reveal.summary.eliminated.map((id) => names[id] ?? "?").join(", ")}
+                  {t("arena.eliminatedList", {
+                    names: m.reveal.summary.eliminated.map((id) => names[id] ?? "?").join(", "),
+                  })}
                 </AppText>
               ) : null}
             </Card>
@@ -151,7 +164,7 @@ export default function ArenaMatch() {
           {m.phase === "final" && (
             <Card style={[styles.banner, styles.final]}>
               <AppText variant="h2" tone="inverse" center>
-                ⚔️ Batalha final!
+                {t("arena.finalBattle")}
               </AppText>
             </Card>
           )}
@@ -159,13 +172,13 @@ export default function ArenaMatch() {
             <Card style={[styles.banner, styles.bad]}>
               <Skull size={28} color={colors.destructive} style={{ alignSelf: "center" }} />
               <AppText variant="h3" center>
-                Foste eliminado — {mine?.placement ?? players.length}.º lugar
+                {t("arena.eliminatedTitle", { place: mine?.placement ?? players.length })}
               </AppText>
               <AppText variant="small" tone="muted" center>
-                {mine?.correct ?? 0} certas. Podes ver até ao fim ou sair (sem perderes o lugar).
+                {t("arena.eliminatedText", { correct: mine?.correct ?? 0 })}
               </AppText>
               <AppButton size="md" onPress={() => setSpectating(true)}>
-                Ver até ao fim
+                {t("arena.watch")}
               </AppButton>
               <AppButton
                 size="md"
@@ -175,7 +188,7 @@ export default function ArenaMatch() {
                   router.replace("/play");
                 }}
               >
-                Sair
+                {t("arena.leave")}
               </AppButton>
             </Card>
           )}
@@ -185,33 +198,34 @@ export default function ArenaMatch() {
         <View style={styles.center}>
           <Neto mood="happy" size={120} />
           <AppText variant="h2" center>
-            A partida vai começar!
+            {t("arena.starting")}
           </AppText>
         </View>
       )}
-      {countdown !== null && <CountdownOverlay value={countdown} title="Sala completa!" />}
+      {countdown !== null && <CountdownOverlay value={countdown} title={t("arena.roomFull")} />}
     </SafeAreaView>
   );
 }
 
 /** Resultado da partida: lugares, a minha recompensa e jogar outra vez. */
 function Result() {
+  const { t } = useTranslation();
   const s = useArena();
   const f = s.finished!;
   const me = s.me;
   const mine = f.standings.find((x) => x.userId === me);
   const won = mine?.place === 1;
-  const note = s.reward ? REWARD_NOTE[s.reward.reason] : undefined;
+  const note = s.reward ? rewardNote(s.reward.reason) : undefined;
   return (
     <SafeAreaView style={styles.page}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={{ alignItems: "center", gap: space.sm }}>
           <Neto mood={won ? "celebrate" : "happy"} size={120} />
           <AppText variant="h1" center>
-            {won ? "Ganhaste! 🏆" : `${mine?.place ?? "?"}.º lugar`}
+            {won ? t("arena.youWon") : t("arena.place", { place: mine?.place ?? "?" })}
           </AppText>
           <AppText variant="small" tone="muted" center>
-            {mine ? `${mine.correct} certas · ${f.rounds} rondas` : ""}
+            {mine ? t("arena.resultSummary", { correct: mine.correct, rounds: f.rounds }) : ""}
           </AppText>
         </View>
         <View style={styles.rewardRow}>
@@ -231,18 +245,22 @@ function Result() {
             {note}
           </AppText>
         )}
-        <AppText variant="h3">Classificação</AppText>
+        <AppText variant="h3">{t("arena.standings")}</AppText>
         {f.standings.map((x) => (
           <Card key={x.userId} style={[styles.standing, x.userId === me && styles.standingMe]}>
             <AppText variant="h3" style={{ width: 32, textAlign: "center" }}>
-              {x.place === 1 ? <Trophy size={20} color={colors.accentDeep} /> : `${x.place}.º`}
+              {x.place === 1 ? (
+                <Trophy size={20} color={colors.accentDeep} />
+              ) : (
+                t("arena.placeShort", { place: x.place })
+              )}
             </AppText>
             <Avatar name={x.name} color={x.avatarColor} size={36} />
             <AppText variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>
-              {x.userId === me ? "Tu" : x.name}
+              {x.userId === me ? t("arena.youCap") : x.name}
             </AppText>
             <AppText variant="caption" tone="muted">
-              {x.left ? "saiu" : `${x.correct} certas`}
+              {x.left ? t("arena.left") : t("arena.correctCount", { count: x.correct })}
             </AppText>
           </Card>
         ))}
@@ -252,7 +270,7 @@ function Result() {
             router.replace("/arena");
           }}
         >
-          Jogar outra vez (mesma sala)
+          {t("arena.playAgainRoom")}
         </AppButton>
         <AppButton
           variant="secondary"
@@ -261,7 +279,7 @@ function Result() {
             router.replace("/arena-history");
           }}
         >
-          Histórico de partidas
+          {t("arena.history")}
         </AppButton>
         <AppButton
           variant="ghost"
@@ -270,7 +288,7 @@ function Result() {
             router.replace("/play");
           }}
         >
-          Voltar a Jogar
+          {t("arena.backToPlay")}
         </AppButton>
       </ScrollView>
     </SafeAreaView>
