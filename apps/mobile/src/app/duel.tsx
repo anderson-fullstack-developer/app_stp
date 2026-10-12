@@ -4,6 +4,7 @@ import { ArrowLeft, Swords } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { useFriends } from "@/api/queries";
 import {
   AppButton,
@@ -20,6 +21,7 @@ import { arena, arenaError, useArena } from "@/features/arena/arena";
 
 /** Duelo 1 contra 1 (igual à web): escolher um amigo e esperar que entre. */
 export default function Duel() {
+  const { t } = useTranslation();
   const { friend } = useLocalSearchParams<{ friend?: string }>();
   const s = useArena();
   const friends = useFriends();
@@ -57,7 +59,7 @@ export default function Duel() {
         <Pressable accessibilityRole="button" onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={24} color={colors.foreground} />
         </Pressable>
-        <AppText variant="h3">Duelo 1 contra 1</AppText>
+        <AppText variant="h3">{t("arena.duelTitle")}</AppText>
         <View style={{ width: 24 }} />
       </View>
       {inDuel && s.room ? (
@@ -84,12 +86,10 @@ export default function Duel() {
             </View>
           </View>
           <AppText variant="small" tone="muted" center>
-            {other
-              ? "A preparar o duelo…"
-              : "Convite enviado! O duelo começa assim que o teu amigo entrar (o convite dura 10 minutos)."}
+            {other ? t("arena.duelPreparing") : t("arena.duelInviteSent")}
           </AppText>
           <AppButton variant="secondary" onPress={() => void arena.leave()}>
-            Cancelar duelo
+            {t("arena.duelCancel")}
           </AppButton>
         </View>
       ) : (
@@ -97,11 +97,10 @@ export default function Duel() {
           <GradientCard gradient="forest">
             <Swords size={30} color="#ffffff" />
             <AppText variant="h2" tone="inverse" style={{ marginTop: space.sm }}>
-              Desafia um amigo
+              {t("arena.duelChallengeTitle")}
             </AppText>
             <AppText variant="small" tone="inverse" style={{ opacity: 0.85 }}>
-              {MULTIPLAYER_CONFIG.duel.questions} perguntas iguais para os dois. Cada certa vale 100
-              pontos, mais um bónus por responderes depressa.
+              {t("arena.duelChallengeText", { count: MULTIPLAYER_CONFIG.duel.questions })}
             </AppText>
           </GradientCard>
           {error && (
@@ -113,12 +112,9 @@ export default function Duel() {
             <LoadingState />
           ) : (friends.data?.friends ?? []).length === 0 ? (
             <>
-              <EmptyState
-                title="Ainda não tens amigos"
-                text="Adiciona amigos para os desafiar para um duelo."
-              />
+              <EmptyState title={t("arena.noFriendsTitle")} text={t("arena.noFriendsText")} />
               <AppButton variant="secondary" onPress={() => router.push("/friends")}>
-                Encontrar amigos
+                {t("arena.findFriends")}
               </AppButton>
             </>
           ) : (
@@ -130,7 +126,7 @@ export default function Duel() {
                     {f.name}
                   </AppText>
                   <AppText variant="caption" tone="muted">
-                    @{f.username} · Nível {f.level}
+                    {t("arena.friendLine", { username: f.username, level: f.level })}
                   </AppText>
                 </View>
                 <AppButton
@@ -140,7 +136,7 @@ export default function Duel() {
                   icon={<Swords size={16} color={colors.primaryForeground} />}
                   onPress={() => void challenge(f.id)}
                 >
-                  Desafiar
+                  {t("arena.challenge")}
                 </AppButton>
               </Card>
             ))

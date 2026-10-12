@@ -31,6 +31,7 @@ function ModeCard({
   onPress?: () => void;
   soon?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <Pressable
       accessibilityRole="button"
@@ -50,7 +51,7 @@ function ModeCard({
           {title}
         </AppText>
         <AppText variant="caption" tone="inverse" style={{ opacity: 0.85 }}>
-          {soon ? "Em breve" : text}
+          {soon ? t("arena.soon") : text}
         </AppText>
       </GradientCard>
     </Pressable>
@@ -79,23 +80,23 @@ export default function PlayTab() {
         )}
         <ModeCard
           Icon={Skull}
-          title="Sobrevivência"
-          text="Cria uma sala, convida amigos e responde às mesmas perguntas. O último a sobreviver ganha."
+          title={t("arena.playSurvival")}
+          text={t("arena.playSurvivalText")}
           gradient="cocoa"
           onPress={() => router.push("/arena")}
         />
         <View style={styles.row}>
           <ModeCard
             Icon={Swords}
-            title="Duelo 1v1"
-            text="Desafia um amigo"
+            title={t("arena.playDuel")}
+            text={t("arena.playDuelText")}
             gradient="coral"
             onPress={() => router.push("/duel")}
           />
           <ModeCard
             Icon={Users}
-            title="2 contra 2"
-            text="Joga em equipa"
+            title={t("arena.playTeams")}
+            text={t("arena.playTeamsText")}
             gradient="forest"
             onPress={() => router.push({ pathname: "/arena", params: { mode: "teams" } })}
           />
@@ -103,20 +104,20 @@ export default function PlayTab() {
         <View style={styles.row}>
           <ModeCard
             Icon={KeyRound}
-            title="Entrar com código"
-            text="Recebeste um código?"
+            title={t("arena.joinWithCode")}
+            text={t("arena.playJoinText")}
             gradient="ocean"
             onPress={() => router.push("/arena-join")}
           />
           <ModeCard
             Icon={Calendar}
             title={t("daily.title")}
-            text="5 perguntas por dia"
+            text={t("arena.playDailyText")}
             gradient="sun"
             onPress={() => router.push("/daily")}
           />
         </View>
-        <ModeCard Icon={Trophy} title="Torneios" text="" gradient="ocean" soon />
+        <ModeCard Icon={Trophy} title={t("arena.tournaments")} text="" gradient="ocean" soon />
         <Pressable
           accessibilityRole="button"
           onPress={() => router.push("/arena-history")}
@@ -124,11 +125,11 @@ export default function PlayTab() {
         >
           <History size={18} color={colors.primary} />
           <AppText variant="bodyStrong" tone="primary">
-            Ver o meu histórico de partidas
+            {t("arena.historyLink")}
           </AppText>
         </Pressable>
         <AppText variant="caption" tone="muted" center>
-          Competição justa: o Premium não dá vidas nem vantagens nas partidas.
+          {t("arena.fairPlay")}
         </AppText>
       </ScrollView>
     </SafeAreaView>

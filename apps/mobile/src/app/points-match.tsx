@@ -4,6 +4,7 @@ import { Coins, Swords, Zap } from "lucide-react-native";
 import { useEffect } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import {
   AppButton,
   AppText,
@@ -20,9 +21,10 @@ import {
   type ArenaState,
   arena,
   countdownValue,
-  REWARD_NOTE,
+  rewardNote,
   secondsLeft,
   useArena,
+  useConfirmLeaveOnBack,
   useNow,
   useRoundGains,
   useUrgencySound,
@@ -55,8 +57,14 @@ export default function PointsMatch() {
 }
 
 function PointsGame({ s }: { s: ArenaState }) {
+  const { t } = useTranslation();
   const m = s.match!;
   const room = s.room!;
+  // Android: o botão voltar pergunta antes de abandonar a partida.
+  useConfirmLeaveOnBack(m.phase !== "finished", () => {
+    void arena.leave();
+    router.replace("/play");
+  });
   const now = useNow();
   const gains = useRoundGains(m, s.me);
   const left = secondsLeft(m, now);
@@ -68,8 +76,8 @@ function PointsGame({ s }: { s: ArenaState }) {
   const name = (id: string) => room.members.find((x) => x.userId === id)?.name ?? "?";
   const myTeam: Team = room.members.find((x) => x.userId === s.me)?.team ?? "A";
   const scoreOf = (id?: string) => m.players.find((p) => p.userId === id)?.score ?? 0;
-  const teamScore = (t: Team) =>
-    m.players.filter((p) => p.team === t).reduce((n, p) => n + p.score, 0);
+  const teamScore = (team: Team) =>
+    m.players.filter((p) => p.team === team).reduce((n, p) => n + p.score, 0);
   const other = room.members.find((x) => x.userId !== s.me);
   const a = duel ? scoreOf(s.me ?? undefined) : teamScore(myTeam);
   const b = duel ? scoreOf(other?.userId) : teamScore(otherTeam(myTeam));
@@ -86,20 +94,24 @@ function PointsGame({ s }: { s: ArenaState }) {
           <ScoreBar
             a={a}
             b={b}
-            labelA={duel ? "Tu" : "A tua equipa"}
-            labelB={duel ? (other?.name ?? "Adversário") : `Equipa ${otherTeam(myTeam)}`}
+            labelA={duel ? t("arena.youCap") : t("arena.yourTeam")}
+            labelB={
+              duel
+                ? (other?.name ?? t("arena.opponent"))
+                : t("arena.team", { team: otherTeam(myTeam) })
+            }
           />
           <QuestionView
             question={m.question}
             selected={m.selected}
             correctOptionId={m.phase === "question" ? null : (m.reveal?.correctOptionId ?? null)}
             canAnswer={m.phase === "question" && !m.selected}
-            hint={`${m.question.mode === "meaning" ? "O que significa?" : "Como se diz?"}${room.languageId === KRIOLU ? " · Kriolu (Beta)" : ""}`}
+            hint={`${m.question.mode === "meaning" ? t("arena.hintMeaning") : t("arena.hintWord")}${room.languageId === KRIOLU ? t("arena.krioluBeta") : ""}`}
             onAnswer={(id) => void arena.answer(id)}
           />
           {m.phase === "question" && m.selected && (
             <AppText variant="small" tone="muted" center>
-              Resposta enviada · {m.answeredCount}/{m.players.length} já responderam
+              {t("arena.answerSent", { done: m.answeredCount, total: m.players.length })}
             </AppText>
           )}
           {m.phase === "reveal" && (
@@ -107,8 +119,8 @@ function PointsGame({ s }: { s: ArenaState }) {
               {m.players.map((p) => (
                 <View key={p.userId} style={styles.gainRow}>
                   <AppText variant="bodyStrong" style={{ flex: 1 }}>
-                    {p.userId === s.me ? "Tu" : name(p.userId)}
-                    {duel ? "" : ` · equipa ${p.team}`}
+                    {p.userId === s.me ? t("arena.youCap") : name(p.userId)}
+                    {duel ? "" : t("arena.teamSuffix", { team: p.team })}
                   </AppText>
                   <AppText
                     variant="bodyStrong"
@@ -125,10 +137,10 @@ function PointsGame({ s }: { s: ArenaState }) {
         <View style={styles.center}>
           <Swords size={48} color={colors.primary} />
           <AppText variant="h2" center>
-            {duel ? `Tu contra ${other?.name ?? "…"}` : "Equipa A contra Equipa B"}
+            {duel ? t("arena.versus", { name: other?.name ?? "…" }) : t("arena.teamsVersus")}
           </AppText>
           <AppText variant="small" tone="muted" center>
-            {total} perguntas · acerto + velocidade
+            {t("arena.questionsInfo", { count: total })}
           </AppText>
         </View>
       )}
@@ -138,6 +150,7 @@ function PointsGame({ s }: { s: ArenaState }) {
 }
 
 function PointsResult({ s }: { s: ArenaState }) {
+  const { t } = useTranslation();
   const f = s.finished!;
   const duel = s.room?.mode === "duel" || (!f.teams && f.standings.length === 2);
   const mine = f.standings.find((x) => x.userId === s.me);
@@ -145,7 +158,7 @@ function PointsResult({ s }: { s: ArenaState }) {
   const theirs = f.standings.find((x) => x.userId !== s.me);
   const draw = duel ? mine?.place === 1 && theirs?.place === 1 : f.winnerTeam === null;
   const won = duel ? mine?.place === 1 && !draw : f.winnerTeam === myTeam;
-  const note = s.reward ? REWARD_NOTE[s.reward.reason] : undefined;
+  const note = s.reward ? rewardNote(s.reward.reason) : undefined;
 
   useEffect(() => {
     sound.play(won ? "victory" : "defeat");
@@ -170,18 +183,18 @@ function PointsResult({ s }: { s: ArenaState }) {
           <Neto mood={won ? "celebrate" : "happy"} size={120} />
           <AppText variant="h1" center>
             {draw
-              ? "Empate! 🤝"
+              ? t("arena.draw")
               : won
                 ? duel
-                  ? "Ganhaste! 🏆"
-                  : "A tua equipa ganhou! 🏆"
+                  ? t("arena.youWon")
+                  : t("arena.teamWon")
                 : duel
-                  ? `${theirs?.name ?? "O adversário"} ganhou`
-                  : `A equipa ${f.winnerTeam} ganhou`}
+                  ? t("arena.otherWon", { name: theirs?.name ?? t("arena.opponent") })
+                  : t("arena.teamXWon", { team: f.winnerTeam })}
           </AppText>
           {duel && theirs?.left && (
             <AppText variant="small" tone="muted" center>
-              {theirs.name} saiu do duelo.
+              {t("arena.opponentLeft", { name: theirs.name })}
             </AppText>
           )}
         </View>
@@ -189,22 +202,22 @@ function PointsResult({ s }: { s: ArenaState }) {
           <ScoreBar
             a={f.teams[myTeam]}
             b={f.teams[otherTeam(myTeam)]}
-            labelA="A tua equipa"
-            labelB={`Equipa ${otherTeam(myTeam)}`}
+            labelA={t("arena.yourTeam")}
+            labelB={t("arena.team", { team: otherTeam(myTeam) })}
           />
         )}
         {f.standings.map((x) => (
           <Card key={x.userId} style={[styles.standing, x.userId === s.me && styles.standingMe]}>
             <Avatar name={x.name} color={x.avatarColor} size={36} />
             <AppText variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>
-              {x.userId === s.me ? "Tu" : x.name}
-              {duel ? "" : ` · equipa ${x.team}`}
-              {x.left ? " (saiu)" : ""}
+              {x.userId === s.me ? t("arena.youCap") : x.name}
+              {duel ? "" : t("arena.teamSuffix", { team: x.team })}
+              {x.left ? t("arena.leftSuffix") : ""}
             </AppText>
             <View style={{ alignItems: "flex-end" }}>
               <AppText variant="h3">{x.score}</AppText>
               <AppText variant="caption" tone="muted">
-                {x.correct}/{f.rounds} certas
+                {t("arena.correctOf", { correct: x.correct, total: f.rounds })}
               </AppText>
             </View>
           </Card>
@@ -227,7 +240,7 @@ function PointsResult({ s }: { s: ArenaState }) {
           </AppText>
         )}
         <AppButton onPress={() => void again()}>
-          {duel ? "Desafiar outra vez" : "Jogar outra vez (mesma sala)"}
+          {duel ? t("arena.challengeAgain") : t("arena.playAgainRoom")}
         </AppButton>
         <AppButton
           variant="secondary"
@@ -236,7 +249,7 @@ function PointsResult({ s }: { s: ArenaState }) {
             router.replace("/arena-history");
           }}
         >
-          Histórico de partidas
+          {t("arena.history")}
         </AppButton>
         <AppButton
           variant="ghost"
@@ -245,7 +258,7 @@ function PointsResult({ s }: { s: ArenaState }) {
             router.replace("/play");
           }}
         >
-          Voltar a Jogar
+          {t("arena.backToPlay")}
         </AppButton>
       </ScrollView>
     </SafeAreaView>

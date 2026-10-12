@@ -3,11 +3,13 @@ import { ArrowLeft } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { AppButton, AppText, colors, fonts, radius, space } from "@/design";
 import { arena, arenaError, useArena } from "@/features/arena/arena";
 
 /** Entrar numa sala com o código de 6 letras (igual à web). */
 export default function ArenaJoin() {
+  const { t } = useTranslation();
   const s = useArena();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -28,12 +30,12 @@ export default function ArenaJoin() {
         <Pressable accessibilityRole="button" onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={24} color={colors.foreground} />
         </Pressable>
-        <AppText variant="h3">Entrar com código</AppText>
+        <AppText variant="h3">{t("arena.joinWithCode")}</AppText>
         <View style={{ width: 24 }} />
       </View>
       <View style={styles.content}>
         <AppText variant="h2" center>
-          Código da sala
+          {t("arena.roomCode")}
         </AppText>
         <TextInput
           value={code}
@@ -52,11 +54,11 @@ export default function ArenaJoin() {
           maxLength={6}
           placeholder="______"
           placeholderTextColor={colors.border}
-          accessibilityLabel="Código da sala"
+          accessibilityLabel={t("arena.roomCode")}
           style={[styles.input, error ? { borderColor: colors.destructive } : null]}
         />
         <AppText variant="bodyStrong" tone={error ? "danger" : "muted"} center>
-          {error ?? (s.status === "ready" ? "Pede o código ao host da sala." : "A ligar…")}
+          {error ?? (s.status === "ready" ? t("arena.askHost") : t("arena.connectingShort"))}
         </AppText>
         <View style={{ flex: 1 }} />
         <AppButton
@@ -64,7 +66,7 @@ export default function ArenaJoin() {
           loading={busy}
           disabled={code.length !== 6 || s.status !== "ready"}
         >
-          Entrar
+          {t("arena.join")}
         </AppButton>
       </View>
     </SafeAreaView>

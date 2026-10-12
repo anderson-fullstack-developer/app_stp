@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { ArrowLeft, Trophy } from "lucide-react-native";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { useArenaHistory } from "@/api/queries";
 import {
   AppButton,
@@ -15,15 +16,16 @@ import {
   space,
 } from "@/design";
 
-const MODE: Record<string, string> = {
-  survival: "💀 Sobrevivência",
-  duel: "⚔️ Duelo",
-  teams: "👥 2 contra 2",
-};
+const MODE_KEY = {
+  survival: "arena.modeSurvival",
+  duel: "arena.modeDuel",
+  teams: "arena.modeTeams",
+} as const;
 
 function Row({ m }: { m: ArenaHistoryDto }) {
+  const { t, i18n } = useTranslation();
   const won = m.place === 1 && !m.left;
-  const date = new Date(m.finishedAt).toLocaleString("pt-PT", {
+  const date = new Date(m.finishedAt).toLocaleString(i18n.language, {
     day: "numeric",
     month: "short",
     hour: "2-digit",
@@ -35,18 +37,26 @@ function Row({ m }: { m: ArenaHistoryDto }) {
         {won ? (
           <Trophy size={22} color={colors.accentForeground} />
         ) : (
-          <AppText variant="h3">{m.left ? "—" : `${m.place}.º`}</AppText>
+          <AppText variant="h3">{m.left ? "—" : t("arena.placeShort", { place: m.place })}</AppText>
         )}
       </View>
       <View style={{ flex: 1 }}>
         <AppText variant="bodyStrong">
-          {m.left ? "Saíste a meio" : won ? "Vitória!" : `${m.place}.º lugar`}{" "}
+          {m.left
+            ? t("arena.historyLeft")
+            : won
+              ? t("arena.historyWon")
+              : t("arena.place", { place: m.place })}{" "}
           <AppText variant="small" tone="muted">
-            de {m.players}
+            {t("arena.historyOf", { count: m.players })}
           </AppText>
         </AppText>
         <AppText variant="caption" tone="muted">
-          {MODE[m.mode] ?? m.mode} · {m.correct} certas · {date}
+          {t("arena.historyLine", {
+            mode: m.mode in MODE_KEY ? t(MODE_KEY[m.mode as keyof typeof MODE_KEY]) : m.mode,
+            correct: m.correct,
+            date,
+          })}
         </AppText>
       </View>
       <View style={{ alignItems: "flex-end" }}>
@@ -61,7 +71,7 @@ function Row({ m }: { m: ArenaHistoryDto }) {
           </>
         ) : (
           <AppText variant="caption" tone="muted">
-            {m.rewarded ? "—" : "sem prémio"}
+            {m.rewarded ? "—" : t("arena.noPrize")}
           </AppText>
         )}
       </View>
@@ -71,6 +81,7 @@ function Row({ m }: { m: ArenaHistoryDto }) {
 
 /** As minhas últimas partidas da Arena (igual à web). */
 export default function ArenaHistory() {
+  const { t } = useTranslation();
   const matches = useArenaHistory();
   return (
     <SafeAreaView style={styles.page}>
@@ -78,7 +89,7 @@ export default function ArenaHistory() {
         <Pressable accessibilityRole="button" onPress={() => router.back()} hitSlop={10}>
           <ArrowLeft size={24} color={colors.foreground} />
         </Pressable>
-        <AppText variant="h3">Histórico de partidas</AppText>
+        <AppText variant="h3">{t("arena.history")}</AppText>
         <View style={{ width: 24 }} />
       </View>
       <ScrollView contentContainerStyle={styles.content}>
@@ -88,11 +99,8 @@ export default function ArenaHistory() {
           <ErrorState onRetry={() => void matches.refetch()} />
         ) : matches.data.length === 0 ? (
           <>
-            <EmptyState
-              title="Ainda não jogaste na Arena"
-              text="Cria uma sala privada e desafia os teus amigos."
-            />
-            <AppButton onPress={() => router.replace("/arena")}>Criar sala</AppButton>
+            <EmptyState title={t("arena.historyEmptyTitle")} text={t("arena.historyEmptyText")} />
+            <AppButton onPress={() => router.replace("/arena")}>{t("arena.createRoom")}</AppButton>
           </>
         ) : (
           matches.data.map((m) => <Row key={m.matchId} m={m} />)
