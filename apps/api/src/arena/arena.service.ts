@@ -23,10 +23,13 @@ import {
   alivePlayers,
   applySurvivalRound,
   createPlayers,
+  duelReward,
   generateRoomCode,
   normalizeConfig,
+  rankDuel,
   rankRemaining,
   rewardEligible,
+  scoreAnswer,
   survivalReward,
 } from "./survival-rules.js";
 
@@ -86,8 +89,14 @@ interface Member {
   graceTimer: ReturnType<typeof setTimeout> | null;
 }
 
+export type ArenaMode = "survival" | "duel";
+
 interface Match {
   id: string;
+  mode: ArenaMode;
+  /** Duelo: pontos e tempo total de resposta (ms) por jogador. */
+  scores: Map<string, number>;
+  answerMs: Map<string, number>;
   questions: StoredQuestion[];
   round: number;
   phase: MatchView["phase"];
@@ -105,6 +114,7 @@ interface Match {
 /** Convite para uma sala (em memória; expira ou deixa de valer quando a sala começa/fecha). */
 export interface ArenaInvite {
   code: string;
+  mode: ArenaMode;
   from: { userId: string; username: string; name: string; avatarColor: string | null };
   at: number;
   expiresAt: number;
@@ -114,6 +124,7 @@ const INVITE_TTL_MS = 10 * 60 * 1000;
 const MAX_INVITES_PER_ROOM = 30;
 
 interface Room {
+  mode: ArenaMode;
   invitesSent: number;
   code: string;
   hostId: string;
@@ -158,7 +169,7 @@ export class ArenaService implements OnModuleDestroy {
 
   async createRoom(
     who: ArenaIdentity,
-    input: { config?: Partial<ArenaConfig>; languageId?: string },
+    input: { config?: Partial<ArenaConfig>; languageId?: string; mode?: ArenaMode },
   ): Promise<RoomView> {
     this.assertNotPlaying(who.userId);
     this.leaveCurrent(who.userId);
@@ -172,10 +183,15 @@ export class ArenaService implements OnModuleDestroy {
     }
     let code = generateRoomCode(Math.random);
     while (this.rooms.has(code)) code = generateRoomCode(Math.random);
+    const mode = input.mode ?? "survival";
     const room: Room = {
+      mode,
       code,
       hostId: who.userId,
-      config: normalizeConfig(input.config),
+      config:
+        mode === "duel"
+          ? { players: 2, lives: 1, seconds: ARENA_CONFIG.duel.seconds }
+          : normalizeConfig(input.config),
       languageId,
       locale: LOCALES.includes(who.uiLocale) ? who.uiLocale : "en",
       members: new Map(),
@@ -205,6 +221,12 @@ export class ArenaService implements OnModuleDestroy {
     this.leaveCurrent(who.userId);
     this.addMember(room, who);
     this.broadcastRoom(room);
+    if (room.mode === "duel" && room.members.size === 2) {
+      // Duelo: começa sozinho quando o adversário entra.
+      void this.start(room.hostId).catch((e: unknown) => {
+        this.logger.warn({ err: e, code: room.code }, "Duelo não arrancou");
+      });
+    }
     return this.view(room);
   }
 
@@ -220,6 +242,14 @@ export class ArenaService implements OnModuleDestroy {
       const alive = room.match.players.some((p) => p.id === userId && p.lives > 0);
       if (alive) room.match.left.add(userId);
       room.match.departed.add(userId);
+      if (room.match.mode === "duel") {
+        // Duelo: quem fica ganha logo.
+        this.clearTimer(room.match);
+        this.roomOf.delete(userId);
+        if (member) member.connected = false;
+        void this.finish(room);
+        return;
+      }
       if (member) member.connected = false;
       this.roomOf.delete(userId);
       this.maybeResolveEarly(room);
@@ -298,6 +328,7 @@ export class ArenaService implements OnModuleDestroy {
     room.invitesSent += 1;
     const invite: ArenaInvite = {
       code: room.code,
+      mode: room.mode,
       from: {
         userId: who.userId,
         username: who.username,
@@ -312,6 +343,21 @@ export class ArenaService implements OnModuleDestroy {
     );
     this.invites.set(friendId, [...list, invite]);
     this.emit({ user: friendId }, "arena:invite", invite);
+  }
+
+  /** Desafiar um amigo para um duelo: cria a sala de 2 e envia-lhe o convite. */
+  async challenge(who: ArenaIdentity, friendId: string, languageId?: string): Promise<RoomView> {
+    if (friendId === who.userId) throw new ArenaError("NOT_FRIENDS", "Só podes desafiar amigos.");
+    const friends = await this.social.friendIds(who.userId);
+    if (!friends.includes(friendId)) {
+      throw new ArenaError("NOT_FRIENDS", "Só podes desafiar amigos.");
+    }
+    const room = await this.createRoom(who, {
+      mode: "duel",
+      ...(languageId ? { languageId } : {}),
+    });
+    await this.invite(who, friendId);
+    return room;
   }
 
   /** Convites ainda válidos (sala existe, à espera e com lugar). */
@@ -348,7 +394,10 @@ export class ArenaService implements OnModuleDestroy {
     if (members.length < ARENA_CONFIG.minPlayersToStart) {
       throw new ArenaError("NOT_ENOUGH_PLAYERS", "São precisos pelo menos 2 jogadores.");
     }
-    if (members.some((m) => m.identity.userId !== room.hostId && !m.ready)) {
+    if (
+      room.mode !== "duel" &&
+      members.some((m) => m.identity.userId !== room.hostId && !m.ready)
+    ) {
       throw new ArenaError("NOT_READY", "Ainda há jogadores que não estão prontos.");
     }
 
@@ -360,7 +409,7 @@ export class ArenaService implements OnModuleDestroy {
     const row = await this.prisma.arenaMatch.create({
       data: {
         roomCode: room.code,
-        mode: "survival",
+        mode: room.mode,
         languageId: room.languageId,
         locale: room.locale,
         hostId: room.hostId,
@@ -380,6 +429,9 @@ export class ArenaService implements OnModuleDestroy {
     }
     const match: Match = {
       id: row.id,
+      mode: room.mode,
+      scores: new Map(playerIds.map((id) => [id, 0])),
+      answerMs: new Map(playerIds.map((id) => [id, 0])),
       questions,
       round: 0,
       phase: "countdown",
@@ -474,6 +526,10 @@ export class ArenaService implements OnModuleDestroy {
       const a = match.answers.get(p.id);
       outcomes[p.id] = !a ? "timeout" : a.optionId === q.correctOptionId ? "correct" : "wrong";
     }
+    if (match.mode === "duel") {
+      this.resolveDuelRound(room, match, q.correctOptionId, outcomes);
+      return;
+    }
     const { players, summary } = applySurvivalRound(match.players, outcomes, match.round);
     match.players = players;
     match.phase = "reveal";
@@ -513,15 +569,82 @@ export class ArenaService implements OnModuleDestroy {
     this.schedule(room, () => this.nextQuestion(room), this.timings.betweenRoundsMs);
   }
 
+  /** Duelo: ninguém perde vidas; soma pontos (certa + rapidez) e tempo de resposta. */
+  private resolveDuelRound(
+    room: Room,
+    match: Match,
+    correctOptionId: string,
+    outcomes: Record<string, AnswerOutcome>,
+  ) {
+    const totalMs = room.config.seconds * 1000;
+    const startedAt = (match.deadlineAt ?? Date.now()) - totalMs;
+    match.players = match.players.map((p) => {
+      const o = outcomes[p.id] ?? "timeout";
+      const a = match.answers.get(p.id);
+      const used = a ? Math.min(totalMs, Math.max(0, a.at - startedAt)) : totalMs;
+      match.answerMs.set(p.id, (match.answerMs.get(p.id) ?? 0) + used);
+      match.scores.set(
+        p.id,
+        (match.scores.get(p.id) ?? 0) + scoreAnswer(o === "correct", 1 - used / totalMs),
+      );
+      return o === "correct"
+        ? { ...p, correct: p.correct + 1 }
+        : o === "wrong"
+          ? { ...p, wrong: p.wrong + 1 }
+          : { ...p, timeouts: p.timeouts + 1 };
+    });
+    const counts = Object.values(outcomes);
+    match.phase = "reveal";
+    match.deadlineAt = null;
+    this.emit({ room: socketRoom(room.code) }, "match:reveal", {
+      matchId: match.id,
+      round: match.round,
+      questionId: this.questionId(match),
+      correctOptionId,
+      outcomes,
+      players: this.playerViews(match),
+      summary: {
+        round: match.round,
+        correct: counts.filter((o) => o === "correct").length,
+        wrong: counts.filter((o) => o === "wrong").length,
+        noAnswer: counts.filter((o) => o === "timeout").length,
+        eliminated: [],
+        alive: match.players.length,
+        voided: false,
+      },
+    });
+    const done = match.round >= ARENA_CONFIG.duel.questions || match.left.size > 0;
+    this.schedule(
+      room,
+      () => (done ? void this.finish(room) : this.nextQuestion(room)),
+      this.timings.betweenRoundsMs,
+    );
+  }
+
   private async finish(room: Room) {
     const match = room.match;
     if (!match || match.phase === "finished") return;
     match.phase = "finished";
     this.clearTimer(match);
-    const ranked = rankRemaining(match.players).sort(
-      (a, b) => (a.placement ?? 99) - (b.placement ?? 99),
-    );
-    const eligible = rewardEligible(true, match.players.length);
+    const duel = match.mode === "duel";
+    const duelPlaces = duel
+      ? rankDuel(
+          match.players.map((p) => ({
+            id: p.id,
+            score: match.scores.get(p.id) ?? 0,
+            correct: p.correct,
+            answerMs: match.answerMs.get(p.id) ?? 0,
+            left: match.left.has(p.id),
+          })),
+        )
+      : null;
+    const ranked = (
+      duelPlaces
+        ? match.players.map((p) => ({ ...p, placement: duelPlaces.get(p.id) ?? 2 }))
+        : rankRemaining(match.players)
+    ).sort((a, b) => (a.placement ?? 99) - (b.placement ?? 99));
+    // Duelo entre amigos paga (até 3 por dia); Sobrevivência privada só com 4+ jogadores.
+    const eligible = duel || rewardEligible(true, match.players.length);
     const table = await loadRewardTable(this.prisma);
     const now = new Date();
     const rewards = new Map<string, { xp: number; coins: number; reason: string }>();
@@ -530,18 +653,18 @@ export class ArenaService implements OnModuleDestroy {
       const left = match.left.has(p.id);
       let reward = { xp: 0, coins: 0, reason: left ? "left" : eligible ? "ok" : "private_small" };
       if (!left && eligible) {
-        const r = survivalReward(p.placement ?? ranked.length);
+        const place = p.placement ?? ranked.length;
+        const r = duel ? duelReward(place) : survivalReward(place);
         try {
           reward = await this.prisma.$transaction(async (tx) => {
-            if (await this.dailyLimitReached(tx, p.id, now)) {
-              return { xp: 0, coins: 0, reason: "daily_limit" };
-            }
+            const limit = await this.dailyLimitReached(tx, p.id, now, duel);
+            if (limit) return { xp: 0, coins: 0, reason: limit };
             await grantActivity(tx, {
               userId: p.id,
               now,
-              sourceType: "arena_match",
+              sourceType: duel ? "arena_duel" : "arena_match",
               sourceId: match.id,
-              xp: [{ reason: "ARENA_PLACE", amount: r.xp }],
+              xp: [{ reason: duel && place === 1 ? "DUEL_WIN" : "ARENA_PLACE", amount: r.xp }],
               coins: [{ reason: "ARENA_PLACE", amount: r.coins }],
               correctAnswersDelta: p.correct,
               lessonsCompletedDelta: 0,
@@ -588,6 +711,7 @@ export class ArenaService implements OnModuleDestroy {
       wrong: p.wrong,
       timeouts: p.timeouts,
       left: match.left.has(p.id),
+      score: match.scores.get(p.id) ?? 0,
     }));
     this.emit({ room: socketRoom(room.code) }, "match:finished", {
       matchId: match.id,
@@ -614,18 +738,33 @@ export class ArenaService implements OnModuleDestroy {
     }
   }
 
-  /** No máximo 10 partidas premiadas por dia local (REGRAS §9). */
-  private async dailyLimitReached(tx: Prisma.TransactionClient, userId: string, now: Date) {
+  /**
+   * Limites diários (dia local): no máximo 10 partidas premiadas (REGRAS §9) e, dessas,
+   * 3 duelos. Devolve o motivo quando já não paga, ou null.
+   */
+  private async dailyLimitReached(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    now: Date,
+    duel: boolean,
+  ): Promise<"daily_limit" | "duel_limit" | null> {
     const user = await tx.user.findUniqueOrThrow({
       where: { id: userId },
       select: { timezone: true },
     });
     const tz = isValidTimeZone(user.timezone) ? user.timezone : "Europe/Lisbon";
     const today = new Date(`${localDate(now, tz)}T00:00:00Z`);
-    const count = await tx.xpEvent.count({
-      where: { userId, reason: "ARENA_PLACE", localDate: today },
+    const rows = await tx.xpEvent.groupBy({
+      by: ["sourceType"],
+      where: { userId, localDate: today, sourceType: { in: ["arena_match", "arena_duel"] } },
+      _count: true,
     });
-    return count >= ARENA_CONFIG.maxRewardedMatchesPerDay;
+    const count = (t: string) => rows.find((r) => r.sourceType === t)?._count ?? 0;
+    if (count("arena_match") + count("arena_duel") >= ARENA_CONFIG.maxRewardedMatchesPerDay) {
+      return "daily_limit";
+    }
+    if (duel && count("arena_duel") >= ARENA_CONFIG.maxRewardedDuelsPerDay) return "duel_limit";
+    return null;
   }
 
   /** Partida sem ninguém ligado: cancela (sem recompensas). */
@@ -687,8 +826,9 @@ export class ArenaService implements OnModuleDestroy {
       wrong: p.wrong,
       timeouts: p.timeouts,
       placement: p.placement,
-      eliminated: p.lives <= 0,
+      eliminated: match.mode === "survival" && p.lives <= 0,
       left: match.left.has(p.id),
+      score: match.scores.get(p.id) ?? 0,
     }));
   }
 
@@ -709,7 +849,7 @@ export class ArenaService implements OnModuleDestroy {
       code: room.code,
       hostId: room.hostId,
       status: room.match ? "IN_PROGRESS" : "WAITING",
-      mode: "survival",
+      mode: room.mode,
       config: room.config,
       languageId: room.languageId,
       locale: room.locale,

@@ -28,7 +28,7 @@ export interface ArenaRoomDto {
   code: string;
   hostId: string;
   status: "WAITING" | "IN_PROGRESS";
-  mode: "survival";
+  mode: "survival" | "duel";
   config: ArenaConfigDto;
   languageId: string;
   locale: string;
@@ -44,6 +44,8 @@ export interface ArenaPlayerDto {
   placement: number | null;
   eliminated: boolean;
   left: boolean;
+  /** Duelo: pontos (certa + rapidez). Sobrevivência: 0. */
+  score: number;
 }
 
 export interface ArenaQuestionDto {
@@ -111,6 +113,7 @@ export interface ArenaStandingDto {
   wrong: number;
   timeouts: number;
   left: boolean;
+  score: number;
 }
 
 export interface ArenaFinishedEvent {
@@ -124,11 +127,12 @@ export interface ArenaRewardEvent {
   matchId: string;
   xp: number;
   coins: number;
-  reason: "ok" | "private_small" | "daily_limit" | "left";
+  reason: "ok" | "private_small" | "daily_limit" | "duel_limit" | "left";
 }
 
 export interface ArenaInviteEvent {
   code: string;
+  mode: "survival" | "duel";
   from: { userId: string; username: string; name: string; avatarColor: string | null };
   at: number;
   expiresAt: number;

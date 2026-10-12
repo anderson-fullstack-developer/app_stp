@@ -18,7 +18,7 @@ export interface RoomView {
   code: string;
   hostId: string;
   status: RoomStatus;
-  mode: "survival";
+  mode: "survival" | "duel";
   config: ArenaConfig;
   languageId: string;
   locale: string;
@@ -34,6 +34,8 @@ export interface PlayerView {
   placement: number | null;
   eliminated: boolean;
   left: boolean;
+  /** Duelo: pontos (certa + rapidez). Sobrevivência: 0. */
+  score: number;
 }
 
 export type MatchPhase = "countdown" | "question" | "reveal" | "final" | "finished";
@@ -64,12 +66,14 @@ export interface MatchStanding {
   wrong: number;
   timeouts: number;
   left: boolean;
+  score: number;
 }
 
 /** Eventos servidor → cliente. */
 export interface ArenaServerEvents {
   "arena:invite": (p: {
     code: string;
+    mode: "survival" | "duel";
     from: { userId: string; username: string; name: string; avatarColor: string | null };
     at: number;
     expiresAt: number;
@@ -106,7 +110,7 @@ export interface ArenaServerEvents {
     xp: number;
     coins: number;
     /** Porque não houve recompensa (sala pequena, limite diário, saiu a meio). */
-    reason: "ok" | "private_small" | "daily_limit" | "left";
+    reason: "ok" | "private_small" | "daily_limit" | "duel_limit" | "left";
   }) => void;
 }
 

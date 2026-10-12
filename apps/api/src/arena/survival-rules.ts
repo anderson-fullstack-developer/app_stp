@@ -22,6 +22,12 @@ export const ARENA_CONFIG = {
   maxRewardedMatchesPerDay: 10,
   /** Mínimo para começar uma partida. */
   minPlayersToStart: 2,
+  /** Duelo 1 contra 1: 10 perguntas iguais, ganha quem fizer mais pontos. */
+  duel: { questions: 10, seconds: 10 },
+  scoring: { base: 100, maxSpeedBonus: 50 },
+  matchRewards: { win: { xp: 120, coins: 20 }, lose: { xp: 40, coins: 5 } },
+  /** Duelos premiados por dia local (decisão de produto: evita combinar XP entre amigos). */
+  maxRewardedDuelsPerDay: 3,
 } as const;
 
 export type AnswerOutcome = "correct" | "wrong" | "timeout";
@@ -145,3 +151,49 @@ export function generateRoomCode(rand: () => number, length = 6): string {
   for (let i = 0; i < length; i++) code += CODE_ALPHABET[Math.floor(rand() * CODE_ALPHABET.length)];
   return code;
 }
+
+/** Pontos de uma resposta no duelo: certa vale a base + bónus pela rapidez (0 se errada). */
+export function scoreAnswer(correct: boolean, timeLeftRatio: number): number {
+  if (!correct) return 0;
+  const { base, maxSpeedBonus } = ARENA_CONFIG.scoring;
+  return base + Math.round(maxSpeedBonus * Math.min(1, Math.max(0, timeLeftRatio)));
+}
+
+export interface DuelScore {
+  id: string;
+  score: number;
+  correct: number;
+  /** Tempo total gasto a responder (ms); menos é melhor no desempate. */
+  answerMs: number;
+  left: boolean;
+}
+
+/**
+ * Lugares no duelo: quem saiu perde; depois mais pontos, mais certas e menos tempo.
+ * Empate em tudo = os dois em 1.º (empate).
+ */
+export function rankDuel(players: DuelScore[]): Map<string, number> {
+  const sorted = [...players].sort(
+    (a, b) =>
+      Number(a.left) - Number(b.left) ||
+      b.score - a.score ||
+      b.correct - a.correct ||
+      a.answerMs - b.answerMs,
+  );
+  const places = new Map<string, number>();
+  sorted.forEach((p, i) => {
+    const prev = sorted[i - 1];
+    const tied =
+      prev &&
+      !p.left &&
+      !prev.left &&
+      prev.score === p.score &&
+      prev.correct === p.correct &&
+      prev.answerMs === p.answerMs;
+    places.set(p.id, tied ? places.get(prev.id)! : i + 1);
+  });
+  return places;
+}
+
+export const duelReward = (place: number) =>
+  place === 1 ? { ...ARENA_CONFIG.matchRewards.win } : { ...ARENA_CONFIG.matchRewards.lose };

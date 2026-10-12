@@ -7,7 +7,9 @@ import {
   generateRoomCode,
   normalizeConfig,
   rankRemaining,
+  rankDuel,
   rewardEligible,
+  scoreAnswer,
   survivalReward,
   type AnswerOutcome,
 } from "./survival-rules.js";
@@ -21,6 +23,9 @@ describe("Regras da Sobrevivência no servidor", () => {
     expect(ARENA_CONFIG.maxRounds).toBe(MULTIPLAYER_CONFIG.maxRounds);
     expect(ARENA_CONFIG.survivalRewards).toEqual(MULTIPLAYER_CONFIG.survivalRewards);
     expect(ARENA_CONFIG.participationReward).toEqual(MULTIPLAYER_CONFIG.participationReward);
+    expect(ARENA_CONFIG.duel).toEqual(MULTIPLAYER_CONFIG.duel);
+    expect(ARENA_CONFIG.scoring).toEqual(MULTIPLAYER_CONFIG.scoring);
+    expect(ARENA_CONFIG.matchRewards).toEqual(MULTIPLAYER_CONFIG.matchRewards);
   });
 
   it("mesmos resultados que o motor partilhado (@stp/game-engine)", () => {
@@ -50,6 +55,48 @@ describe("Regras da Sobrevivência no servidor", () => {
     for (const place of [1, 2, 3, 4, 9]) {
       expect(survivalReward(place)).toEqual(engine.survivalReward(place));
     }
+  });
+
+  it("pontos do duelo iguais ao motor partilhado", () => {
+    for (const [ok, ratio] of [
+      [true, 1],
+      [true, 0.5],
+      [true, 0],
+      [false, 1],
+      [true, 2],
+    ] as const) {
+      expect(scoreAnswer(ok, ratio)).toBe(engine.scoreAnswer(ok, ratio));
+    }
+  });
+
+  it("duelo: pontos, depois certas, depois tempo; quem sai perde; empate total", () => {
+    const base = { correct: 5, answerMs: 20_000, left: false };
+    expect([
+      ...rankDuel([
+        { id: "a", score: 500, ...base },
+        { id: "b", score: 600, ...base },
+      ]),
+    ]).toEqual([
+      ["b", 1],
+      ["a", 2],
+    ]);
+    expect(
+      rankDuel([
+        { id: "a", score: 500, ...base },
+        { id: "b", score: 500, ...base, answerMs: 9_000 },
+      ]).get("b"),
+    ).toBe(1);
+    expect(
+      rankDuel([
+        { id: "a", score: 900, ...base, left: true },
+        { id: "b", score: 0, ...base },
+      ]).get("b"),
+    ).toBe(1);
+    const draw = rankDuel([
+      { id: "a", score: 500, ...base },
+      { id: "b", score: 500, ...base },
+    ]);
+    expect([draw.get("a"), draw.get("b")]).toEqual([1, 1]);
   });
 
   it("ronda anulada quando toda a gente morreria", () => {
