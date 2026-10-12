@@ -7,12 +7,97 @@ import { useQuery } from "@tanstack/react-query";
 import type { CountryWithLanguages } from "@stp/types/api";
 import { useAccountProfile } from "@/hooks/use-account";
 import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
-import { http } from "@/services/http";
+import { apiRequest, http } from "@/services/http";
 import type { AdminRole, AdminSession } from "./types";
 
 export type ServerContentKind = "vocabulary" | "phrase";
 export type ServerContentStatus = "DRAFT" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "ARCHIVED";
 export type ReviewAction = "submit" | "approve" | "request_changes" | "reject" | "archive";
+/** Tipos que passam pela revisão (palavras, frases, lições e exercícios). */
+export type ReviewKind = ServerContentKind | "lesson" | "exercise";
+
+interface LessonSummary {
+  id: string;
+  title: string;
+  order: number;
+  status: ServerContentStatus;
+  difficulty: "EASY" | "MEDIUM" | "HARD";
+  estimatedMinutes: number;
+  exercises: number;
+  approvedExercises: number;
+}
+
+export interface CourseTree {
+  id: string;
+  title: string;
+  description: string | null;
+  order: number;
+  status: ServerContentStatus;
+  units: {
+    id: string;
+    title: string;
+    description: string | null;
+    icon: string | null;
+    order: number;
+    status: ServerContentStatus;
+    lessons: LessonSummary[];
+  }[];
+}
+
+export interface LessonDetail {
+  id: string;
+  title: string;
+  description: string | null;
+  order: number;
+  difficulty: "EASY" | "MEDIUM" | "HARD";
+  estimatedMinutes: number;
+  status: ServerContentStatus;
+  version: number;
+  languageId: string;
+  unit: { id: string; title: string };
+  course: { id: string; title: string };
+  author: { id: string; username: string };
+  reviewer: { id: string; username: string } | null;
+  exercises: {
+    id: string;
+    type: string;
+    prompt: string;
+    order: number;
+    status: ServerContentStatus;
+    author: { id: string; username: string };
+    vocabulary: {
+      id: string;
+      word: string;
+      status: ServerContentStatus;
+      partOfSpeech: string;
+      translations: { pt?: string; en?: string };
+    } | null;
+  }[];
+}
+
+export interface ReviewItems {
+  lessons: {
+    id: string;
+    title: string;
+    unit: string;
+    languageId: string;
+    exercises: number;
+    author: { id: string; username: string };
+    reviewer: { id: string; username: string } | null;
+    updatedAt: string;
+  }[];
+  exercises: {
+    id: string;
+    prompt: string;
+    languageId: string;
+    lesson: { id: string; title: string } | null;
+    vocabularyStatus: ServerContentStatus | null;
+    translations: { pt?: string; en?: string };
+    author: { id: string; username: string };
+    reviewer: { id: string; username: string } | null;
+    updatedAt: string;
+  }[];
+}
 
 interface Person {
   id: string;
@@ -98,9 +183,9 @@ export const adminApi = {
     http.post<{ id: string }>("admin", kindPath(kind), body),
   update: (kind: ServerContentKind, id: string, body: ContentInput) =>
     http.patch<{ id: string }>("admin", [...kindPath(kind), id], body),
-  review: (kind: ServerContentKind, id: string, action: ReviewAction, comment?: string) =>
+  review: (kind: ReviewKind, id: string, action: ReviewAction, comment?: string) =>
     http.post("content", [kind, id, action], comment ? { comment } : {}),
-  history: (kind: ServerContentKind, id: string) =>
+  history: (kind: ReviewKind, id: string) =>
     http.get<ReviewHistoryRow[]>("content", kind, id, "reviews"),
   users: (q: string) => http.getQ<AdminUserRow[]>("admin", ["users"], q ? { q } : {}),
   grant: (userId: string, role: AdminRole, languageId: string | null) =>
@@ -109,6 +194,46 @@ export const adminApi = {
   setStatus: (userId: string, status: "ACTIVE" | "SUSPENDED") =>
     http.post("admin", ["users", userId, "status"], { status }),
   languages: () => http.get<CountryWithLanguages[]>("languages"),
+  courseTree: (languageId: string) => http.getQ<CourseTree[]>("admin", ["courses"], { languageId }),
+  reviewItems: (status: ServerContentStatus) =>
+    http.getQ<ReviewItems>("admin", ["review-items"], { status }),
+  createCourse: (body: { languageId: string; title: string; description?: string }) =>
+    http.post<{ id: string }>("admin", ["courses"], body),
+  createUnit: (body: { courseId: string; title: string; description?: string; icon?: string }) =>
+    http.post<{ id: string }>("admin", ["units"], body),
+  updateContainer: (
+    kind: "courses" | "units",
+    id: string,
+    body: {
+      title?: string;
+      description?: string;
+      icon?: string;
+      order?: number;
+      status?: "DRAFT" | "APPROVED" | "ARCHIVED";
+    },
+  ) => http.patch("admin", [kind, id], body),
+  createLesson: (body: {
+    unitId: string;
+    title: string;
+    description?: string;
+    estimatedMinutes?: number;
+  }) => http.post<{ id: string }>("admin", ["lessons"], body),
+  lesson: (id: string) => http.get<LessonDetail>("admin", "lessons", id),
+  updateLesson: (
+    id: string,
+    body: {
+      title?: string;
+      description?: string;
+      difficulty?: "EASY" | "MEDIUM" | "HARD";
+      estimatedMinutes?: number;
+      order?: number;
+    },
+  ) => http.patch("admin", ["lessons", id], body),
+  addWord: (lessonId: string, vocabularyId: string) =>
+    http.post("admin", ["lessons", lessonId, "words"], { vocabularyId }),
+  reorder: (lessonId: string, ids: string[]) =>
+    apiRequest("PUT", "admin", ["lessons", lessonId, "order"], { ids }),
+  removeExercise: (id: string) => http.del("admin", "exercises", id),
 };
 
 const ROLE_ORDER: AdminRole[] = ["SUPER_ADMIN", "ADMIN", "LINGUIST", "CONTENT_EDITOR", "MODERATOR"];
@@ -158,6 +283,10 @@ export function useLanguageOptions() {
 export const SERVER_ADMIN_ROUTES = [
   "/admin",
   "/admin/review",
+  "/admin/courses",
+  "/admin/lessons",
+  "/admin/exercises",
+  "/admin/audios",
   "/admin/vocabulary",
   "/admin/phrases",
   "/admin/users",

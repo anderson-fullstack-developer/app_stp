@@ -1,3 +1,5 @@
+import { ServerExercises } from "@/admin/ServerCoursePages";
+import { useServerAdmin } from "@/admin/server";
 import { isFeatureOn, APP_NAME } from "@stp/config";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Sparkles } from "lucide-react";
@@ -78,7 +80,13 @@ const blank = (): ExerciseItem => ({
   history: [],
 });
 
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
 function Exercises() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerExercises /> : <DemoExercises />;
+}
+
+function DemoExercises() {
   const db = useAdminDB();
   const [type, setType] = useState<"Todos" | ExerciseType>("Todos");
   const [status, setStatus] = useState("Todos");

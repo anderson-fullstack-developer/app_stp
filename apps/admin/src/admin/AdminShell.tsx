@@ -191,7 +191,7 @@ export function AdminShell() {
 
 const isServerRoute = (path: string) => {
   const p = path.replace(/\/+$/, "") || "/admin";
-  return SERVER_ADMIN_ROUTES.includes(p);
+  return SERVER_ADMIN_ROUTES.includes(p) || p.startsWith("/admin/lessons/");
 };
 
 function ForbiddenInline({ role }: { role: AdminRole }) {

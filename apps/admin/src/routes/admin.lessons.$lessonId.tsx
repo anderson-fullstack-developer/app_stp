@@ -1,3 +1,5 @@
+import { ServerLessonEditor } from "@/admin/ServerCoursePages";
+import { useServerAdmin } from "@/admin/server";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Plus } from "lucide-react";
 import { useState } from "react";
@@ -27,7 +29,14 @@ export const Route = createFileRoute("/admin/lessons/$lessonId")({
   component: LessonEditor,
 });
 
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
 function LessonEditor() {
+  const server = useServerAdmin();
+  const { lessonId } = Route.useParams();
+  return server.enabled ? <ServerLessonEditor lessonId={lessonId} /> : <DemoLessonEditor />;
+}
+
+function DemoLessonEditor() {
   const { lessonId } = Route.useParams();
   const db = useAdminDB();
   const lesson = db.lessons.find((l) => l.id === lessonId);

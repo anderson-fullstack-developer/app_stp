@@ -1,3 +1,5 @@
+import { ServerAudios } from "@/admin/ServerCoursePages";
+import { useServerAdmin } from "@/admin/server";
 import { createFileRoute } from "@tanstack/react-router";
 import { Upload } from "lucide-react";
 import { useRef, useState } from "react";
@@ -28,7 +30,13 @@ export const Route = createFileRoute("/admin/audios")({
   component: Audios,
 });
 
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
 function Audios() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerAudios /> : <DemoAudios />;
+}
+
+function DemoAudios() {
   const db = useAdminDB();
   const [status, setStatus] = useState("Todos");
   const [busy, setBusy] = useState(false);
