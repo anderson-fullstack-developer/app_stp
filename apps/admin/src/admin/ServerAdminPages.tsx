@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { Plus, Send, ShieldCheck, UserX } from "lucide-react";
 import { useState } from "react";
 import { ApiError } from "@/services/http";
+import { ReviewLessonsAndExercises } from "./ServerCoursePages";
 import { fmtDateTime } from "./format";
 import { ROLE_LABEL } from "./permissions";
 import {
@@ -521,6 +522,7 @@ export function ServerReviewQueue({ status }: { status: ReviewStatus }) {
         empty={vocab.isPending || phrases.isPending ? "A carregar…" : "Nada nesta fila."}
       />
       {open && <ReviewDrawer row={open} onClose={() => setOpen(null)} langName={langName} />}
+      <ReviewLessonsAndExercises status={status} />
     </>
   );
 }

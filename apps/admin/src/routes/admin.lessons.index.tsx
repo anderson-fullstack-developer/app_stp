@@ -1,3 +1,5 @@
+import { ServerLessons } from "@/admin/ServerCoursePages";
+import { useServerAdmin } from "@/admin/server";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAdminDB } from "@/services/admin";
 import type { AdminLesson } from "@/admin/types";
@@ -14,7 +16,13 @@ export const Route = createFileRoute("/admin/lessons/")({
   component: Lessons,
 });
 
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
 function Lessons() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerLessons /> : <DemoLessons />;
+}
+
+function DemoLessons() {
   const db = useAdminDB();
   const navigate = useNavigate();
   const unit = (id: string) => db.units.find((u) => u.id === id);

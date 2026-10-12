@@ -1,3 +1,5 @@
+import { ServerCourses } from "@/admin/ServerCoursePages";
+import { useServerAdmin } from "@/admin/server";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowUp, ChevronRight, Plus } from "lucide-react";
 import { useState } from "react";
@@ -16,7 +18,13 @@ export const Route = createFileRoute("/admin/courses")({
   component: Courses,
 });
 
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
 function Courses() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerCourses /> : <DemoCourses />;
+}
+
+function DemoCourses() {
   const db = useAdminDB();
   const [lang, setLang] = useState("forro");
   const language = db.languages.find((l) => l.id === lang);
