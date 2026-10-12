@@ -1,7 +1,11 @@
 /** Hooks de apresentação partilhados pelos ecrãs da Arena com pontos (duelo e 2 contra 2). */
 import { useEffect, useRef, useState } from "react";
+import { secondsLeft } from "@stp/arena-client";
 import type { ArenaMatchState } from "@/lib/multiplayer/arena-client";
+
 import { sound } from "@/lib/sound";
+
+export { countdownValue, secondsLeft } from "@stp/arena-client";
 
 /** Relógio local (atualiza a cada 100 ms) para mostrar contagens até prazos do servidor. */
 export function useNow(): number {
@@ -11,18 +15,6 @@ export function useNow(): number {
     return () => clearInterval(id);
   }, []);
   return now;
-}
-
-/** Segundos até ao fim da pergunta (0 fora da fase de pergunta). */
-export function secondsLeft(m: ArenaMatchState, now: number): number {
-  return m.phase === "question" && m.deadlineAt ? Math.max(0, (m.deadlineAt - now) / 1000) : 0;
-}
-
-/** Contagem antes da 1.ª pergunta: 3, 2, 1, "go" (null fora da contagem). */
-export function countdownValue(m: ArenaMatchState, now: number): number | "go" | null {
-  if (m.phase !== "countdown" || !m.countdownAt) return null;
-  const left = m.countdownAt - now;
-  return left > 0 ? Math.min(3, Math.ceil(left / 1000)) : "go";
 }
 
 /**

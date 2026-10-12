@@ -112,6 +112,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.8
         version: 1.2.16(@types/react-dom@19.3.0(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@stp/arena-client':
+        specifier: workspace:*
+        version: link:../../packages/arena-client
       '@stp/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -414,6 +417,9 @@ importers:
       '@react-native-community/netinfo':
         specifier: 12.0.1
         version: 12.0.1(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
+      '@stp/arena-client':
+        specifier: workspace:*
+        version: link:../../packages/arena-client
       '@stp/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -535,6 +541,22 @@ importers:
       typescript:
         specifier: ~6.0.3
         version: 6.0.3
+
+  packages/arena-client:
+    dependencies:
+      '@stp/types':
+        specifier: workspace:*
+        version: link:../types
+      socket.io-client:
+        specifier: 4.8.3
+        version: 4.8.3
+    devDependencies:
+      '@stp/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
 
   packages/config:
     devDependencies:
