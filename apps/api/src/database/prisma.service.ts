@@ -15,20 +15,32 @@ export class PrismaService extends PrismaClient implements OnModuleDestroy {
   constructor(@Inject(ENV) env: Env) {
     super({
       adapter: new PrismaPg({ connectionString: env.DATABASE_URL ?? "postgresql://invalid" }),
+      // As transações que pagam recompensas (lições, desafio, Arena) fazem várias leituras e
+      // escritas; com a Neon longe ou "fria", os 5 s padrão não chegam e o pagamento falha.
+      transactionOptions: { maxWait: 10_000, timeout: 20_000 },
     });
     this.configured = Boolean(env.DATABASE_URL);
   }
 
-  /** Verifica a ligação (SELECT 1). Nunca lança: devolve o estado. */
+  /**
+   * Verifica a ligação (SELECT 1). Nunca lança: devolve o estado. Tenta duas vezes, porque
+   * a Neon "acorda" do modo de poupança e a primeira ligação pode falhar sem haver avaria.
+   */
   async ping(): Promise<"ok" | "down" | "not_configured"> {
     if (!this.configured) return "not_configured";
-    try {
-      await this.$queryRaw`SELECT 1`;
-      return "ok";
-    } catch (e) {
-      this.logger.error({ err: e }, "Base de dados indisponível");
-      return "down";
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        await this.$queryRaw`SELECT 1`;
+        return "ok";
+      } catch (e) {
+        if (attempt === 2) {
+          this.logger.error({ err: e }, "Base de dados indisponível");
+          return "down";
+        }
+        await new Promise((r) => setTimeout(r, 500));
+      }
     }
+    return "down";
   }
 
   async onModuleDestroy() {
