@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ServerDuel } from "@/components/play/ServerDuel";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { useState } from "react";
 import { ScoreMatch, type ScoreTeam } from "@/components/play/ScoreMatch";
 import { MULTIPLAYER_CONFIG, APP_NAME } from "@stp/config";
@@ -7,6 +9,8 @@ import { PhoneFrame } from "@/layouts/AppShell";
 import { mePlayer } from "@/services/game.service";
 
 export const Route = createFileRoute("/play/duel")({
+  validateSearch: (s: Record<string, unknown>): { friend?: string } =>
+    typeof s["friend"] === "string" ? { friend: s["friend"] } : {},
   head: () => ({
     meta: [
       { title: `Duelo 1v1 — ${APP_NAME}` },
@@ -18,7 +22,14 @@ export const Route = createFileRoute("/play/duel")({
   component: Duel,
 });
 
+/** Com sessão, duelo real contra um amigo; sem sessão, a demonstração com bot. */
 function Duel() {
+  const server = useServerLessonsEnabled();
+  const { friend } = Route.useSearch();
+  return server ? <ServerDuel friend={friend} /> : <DemoDuel />;
+}
+
+function DemoDuel() {
   const [teams] = useState<[ScoreTeam, ScoreTeam]>(() => [
     { name: "Tu", tone: "forest", players: [mePlayer()] },
     { name: "Adversário", tone: "coral", players: [listOpponents()[0]!] },

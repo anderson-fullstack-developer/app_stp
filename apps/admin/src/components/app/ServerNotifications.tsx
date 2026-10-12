@@ -40,7 +40,11 @@ export function ServerNotificationsList() {
   const text = (n: NotificationDto) => {
     if (n.type === "friend_request") return t("social.notifFriendRequest", { name: n.user.name });
     if (n.type === "friend_accepted") return t("social.notifFriendAccepted", { name: n.user.name });
-    if (n.type === "arena_invite") return t("social.notifArenaInvite", { name: n.user.name });
+    if (n.type === "arena_invite") {
+      return n.mode === "duel"
+        ? t("social.notifDuelInvite", { name: n.user.name })
+        : t("social.notifArenaInvite", { name: n.user.name });
+    }
     const titles = t("achievementsList", { returnObjects: true }) as Record<
       string,
       { title: string }

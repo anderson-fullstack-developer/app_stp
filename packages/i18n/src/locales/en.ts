@@ -308,6 +308,8 @@ export const en: Messages = {
     notifFriendRequest: "{{name}} wants to be your friend.",
     notifFriendAccepted: "{{name}} accepted your friend request.",
     notifArenaInvite: "{{name}} invited you to an Arena room.",
+    notifDuelInvite: "{{name}} challenged you to a duel.",
+    challenge: "Challenge",
     join: "Join",
     notifAchievement: "New achievement: {{title}}",
     profileTitle: "Profile",

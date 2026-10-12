@@ -1,5 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Award, BookOpen, Check, Flame, Medal, Star, Trophy, UserPlus, Zap } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import {
+  Award,
+  BookOpen,
+  Check,
+  Flame,
+  Medal,
+  Star,
+  Swords,
+  Trophy,
+  UserPlus,
+  Zap,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Avatar } from "@/components/app/Badges";
 import { BackButton } from "@/components/app/BackButton";
@@ -90,10 +102,12 @@ export function ServerUserProfile({ userId }: { userId: string }) {
               {u.isMe ? (
                 <p className="text-center text-sm text-muted-foreground">{t("social.thisIsYou")}</p>
               ) : u.relationship === "friends" ? (
-                <AppButton variant="secondary" disabled>
-                  <Check className="size-5" />
-                  {t("social.friends")}
-                </AppButton>
+                <Link to="/play/duel" search={{ friend: u.id }} className="block">
+                  <AppButton>
+                    <Swords className="size-5" />
+                    {t("social.challenge")}
+                  </AppButton>
+                </Link>
               ) : u.relationship === "pending_out" && u.requestId ? (
                 <AppButton
                   variant="secondary"

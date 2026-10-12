@@ -94,10 +94,11 @@ export function ServerPrivateRoom({ code }: { code?: string | undefined }) {
   const [error, setError] = useState<string | null>(null);
   const triedCode = useRef<string | null>(null);
 
-  // A partida começou: ir para o ecrã de jogo.
+  // Duelos têm ecrã próprio; na Sobrevivência, quando a partida começa, vai para o jogo.
   useEffect(() => {
-    if (s.match && s.match.phase !== "finished") navigate({ to: "/play/survival" });
-  }, [s.match, navigate]);
+    if (s.room?.mode === "duel") navigate({ to: "/play/duel" });
+    else if (s.match && s.match.phase !== "finished") navigate({ to: "/play/survival" });
+  }, [s.room?.mode, s.match, navigate]);
 
   // Veio de um convite (?code=…): entra sozinho, uma vez.
   useEffect(() => {
@@ -125,6 +126,7 @@ export function ServerPrivateRoom({ code }: { code?: string | undefined }) {
       {s.invite && s.invite.code !== s.room?.code && (
         <InviteBanner
           name={s.invite.from.name}
+          duel={s.invite.mode === "duel"}
           onJoin={() => {
             const c = s.invite!.code;
             arena.dismissInvite();
@@ -361,16 +363,22 @@ function InviteFriends({
 
 function InviteBanner({
   name,
+  duel,
   onJoin,
   onDismiss,
 }: {
   name: string;
+  duel: boolean;
   onJoin: () => void;
   onDismiss: () => void;
 }) {
   return (
     <div className="animate-rise mx-4 mb-3 flex items-center gap-3 rounded-2xl bg-sun p-3 text-accent-foreground">
-      <p className="flex-1 text-sm font-bold">{name} convidou-te para uma sala da Arena!</p>
+      <p className="flex-1 text-sm font-bold">
+        {duel
+          ? `${name} desafiou-te para um duelo!`
+          : `${name} convidou-te para uma sala da Arena!`}
+      </p>
       <AppButton size="sm" onClick={onJoin}>
         Entrar
       </AppButton>

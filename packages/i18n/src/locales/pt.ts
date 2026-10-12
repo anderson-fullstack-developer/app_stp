@@ -310,6 +310,8 @@ export const pt = {
     notifFriendRequest: "{{name}} quer ser teu amigo.",
     notifFriendAccepted: "{{name}} aceitou o teu pedido de amizade.",
     notifArenaInvite: "{{name}} convidou-te para uma sala da Arena.",
+    notifDuelInvite: "{{name}} desafiou-te para um duelo.",
+    challenge: "Desafiar",
     join: "Entrar",
     notifAchievement: "Nova conquista: {{title}}",
     profileTitle: "Perfil",
