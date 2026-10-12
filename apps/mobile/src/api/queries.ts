@@ -7,8 +7,12 @@ import type {
   DailyOverviewDto,
   FriendsDto,
   LessonProgressResponse,
+  ArenaHistoryDto,
   MeResponse,
+  NotificationDto,
+  PublicProfileDto,
   RankingDto,
+  ShopDto,
   RankingScopeDto,
   UserSearchDto,
 } from "@stp/types/api";
@@ -24,6 +28,10 @@ export const keys = {
   friends: ["social", "friends"] as const,
   search: (q: string) => ["social", "search", q] as const,
   ranking: (scope: RankingScopeDto) => ["social", "ranking", scope] as const,
+  profile: (id: string) => ["social", "profile", id] as const,
+  notifications: ["social", "notifications"] as const,
+  shop: ["shop"] as const,
+  arenaHistory: ["arena", "history"] as const,
 };
 
 /** Idioma dos significados: o da interface (pt ou en). */
@@ -117,5 +125,49 @@ export function useRanking(scope: RankingScopeDto) {
     queryFn: () => api.get<RankingDto>("/rankings", { scope }),
     enabled: Boolean(isSignedIn),
     retry: (n, e) => !(e instanceof ApiError && e.status === 422) && n < 2,
+  });
+}
+
+/** Perfil público de outra pessoa (GET /users/:id). */
+export function usePublicProfile(userId: string) {
+  const api = useApi();
+  const { isSignedIn } = useAuth();
+  return useQuery({
+    queryKey: keys.profile(userId),
+    queryFn: () => api.get<PublicProfileDto>(`/users/${userId}`),
+    enabled: Boolean(isSignedIn) && Boolean(userId),
+    retry: false,
+  });
+}
+
+/** Notificações (pedidos, pedidos aceites, conquistas, convites da Arena). */
+export function useNotifications() {
+  const api = useApi();
+  const { isSignedIn } = useAuth();
+  return useQuery({
+    queryKey: keys.notifications,
+    queryFn: () => api.get<NotificationDto[]>("/me/notifications"),
+    enabled: Boolean(isSignedIn),
+    refetchInterval: 60_000,
+  });
+}
+
+export function useShop() {
+  const api = useApi();
+  const { isSignedIn } = useAuth();
+  return useQuery({
+    queryKey: keys.shop,
+    queryFn: () => api.get<ShopDto>("/shop"),
+    enabled: Boolean(isSignedIn),
+  });
+}
+
+export function useArenaHistory() {
+  const api = useApi();
+  const { isSignedIn } = useAuth();
+  return useQuery({
+    queryKey: keys.arenaHistory,
+    queryFn: () => api.get<ArenaHistoryDto[]>("/arena/matches"),
+    enabled: Boolean(isSignedIn),
   });
 }

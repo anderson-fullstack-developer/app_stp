@@ -1,8 +1,9 @@
 import type { RankingEntryDto, RankingScopeDto } from "@stp/types/api";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { Crown } from "lucide-react-native";
 import { useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { ApiError } from "@/api/client";
@@ -114,21 +115,23 @@ export default function RankingTab() {
 
 function Row({ e, xp, you }: { e: RankingEntryDto; xp: string; you: string }) {
   return (
-    <Card style={[styles.row, e.isMe && styles.rowMe]}>
-      <AppText variant="bodyStrong" tone="muted" style={{ width: 24, textAlign: "center" }}>
-        {e.position}
-      </AppText>
-      <Avatar name={e.name} color={e.avatarColor} size={40} />
-      <AppText variant="bodyStrong" numberOfLines={1} style={{ flex: 1 }}>
-        {e.name}
-        {e.isMe ? (
-          <AppText variant="caption" tone="primary">
-            {` (${you})`}
-          </AppText>
-        ) : null}
-      </AppText>
-      <AppText variant="h3">{xp}</AppText>
-    </Card>
+    <Pressable accessibilityRole="link" onPress={() => router.push(`/user/${e.userId}`)}>
+      <Card style={[styles.row, e.isMe && styles.rowMe]}>
+        <AppText variant="bodyStrong" tone="muted" style={{ width: 24, textAlign: "center" }}>
+          {e.position}
+        </AppText>
+        <Avatar name={e.name} color={e.avatarColor} size={40} />
+        <AppText variant="bodyStrong" numberOfLines={1} style={{ flex: 1 }}>
+          {e.name}
+          {e.isMe ? (
+            <AppText variant="caption" tone="primary">
+              {` (${you})`}
+            </AppText>
+          ) : null}
+        </AppText>
+        <AppText variant="h3">{xp}</AppText>
+      </Card>
+    </Pressable>
   );
 }
 

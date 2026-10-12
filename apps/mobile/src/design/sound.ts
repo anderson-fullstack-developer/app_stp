@@ -14,6 +14,16 @@ const SOURCES = {
   levelUp: require("../../assets/sounds/levelUp.wav"),
   streak: require("../../assets/sounds/streak.wav"),
   coins: require("../../assets/sounds/coins.wav"),
+  // Arena
+  tick: require("../../assets/sounds/tick.wav"),
+  urgent: require("../../assets/sounds/urgent.wav"),
+  go: require("../../assets/sounds/go.wav"),
+  lifeLost: require("../../assets/sounds/lifeLost.wav"),
+  eliminated: require("../../assets/sounds/eliminated.wav"),
+  final: require("../../assets/sounds/final.wav"),
+  victory: require("../../assets/sounds/victory.wav"),
+  defeat: require("../../assets/sounds/defeat.wav"),
+  join: require("../../assets/sounds/join.wav"),
 } as const;
 export type UiSound = keyof typeof SOURCES;
 

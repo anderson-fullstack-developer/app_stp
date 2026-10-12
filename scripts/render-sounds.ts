@@ -11,7 +11,26 @@ import { type Note, SOUND_RECIPES, type SoundName } from "../packages/config/src
 const RATE = 44_100;
 const out = join(dirname(fileURLToPath(import.meta.url)), "..", "apps", "mobile", "assets", "sounds");
 /** Só os sons que a app mobile usa por agora (a Arena vem depois). */
-const NAMES: SoundName[] = ["tap", "select", "correct", "wrong", "complete", "levelUp", "streak", "coins"];
+const NAMES: SoundName[] = [
+  "tap",
+  "select",
+  "correct",
+  "wrong",
+  "complete",
+  "levelUp",
+  "streak",
+  "coins",
+  // Arena
+  "tick",
+  "urgent",
+  "go",
+  "lifeLost",
+  "eliminated",
+  "final",
+  "victory",
+  "defeat",
+  "join",
+];
 
 function wave(type: Note["type"], phase: number) {
   const x = phase - Math.floor(phase); // 0..1
