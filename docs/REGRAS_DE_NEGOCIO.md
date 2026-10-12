@@ -144,7 +144,9 @@ As conquistas não dão XP (evita que o XP de conquistas distorça os rankings s
   - recompensas por posição só em partidas **públicas** (matchmaking) ou em salas privadas com **≥ 4 jogadores reais**;
   - no máximo **10 partidas premiadas por dia local**; depois disso joga-se na mesma, sem recompensa;
   - abandonar não dá recompensa de participação;
-  - o Premium não altera nada na partida.
+  - o Premium não altera nada na partida;
+  - **duelo 1 contra 1 entre amigos** (decidido a 2026-10-12): paga vitória +120 XP +20 moedas e derrota +40 XP +5 moedas, mas só nos **3 primeiros duelos premiados por dia local** (contam dentro das 10 partidas premiadas). Pontos por resposta: 100 + até 50 pela rapidez; desempate por certas e depois pelo tempo total; empate em tudo = os dois em 1.º; quem sai a meio perde logo;
+  - quem já foi eliminado na Sobrevivência pode sair sem perder o lugar nem a recompensa (só quem sai ainda vivo abandona).
 
 ## 10. Premium e menores
 
