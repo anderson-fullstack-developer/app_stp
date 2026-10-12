@@ -24,6 +24,8 @@ export const ARENA_CONFIG = {
   minPlayersToStart: 2,
   /** Duelo 1 contra 1: 10 perguntas iguais, ganha quem fizer mais pontos. */
   duel: { questions: 10, seconds: 10 },
+  /** 2 contra 2: 8 perguntas, a equipa soma os pontos dos dois. */
+  teams: { questions: 8, seconds: 10 },
   scoring: { base: 100, maxSpeedBonus: 50 },
   matchRewards: { win: { xp: 120, coins: 20 }, lose: { xp: 40, coins: 5 } },
   /** Duelos premiados por dia local (decisão de produto: evita combinar XP entre amigos). */
@@ -197,3 +199,42 @@ export function rankDuel(players: DuelScore[]): Map<string, number> {
 
 export const duelReward = (place: number) =>
   place === 1 ? { ...ARENA_CONFIG.matchRewards.win } : { ...ARENA_CONFIG.matchRewards.lose };
+
+export type TeamId = "A" | "B";
+
+export interface TeamPlayerScore extends DuelScore {
+  team: TeamId;
+}
+
+/**
+ * 2 contra 2: soma por equipa (pontos, depois certas, depois menos tempo). Uma equipa
+ * que saiu toda perde. Os dois da equipa vencedora ficam em 1.º; empate total = todos 1.º.
+ */
+export function rankTeams(players: TeamPlayerScore[]): {
+  totals: Record<TeamId, { score: number; correct: number; answerMs: number; gone: boolean }>;
+  winner: TeamId | null;
+  places: Map<string, number>;
+} {
+  const totals = {
+    A: { score: 0, correct: 0, answerMs: 0, gone: true },
+    B: { score: 0, correct: 0, answerMs: 0, gone: true },
+  };
+  for (const p of players) {
+    const t = totals[p.team];
+    t.score += p.score;
+    t.correct += p.correct;
+    t.answerMs += p.answerMs;
+    if (!p.left) t.gone = false;
+  }
+  const { A, B } = totals;
+  const cmp =
+    Number(A.gone) - Number(B.gone) ||
+    B.score - A.score ||
+    B.correct - A.correct ||
+    A.answerMs - B.answerMs;
+  const winner: TeamId | null = cmp < 0 ? "A" : cmp > 0 ? "B" : null;
+  const places = new Map(
+    players.map((p) => [p.id, winner === null || p.team === winner ? 1 : 2] as const),
+  );
+  return { totals, winner, places };
+}

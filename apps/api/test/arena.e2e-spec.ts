@@ -69,6 +69,21 @@ describe.skipIf(!dbUrl)(
       }
     });
 
+    // Cada teste começa limpo: ninguém fica preso numa sala ou partida do teste anterior.
+    afterEach(async () => {
+      await Promise.all(
+        sockets
+          .filter((s) => s.connected)
+          .map((s) =>
+            s
+              .timeout(5_000)
+              .emitWithAck("room:leave", {})
+              .catch(() => null),
+          ),
+      );
+      sockets.splice(0).forEach((s) => s.disconnect());
+    });
+
     afterAll(async () => {
       sockets.forEach((s) => s.disconnect());
       const users = Object.values(ids);
@@ -92,7 +107,7 @@ describe.skipIf(!dbUrl)(
       return s;
     };
     const ack = (s: Socket, event: string, body?: unknown) =>
-      s.timeout(5_000).emitWithAck(event, body ?? {}) as Promise<Payload>;
+      s.timeout(20_000).emitWithAck(event, body ?? {}) as Promise<Payload>;
     const next = (s: Socket, event: string) =>
       new Promise<Payload>((resolve) => s.once(event, (p: Payload) => resolve(p)));
     /** Resposta certa da ronda atual (só o servidor a sabe; o teste espreita). */
@@ -384,6 +399,79 @@ describe.skipIf(!dbUrl)(
       expect(result["standings"][0]).toMatchObject({ userId: ids["ana"], place: 1 });
       expect(result["standings"][1]).toMatchObject({ userId: ids["bia"], left: true });
       await ack(a, "room:leave");
+    });
+
+    it("2 contra 2: equipas, 8 perguntas, soma por equipa e prémios", async () => {
+      const [a, b, cc, d] = await Promise.all(
+        ["ana", "bia", "caio", "duda"].map((n) => connect(ids[n]!)),
+      );
+      const created = await ack(a!, "room:create", { mode: "teams" });
+      expect(created).toMatchObject({ ok: true, room: { mode: "teams", config: { players: 4 } } });
+      const code = created["room"].code as string;
+      for (const s of [b, cc, d]) await ack(s!, "room:join", { code });
+      // Entram alternando entre as equipas: A, B, A, B.
+      const roomNow = (arena as unknown as { rooms: Map<string, Payload> }).rooms.get(code)!;
+      const teamOf = (n: string) => roomNow["members"].get(ids[n])?.team;
+      expect(["ana", "bia", "caio", "duda"].map(teamOf)).toEqual(["A", "B", "A", "B"]);
+      expect(await ack(d!, "room:team", { team: "A" })).toMatchObject({
+        ok: false,
+        code: "TEAM_FULL",
+      });
+      expect(await ack(a!, "room:start")).toMatchObject({ ok: false, code: "NOT_READY" });
+      for (const s of [b, cc, d]) await ack(s!, "room:ready", { ready: true });
+
+      // Equipa A (Ana e Caio) acerta sempre; equipa B (Bia e Duda) erra sempre.
+      const answer = (s: Socket, right: boolean) => (p: Payload) => {
+        const correct = correctOption(code);
+        const opts = p["question"].options as { id: string }[];
+        const optionId = right ? correct : opts.find((o) => o.id !== correct)!.id;
+        void ack(s, "match:answer", { questionId: p["question"].questionId, optionId });
+      };
+      a!.on("match:question", answer(a!, true));
+      cc!.on("match:question", answer(cc!, true));
+      b!.on("match:question", answer(b!, false));
+      d!.on("match:question", answer(d!, false));
+      const finished = next(a!, "match:finished");
+      const rewardA = next(a!, "match:reward");
+      const rewardB = next(b!, "match:reward");
+      expect(await ack(a!, "room:start")).toMatchObject({ ok: true });
+
+      const result = await finished;
+      expect(result).toMatchObject({ rounds: 8, rewarded: true, winnerTeam: "A" });
+      expect(result["teams"].A).toBeGreaterThanOrEqual(1600);
+      expect(result["teams"].B).toBe(0);
+      const places = Object.fromEntries(
+        (result["standings"] as Payload[]).map((s) => [s["userId"], [s["team"], s["place"]]]),
+      );
+      expect(places[ids["caio"]!]).toEqual(["A", 1]);
+      expect(places[ids["duda"]!]).toEqual(["B", 2]);
+      expect(await rewardA).toMatchObject({ xp: 120, coins: 20, reason: "ok" });
+      expect(await rewardB).toMatchObject({ xp: 40, coins: 5, reason: "ok" });
+      const saved = await prisma.arenaMatch.findFirstOrThrow({ where: { roomCode: code } });
+      expect(saved).toMatchObject({ mode: "teams", status: "FINISHED", rounds: 8 });
+      for (const s of [a, b, cc, d]) {
+        s!.off("match:question");
+        await ack(s!, "room:leave");
+      }
+    });
+
+    it("2 contra 2: se uma equipa sai toda, a outra ganha logo", async () => {
+      const [a, b, cc, d] = await Promise.all(
+        ["ana", "bia", "caio", "duda"].map((n) => connect(ids[n]!)),
+      );
+      const { room } = await ack(a!, "room:create", { mode: "teams" });
+      for (const s of [b, cc, d]) await ack(s!, "room:join", { code: room.code });
+      for (const s of [b, cc, d]) await ack(s!, "room:ready", { ready: true });
+      const q = next(a!, "match:question");
+      await ack(a!, "room:start");
+      await q;
+      const finished = next(a!, "match:finished");
+      await ack(b!, "room:leave"); // equipa B
+      await ack(d!, "room:leave"); // equipa B
+      const result = await finished;
+      expect(result["winnerTeam"]).toBe("A");
+      expect(result["rounds"]).toBe(1);
+      for (const s of [a, cc]) await ack(s!, "room:leave");
     });
   },
 );

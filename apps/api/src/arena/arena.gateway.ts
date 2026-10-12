@@ -15,6 +15,7 @@ import { ArenaError, type ArenaIdentity, ArenaService } from "./arena.service.js
 import type { Ack, AnswerAck } from "./arena.types.js";
 
 const CreateBody = z.object({
+  mode: z.enum(["survival", "teams"]).optional(),
   languageId: z
     .string()
     .regex(/^[a-z][a-z0-9_-]{1,40}$/)
@@ -26,6 +27,7 @@ const CreateBody = z.object({
 });
 const JoinBody = z.object({ code: z.string().trim().min(4).max(12) });
 const ReadyBody = z.object({ ready: z.boolean() });
+const TeamBody = z.object({ team: z.enum(["A", "B"]) });
 const InviteBody = z.object({ userId: z.uuid() });
 const ChallengeBody = z.object({
   userId: z.uuid(),
@@ -97,6 +99,7 @@ export class ArenaGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       const room = await this.arena.createRoom(who, {
         ...(input.languageId ? { languageId: input.languageId } : {}),
         ...(input.config ? { config: input.config } : {}),
+        ...(input.mode ? { mode: input.mode } : {}),
       });
       await this.joinSocketRoom(socket, who.userId);
       return { room };
@@ -145,6 +148,13 @@ export class ArenaGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
       await this.joinSocketRoom(socket, who.userId);
       return { room };
     });
+  }
+
+  @SubscribeMessage("room:team")
+  team(@ConnectedSocket() socket: ArenaSocket, @MessageBody() body: unknown) {
+    return this.run(socket, async (who) => ({
+      room: this.arena.setTeam(who.userId, TeamBody.parse(body).team),
+    }));
   }
 
   @SubscribeMessage("room:start")

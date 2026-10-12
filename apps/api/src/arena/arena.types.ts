@@ -12,13 +12,15 @@ export interface RoomMemberView {
   ready: boolean;
   connected: boolean;
   isHost: boolean;
+  /** 2 contra 2: equipa escolhida (null nos outros modos). */
+  team: "A" | "B" | null;
 }
 
 export interface RoomView {
   code: string;
   hostId: string;
   status: RoomStatus;
-  mode: "survival" | "duel";
+  mode: "survival" | "duel" | "teams";
   config: ArenaConfig;
   languageId: string;
   locale: string;
@@ -34,8 +36,9 @@ export interface PlayerView {
   placement: number | null;
   eliminated: boolean;
   left: boolean;
-  /** Duelo: pontos (certa + rapidez). Sobrevivência: 0. */
+  /** Duelo e 2 contra 2: pontos (certa + rapidez). Sobrevivência: 0. */
   score: number;
+  team: "A" | "B" | null;
 }
 
 export type MatchPhase = "countdown" | "question" | "reveal" | "final" | "finished";
@@ -67,13 +70,14 @@ export interface MatchStanding {
   timeouts: number;
   left: boolean;
   score: number;
+  team: "A" | "B" | null;
 }
 
 /** Eventos servidor → cliente. */
 export interface ArenaServerEvents {
   "arena:invite": (p: {
     code: string;
-    mode: "survival" | "duel";
+    mode: "survival" | "duel" | "teams";
     from: { userId: string; username: string; name: string; avatarColor: string | null };
     at: number;
     expiresAt: number;
@@ -104,13 +108,16 @@ export interface ArenaServerEvents {
     standings: MatchStanding[];
     rewarded: boolean;
     rounds: number;
+    /** 2 contra 2: pontos de cada equipa e a vencedora (null = empate). */
+    teams?: { A: number; B: number };
+    winnerTeam?: "A" | "B" | null;
   }) => void;
   "match:reward": (p: {
     matchId: string;
     xp: number;
     coins: number;
     /** Porque não houve recompensa (sala pequena, limite diário, saiu a meio). */
-    reason: "ok" | "private_small" | "daily_limit" | "duel_limit" | "left";
+    reason: "ok" | "private_small" | "daily_limit" | "duel_limit" | "left" | "error";
   }) => void;
 }
 

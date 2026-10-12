@@ -8,6 +8,7 @@ import {
   normalizeConfig,
   rankRemaining,
   rankDuel,
+  rankTeams,
   rewardEligible,
   scoreAnswer,
   survivalReward,
@@ -24,6 +25,7 @@ describe("Regras da Sobrevivência no servidor", () => {
     expect(ARENA_CONFIG.survivalRewards).toEqual(MULTIPLAYER_CONFIG.survivalRewards);
     expect(ARENA_CONFIG.participationReward).toEqual(MULTIPLAYER_CONFIG.participationReward);
     expect(ARENA_CONFIG.duel).toEqual(MULTIPLAYER_CONFIG.duel);
+    expect(ARENA_CONFIG.teams).toEqual(MULTIPLAYER_CONFIG.teams);
     expect(ARENA_CONFIG.scoring).toEqual(MULTIPLAYER_CONFIG.scoring);
     expect(ARENA_CONFIG.matchRewards).toEqual(MULTIPLAYER_CONFIG.matchRewards);
   });
@@ -97,6 +99,36 @@ describe("Regras da Sobrevivência no servidor", () => {
       { id: "b", score: 500, ...base },
     ]);
     expect([draw.get("a"), draw.get("b")]).toEqual([1, 1]);
+  });
+
+  it("2 contra 2: soma por equipa; equipa que saiu toda perde; empate", () => {
+    const p = (id: string, team: "A" | "B", score: number, left = false) => ({
+      id,
+      team,
+      score,
+      correct: score / 100,
+      answerMs: 10_000,
+      left,
+    });
+    const r = rankTeams([p("a1", "A", 300), p("a2", "A", 100), p("b1", "B", 500), p("b2", "B", 0)]);
+    expect(r.winner).toBe("B");
+    expect(r.totals.A.score).toBe(400);
+    expect([r.places.get("b2"), r.places.get("a1")]).toEqual([1, 2]);
+    const gone = rankTeams([
+      p("a1", "A", 900, true),
+      p("a2", "A", 900, true),
+      p("b1", "B", 0),
+      p("b2", "B", 0),
+    ]);
+    expect(gone.winner).toBe("B");
+    const draw = rankTeams([
+      p("a1", "A", 200),
+      p("a2", "A", 0),
+      p("b1", "B", 100),
+      p("b2", "B", 100),
+    ]);
+    expect(draw.winner).toBeNull();
+    expect([...draw.places.values()]).toEqual([1, 1, 1, 1]);
   });
 
   it("ronda anulada quando toda a gente morreria", () => {

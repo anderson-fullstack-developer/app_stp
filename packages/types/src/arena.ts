@@ -22,13 +22,15 @@ export interface ArenaMemberDto {
   ready: boolean;
   connected: boolean;
   isHost: boolean;
+  /** 2 contra 2: equipa escolhida (null nos outros modos). */
+  team: "A" | "B" | null;
 }
 
 export interface ArenaRoomDto {
   code: string;
   hostId: string;
   status: "WAITING" | "IN_PROGRESS";
-  mode: "survival" | "duel";
+  mode: "survival" | "duel" | "teams";
   config: ArenaConfigDto;
   languageId: string;
   locale: string;
@@ -44,8 +46,9 @@ export interface ArenaPlayerDto {
   placement: number | null;
   eliminated: boolean;
   left: boolean;
-  /** Duelo: pontos (certa + rapidez). Sobrevivência: 0. */
+  /** Duelo e 2 contra 2: pontos (certa + rapidez). Sobrevivência: 0. */
   score: number;
+  team: "A" | "B" | null;
 }
 
 export interface ArenaQuestionDto {
@@ -114,6 +117,7 @@ export interface ArenaStandingDto {
   timeouts: number;
   left: boolean;
   score: number;
+  team: "A" | "B" | null;
 }
 
 export interface ArenaFinishedEvent {
@@ -121,18 +125,21 @@ export interface ArenaFinishedEvent {
   standings: ArenaStandingDto[];
   rewarded: boolean;
   rounds: number;
+  /** 2 contra 2: pontos de cada equipa e a vencedora (null = empate). */
+  teams?: { A: number; B: number };
+  winnerTeam?: "A" | "B" | null;
 }
 
 export interface ArenaRewardEvent {
   matchId: string;
   xp: number;
   coins: number;
-  reason: "ok" | "private_small" | "daily_limit" | "duel_limit" | "left";
+  reason: "ok" | "private_small" | "daily_limit" | "duel_limit" | "left" | "error";
 }
 
 export interface ArenaInviteEvent {
   code: string;
-  mode: "survival" | "duel";
+  mode: "survival" | "duel" | "teams";
   from: { userId: string; username: string; name: string; avatarColor: string | null };
   at: number;
   expiresAt: number;

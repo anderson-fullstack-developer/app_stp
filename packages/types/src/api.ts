@@ -236,7 +236,7 @@ export type NotificationDto =
       type: "arena_invite";
       at: string;
       code: string;
-      mode: "survival" | "duel";
+      mode: "survival" | "duel" | "teams";
       expiresAt: string;
       user: NotificationUser;
     };
