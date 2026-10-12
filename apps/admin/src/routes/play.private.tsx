@@ -18,8 +18,10 @@ import { multiplayerService } from "@/services/game.service";
 import type { LobbyMember, MatchConfig, PrivateRoom, RoomMode } from "@stp/types/multiplayer";
 
 export const Route = createFileRoute("/play/private")({
-  validateSearch: (s: Record<string, unknown>): { code?: string } =>
-    typeof s["code"] === "string" ? { code: s["code"] } : {},
+  validateSearch: (s: Record<string, unknown>): { code?: string; mode?: "teams" } => ({
+    ...(typeof s["code"] === "string" ? { code: s["code"] } : {}),
+    ...(s["mode"] === "teams" ? { mode: "teams" as const } : {}),
+  }),
   head: () => ({
     meta: [
       { title: `Sala Privada — ${APP_NAME}` },
@@ -37,8 +39,8 @@ export const Route = createFileRoute("/play/private")({
 /** Com sessão, a Arena real do servidor; sem sessão, a demonstração com bots. */
 function PrivateRoomPage() {
   const server = useServerLessonsEnabled();
-  const { code } = Route.useSearch();
-  return server ? <ServerPrivateRoom code={code} /> : <DemoPrivateRoomPage />;
+  const { code, mode } = Route.useSearch();
+  return server ? <ServerPrivateRoom code={code} mode={mode} /> : <DemoPrivateRoomPage />;
 }
 
 function DemoPrivateRoomPage() {

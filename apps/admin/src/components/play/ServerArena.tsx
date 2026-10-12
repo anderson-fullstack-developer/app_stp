@@ -47,6 +47,8 @@ const ERROR_TEXT: Record<string, string> = {
   NOT_ENOUGH_PLAYERS: "São precisos pelo menos 2 jogadores.",
   NO_QUESTIONS: "Ainda não há perguntas suficientes nesta língua.",
   LANGUAGE_NOT_AVAILABLE: "Esta língua ainda não está disponível.",
+  TEAM_FULL: "Essa equipa já tem 2 jogadores.",
+  TEAMS_INCOMPLETE: "São precisas 2 pessoas em cada equipa.",
   OFFLINE: "Sem ligação ao servidor da Arena.",
   NOT_FRIENDS: "Só podes convidar amigos.",
   ALREADY_IN_ROOM: "Já está na sala.",
@@ -82,22 +84,32 @@ const lobbyMembers = (room: ArenaRoomDto, me: string | null): LobbyMember[] =>
 
 /* -------------------------------- Sala privada -------------------------------- */
 
-export function ServerPrivateRoom({ code }: { code?: string | undefined }) {
+export function ServerPrivateRoom({
+  code,
+  mode: initialMode,
+}: {
+  code?: string | undefined;
+  /** Veio do cartão "2 contra 2": abre a criação de sala já nesse modo. */
+  mode?: "teams" | undefined;
+}) {
   const s = useArena(true);
   const navigate = useNavigate();
-  const [step, setStep] = useState<"choose" | "setup">("choose");
+  const [step, setStep] = useState<"choose" | "setup">(initialMode ? "setup" : "choose");
   const [config, setConfig] = useState<ArenaConfigDto>({
     ...MULTIPLAYER_CONFIG.publicSurvival,
     players: 4,
   });
+  const [mode, setMode] = useState<"survival" | "teams">(initialMode ?? "survival");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const triedCode = useRef<string | null>(null);
 
-  // Duelos têm ecrã próprio; na Sobrevivência, quando a partida começa, vai para o jogo.
+  // Duelos têm ecrã próprio; nos outros modos, quando a partida começa, vai para o jogo.
   useEffect(() => {
     if (s.room?.mode === "duel") navigate({ to: "/play/duel" });
-    else if (s.match && s.match.phase !== "finished") navigate({ to: "/play/survival" });
+    else if (s.match && s.match.phase !== "finished") {
+      navigate({ to: s.room?.mode === "teams" ? "/play/teams" : "/play/survival" });
+    }
   }, [s.room?.mode, s.match, navigate]);
 
   // Veio de um convite (?code=…): entra sozinho, uma vez.
@@ -114,7 +126,7 @@ export function ServerPrivateRoom({ code }: { code?: string | undefined }) {
   const create = async () => {
     setBusy(true);
     setError(null);
-    const r = await arena.create(config);
+    const r = await arena.create(config, mode);
     if (!r.ok) setError(errorText(r));
     setBusy(false);
   };
@@ -169,30 +181,42 @@ export function ServerPrivateRoom({ code }: { code?: string | undefined }) {
         </main>
       ) : (
         <main className="flex flex-1 flex-col gap-5 px-4 pb-6">
+          <OptionPicker
+            label="Modo"
+            value={mode}
+            options={["survival", "teams"] as const}
+            onChange={setMode}
+            format={(v) => (v === "survival" ? "💀 Sobrevivência" : "👥 2 contra 2")}
+          />
           <p className="rounded-2xl bg-muted px-4 py-3 text-sm font-semibold">
-            💀 Sobrevivência: todos respondem à mesma pergunta; errar tira uma vida; o último a
-            sobreviver ganha.
+            {mode === "survival"
+              ? "Todos respondem à mesma pergunta; errar tira uma vida; o último a sobreviver ganha."
+              : `Duas equipas de 2. São ${MULTIPLAYER_CONFIG.teams.questions} perguntas; cada certa vale pontos (mais se for rápida) e a equipa soma os dos dois.`}
           </p>
-          <OptionPicker
-            label="Jogadores (máximo)"
-            value={config.players}
-            options={MULTIPLAYER_CONFIG.playerOptions}
-            onChange={(players) => setConfig({ ...config, players })}
-          />
-          <OptionPicker
-            label="Vidas"
-            value={config.lives}
-            options={MULTIPLAYER_CONFIG.livesOptions}
-            onChange={(lives) => setConfig({ ...config, lives })}
-            format={(v) => `${v} ❤️`}
-          />
-          <OptionPicker
-            label="Tempo por pergunta"
-            value={config.seconds}
-            options={MULTIPLAYER_CONFIG.timeOptions}
-            onChange={(seconds) => setConfig({ ...config, seconds })}
-            format={(v) => `${v}s`}
-          />
+          {mode === "survival" && (
+            <>
+              <OptionPicker
+                label="Jogadores (máximo)"
+                value={config.players}
+                options={MULTIPLAYER_CONFIG.playerOptions}
+                onChange={(players) => setConfig({ ...config, players })}
+              />
+              <OptionPicker
+                label="Vidas"
+                value={config.lives}
+                options={MULTIPLAYER_CONFIG.livesOptions}
+                onChange={(lives) => setConfig({ ...config, lives })}
+                format={(v) => `${v} ❤️`}
+              />
+              <OptionPicker
+                label="Tempo por pergunta"
+                value={config.seconds}
+                options={MULTIPLAYER_CONFIG.timeOptions}
+                onChange={(seconds) => setConfig({ ...config, seconds })}
+                format={(v) => `${v}s`}
+              />
+            </>
+          )}
           {error && <p className="text-center font-bold text-destructive">{error}</p>}
           <div className="mt-auto">
             <AppButton onClick={create} disabled={busy || s.status !== "ready"}>
@@ -214,8 +238,16 @@ function ServerLobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
   const isHost = room.hostId === me;
   const connected = room.members.filter((m) => m.connected);
   const ready = connected.filter((m) => m.ready).length;
+  const teams = room.mode === "teams";
+  const inTeam = (t: "A" | "B") => room.members.filter((m) => m.team === t);
+  const teamsReady = !teams || (inTeam("A").length === 2 && inTeam("B").length === 2);
   const canStart =
-    isHost && connected.length >= 2 && ready === connected.length && room.status === "WAITING";
+    isHost &&
+    connected.length >= 2 &&
+    ready === connected.length &&
+    teamsReady &&
+    room.status === "WAITING";
+  const myTeam = room.members.find((m) => m.userId === me)?.team ?? null;
   useJoinSounds(members.length, members.length >= room.config.players);
 
   const run = async (fn: () => Promise<{ ok: boolean; code?: string; message?: string }>) => {
@@ -231,9 +263,13 @@ function ServerLobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
       <main className="flex-1 px-4 pb-40">
         <RoomCode code={room.code} />
         <div className="mt-3 flex flex-wrap justify-center gap-2 text-sm font-bold">
-          <span className="rounded-xl bg-muted px-3 py-1">💀 Sobrevivência</span>
-          <span className="rounded-xl bg-muted px-3 py-1">até {room.config.players} jogadores</span>
-          <span className="rounded-xl bg-muted px-3 py-1">{room.config.lives} ❤️</span>
+          <span className="rounded-xl bg-muted px-3 py-1">
+            {teams ? "👥 2 contra 2" : "💀 Sobrevivência"}
+          </span>
+          <span className="rounded-xl bg-muted px-3 py-1">
+            {teams ? "4 jogadores" : `até ${room.config.players} jogadores`}
+          </span>
+          {!teams && <span className="rounded-xl bg-muted px-3 py-1">{room.config.lives} ❤️</span>}
           <span className="rounded-xl bg-muted px-3 py-1">{room.config.seconds}s</span>
           {room.languageId === KRIOLU_LANGUAGE_ID && (
             <span className="rounded-xl bg-accent/30 px-3 py-1">Kriolu · Beta</span>
@@ -248,11 +284,59 @@ function ServerLobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
         >
           Jogadores
         </SectionTitle>
-        <div className="space-y-2">
-          {members.map((m) => (
-            <LobbyPlayer key={m.id} m={m} />
-          ))}
-        </div>
+        {teams ? (
+          <div className="grid grid-cols-2 gap-3">
+            {(["A", "B"] as const).map((t) => (
+              <div
+                key={t}
+                className={cn(
+                  "rounded-2xl p-3",
+                  t === "A"
+                    ? "bg-forest/10 ring-1 ring-forest/30"
+                    : "bg-coral/10 ring-1 ring-coral/30",
+                )}
+              >
+                <p className="mb-2 text-center font-display font-bold">Equipa {t}</p>
+                <div className="space-y-2">
+                  {members
+                    .filter((m) => room.members.find((x) => x.userId === m.id)?.team === t)
+                    .map((m) => (
+                      <div key={m.id} className="flex items-center gap-2 rounded-xl bg-surface p-2">
+                        <Avatar name={m.name} color={m.color} size={32} />
+                        <span className="min-w-0 flex-1 truncate text-sm font-bold">
+                          {m.name}
+                          {m.isMe && " (tu)"}
+                        </span>
+                        {m.ready && <span className="text-xs font-bold text-success">✓</span>}
+                      </div>
+                    ))}
+                  {inTeam(t).length < 2 && (
+                    <p className="rounded-xl border border-dashed p-2 text-center text-xs font-semibold text-muted-foreground">
+                      Lugar livre
+                    </p>
+                  )}
+                </div>
+                {myTeam && myTeam !== t && inTeam(t).length < 2 && (
+                  <AppButton
+                    size="sm"
+                    variant="secondary"
+                    className="mt-2 w-full"
+                    disabled={busy}
+                    onClick={() => run(() => arena.setTeam(t))}
+                  >
+                    Mudar para a {t}
+                  </AppButton>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {members.map((m) => (
+              <LobbyPlayer key={m.id} m={m} />
+            ))}
+          </div>
+        )}
         {room.members.length < room.config.players && (
           <AppButton
             variant="secondary"
@@ -265,8 +349,9 @@ function ServerLobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
           </AppButton>
         )}
         <p className="mt-4 text-center text-xs font-semibold text-muted-foreground">
-          Convida amigos ou partilha o código. As recompensas (XP e moedas) só contam em salas com 4
-          ou mais jogadores.
+          {teams
+            ? "Convida amigos ou partilha o código. São precisas 2 pessoas em cada equipa."
+            : "Convida amigos ou partilha o código. As recompensas (XP e moedas) só contam em salas com 4 ou mais jogadores."}
         </p>
       </main>
       <InviteFriends
@@ -282,7 +367,9 @@ function ServerLobby({ room, me }: { room: ArenaRoomDto; me: string | null }) {
               ? "Começar partida"
               : connected.length < 2
                 ? "À espera de jogadores…"
-                : "À espera que todos fiquem prontos"}
+                : !teamsReady
+                  ? "São precisas 2 pessoas em cada equipa"
+                  : "À espera que todos fiquem prontos"}
           </AppButton>
         ) : (
           <AppButton
