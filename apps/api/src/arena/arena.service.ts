@@ -883,8 +883,9 @@ export class ArenaService implements OnModuleDestroy {
     });
     const items = await loadQuizItems(
       this.prisma,
-      { languageId, status: { in: visibleContentStatuses(language.status) } },
+      { languageId },
       locale,
+      visibleContentStatuses(language.status),
     );
     // Uma entrada por palavra (a mesma palavra pode estar em vários exercícios).
     const unique = [...new Map(items.map((i) => [i.vocabularyId, i])).values()];
