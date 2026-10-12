@@ -368,19 +368,32 @@ Dimensão do esforço: **S** (≤2 dias) · **M** (≤1 semana) · **L** (1–3 
 
 ### FASE 4 — Arena Online e competição (= Fase 2 da especificação)
 
+> **Estado da web (2026-10-12): concluída** — tudo o que a pessoa usa com sessão iniciada vem do servidor; o que ainda não existe está marcado "em breve" ou "dados de demonstração". Detalhe em "Fecho da web" abaixo. Próximo: passar para a app (Expo) os ecrãs feitos na web e depois as contas/chaves de produção.
+
 **Passo 4.1 — Gateway Socket.IO + motor no servidor** · XL
+- ✅ **Concluído (2026-10-11/12):** gateway `/arena` autenticado com o token do Clerk (`arena:ready` depois de validar); regras portadas do `@stp/game-engine` com teste de paridade; estado ao vivo em memória (ADR-08); perguntas do conteúdo visível (palavra e exercício visíveis), em cache 5 min; prazo oficial do servidor; validações anti-batota (na partida, vivo, ronda ativa, opção da pergunta, dentro do prazo, uma resposta); ronda fecha cedo quando todos respondem; reconexão com `room:resync`.
 - Portar `engine.ts` para o servidor; `GameStateStore` em memória (ADR-08); temporizador por ronda com timestamps do servidor; perguntas só `APPROVED`, sem repetição, curva de dificuldade, morte súbita, `maxRounds`.
 - Eventos do Adendo A28 tipados em `packages/contracts`.
 - Validações anti-batota (A30): jogador pertence à partida, está vivo, ronda ativa, opção pertence à pergunta, dentro do tempo, primeira resposta.
 - Reconexão com período de graça e *snapshot* de estado.
 
 **Passo 4.2 — Matchmaking público + salas privadas** · L
+- ✅ **Salas privadas concluídas:** código de 6 letras, anfitrião, pronto, começar, convites a amigos (tempo real + notificações, 10 min), modos Sobrevivência, **duelo 1 contra 1** (desafio direto a um amigo, começa sozinho) e **2 contra 2** (equipas A/B). Falta: matchmaking público (precisa de jogadores online) e torneios.
 - Fila, salas `WAITING → STARTING → IN_PROGRESS → FINISHED/CANCELLED`, código de sala, host, configurações.
 
 **Passo 4.3 — Ecrãs da Arena no mobile** · L
 - Matchmaking, contagem, ronda, resultado, eliminação, espectador, final, resultados.
 
 **Passo 4.4 — Recompensas e histórico** · M
+- ✅ **Concluído:** prémios por lugar/vitória escritos no livro-razão (`arena_match`, `arena_duel`, `arena_teams`), idempotentes e com nova tentativa; regras em `docs/REGRAS_DE_NEGOCIO.md` §9 (4+ jogadores na Sobrevivência privada, 3 duelos premiados/dia, 10 partidas premiadas/dia, abandonar não paga); tabelas `arena_matches`/`arena_match_players`; `GET /arena/matches` e ecrã de histórico.
+
+### Fecho da web (2026-10-12)
+
+Ligado ao servidor (com sessão): aprender e lições Kriolu, desafio do dia, perfil, conquistas, amigos, perfil público, ranking, notificações, loja (proteção de streak), definições e eliminar conta, Arena (Sobrevivência, duelo, 2 contra 2, convites, histórico) e o painel (dashboard, revisão de palavras/frases/lições/exercícios, vocabulário, frases, cursos e unidades, lições, exercícios, utilizadores e papéis).
+
+Correções de robustez feitas no fecho: transações com prazo de 20 s (a Neon fria passava os 5 s), `health` com duas tentativas, testes e2e um ficheiro de cada vez, e **regra de conteúdo reforçada** — um exercício nunca mostra uma palavra por aprovar (leituras públicas + revisão).
+
+Fica para o fim, com chaves/contas (pedido do dono do produto): deploy (Railway), webhook do Clerk, armazenamento de áudios (R2), Play Store/EAS, pagamentos (Premium) e AdMob. Fica para depois: matchmaking público, torneios, ligas, ranking mensal, viagem, escolas.
 - Recompensas por posição a partir de `RewardRule`; histórico de partidas; conquistas de vitórias.
 
 **Passo 4.5 — Notificações push** · M
