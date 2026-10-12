@@ -22,6 +22,13 @@ import {
   type OptionState,
 } from "@/components/play/MatchUI";
 import { RewardRow, TeamScore } from "@/components/play/ResultUI";
+import {
+  countdownValue,
+  secondsLeft,
+  useNow,
+  useRoundGains,
+  useUrgencySound,
+} from "@/components/play/arena-hooks";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { avatarColor } from "@/lib/avatar";
 import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
@@ -42,6 +49,7 @@ const REWARD_NOTE: Record<string, string> = {
   duel_limit: "Já fizeste os 3 duelos premiados de hoje — este foi só pela glória.",
   daily_limit: "Já chegaste às 10 partidas premiadas de hoje.",
   left: "Saíste a meio: sem recompensa.",
+  error: "Não foi possível registar a recompensa. Tenta outra vez mais tarde.",
 };
 
 export function ServerDuel({ friend }: { friend?: string | undefined }) {
@@ -185,45 +193,16 @@ function DuelWaiting({ s }: { s: ArenaState }) {
 function DuelMatch({ s }: { s: ArenaState }) {
   const m = s.match!;
   const room = s.room!;
-  const [now, setNow] = useState(() => Date.now());
-  const prevScores = useRef<Record<string, number>>({});
-  const [gained, setGained] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 100);
-    return () => clearInterval(id);
-  }, []);
-
-  // Pontos ganhos nesta ronda (diferença para a anterior), só para mostrar.
-  useEffect(() => {
-    if (m.phase !== "reveal") return;
-    const next = Object.fromEntries(m.players.map((p) => [p.userId, p.score]));
-    setGained(
-      Object.fromEntries(
-        m.players.map((p) => [p.userId, p.score - (prevScores.current[p.userId] ?? 0)]),
-      ),
-    );
-    prevScores.current = next;
-    const mine = s.me ? m.reveal?.outcomes[s.me] : undefined;
-    sound.play(mine === "correct" ? "correct" : "wrong");
-  }, [m.phase, m.round]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const secLeft = m.deadlineAt ? Math.max(0, (m.deadlineAt - now) / 1000) : 0;
-  useEffect(() => {
-    const c = Math.ceil(secLeft);
-    if (m.phase === "question" && c > 0 && c <= 3) sound.play("urgent");
-  }, [Math.ceil(secLeft)]); // eslint-disable-line react-hooks/exhaustive-deps
+  const now = useNow();
+  const gained = useRoundGains(m, s.me);
+  useUrgencySound(m, now);
+  const secLeft = secondsLeft(m, now);
 
   const me = room.members.find((x) => x.userId === s.me);
   const other = room.members.find((x) => x.userId !== s.me);
   const score = (id?: string) => m.players.find((p) => p.userId === id)?.score ?? 0;
   const q = m.question;
-  const countdown =
-    m.phase === "countdown" && m.countdownAt
-      ? m.countdownAt - now > 0
-        ? Math.min(3, Math.ceil((m.countdownAt - now) / 1000))
-        : ("go" as const)
-      : null;
+  const countdown = countdownValue(m, now);
 
   if (!q) {
     // Antes da 1.ª pergunta: VS + contagem.

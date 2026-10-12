@@ -195,8 +195,8 @@ async function resync() {
 }
 
 export const arena = {
-  async create(config: ArenaConfigDto, languageId?: string) {
-    const r = await ack<{ room: ArenaRoomDto }>("room:create", { config, languageId });
+  async create(config: ArenaConfigDto, mode: "survival" | "teams" = "survival") {
+    const r = await ack<{ room: ArenaRoomDto }>("room:create", { config, mode });
     if (r.ok) set({ room: r.room, closed: false, finished: null, reward: null, match: null });
     return r;
   },
@@ -210,6 +210,12 @@ export const arena = {
     set({ room: null, match: null, finished: null, reward: null });
   },
   ready: (ready: boolean) => ack<{ room: ArenaRoomDto }>("room:ready", { ready }),
+  /** 2 contra 2: trocar de equipa na sala de espera. */
+  async setTeam(team: "A" | "B") {
+    const r = await ack<{ room: ArenaRoomDto }>("room:team", { team });
+    if (r.ok) set({ room: r.room });
+    return r;
+  },
   start: () => ack("room:start"),
   invite: (userId: string) => ack("room:invite", { userId }),
   /** Desafiar um amigo para um duelo (cria a sala de 2 e envia-lhe o convite). */

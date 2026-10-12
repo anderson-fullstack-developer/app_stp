@@ -161,4 +161,54 @@ describe("Cliente da Arena (web)", () => {
     act(() => arena.dismissInvite());
     expect(result.current.invite).toBeNull();
   });
+
+  it("2 contra 2: trocar de equipa e resultado por equipa", async () => {
+    const { arena, useArena } = await import("@/lib/multiplayer/arena-client");
+    const { result } = renderHook(() => useArena(true));
+    const room = {
+      code: "TEAM22",
+      hostId: "eu",
+      status: "WAITING",
+      mode: "teams",
+      config: { players: 4, lives: 1, seconds: 10 },
+      languageId: "kabuverdianu",
+      locale: "pt",
+      members: [
+        {
+          userId: "eu",
+          username: "eu",
+          name: "Eu",
+          avatarColor: null,
+          ready: true,
+          connected: true,
+          isHost: true,
+          team: "B",
+        },
+      ],
+    };
+    replies.set("room:create", {
+      ok: true,
+      room: { ...room, members: [{ ...room.members[0], team: "A" }] },
+    });
+    await act(async () => {
+      await arena.create({ players: 4, lives: 1, seconds: 10 }, "teams");
+    });
+    expect(sent.at(-1)).toMatchObject({ event: "room:create", body: { mode: "teams" } });
+    replies.set("room:team", { ok: true, room });
+    await act(async () => {
+      await arena.setTeam("B");
+    });
+    expect(sent.at(-1)).toEqual({ event: "room:team", body: { team: "B" } });
+    expect(result.current.room?.members[0]?.team).toBe("B");
+
+    fire("match:finished", {
+      matchId: "m2",
+      standings: [],
+      rewarded: true,
+      rounds: 8,
+      teams: { A: 900, B: 1200 },
+      winnerTeam: "B",
+    });
+    expect(result.current.finished).toMatchObject({ winnerTeam: "B", teams: { B: 1200 } });
+  });
 });

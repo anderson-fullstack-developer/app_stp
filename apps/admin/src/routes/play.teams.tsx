@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ServerTeams } from "@/components/play/ServerTeams";
+import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { Shuffle } from "lucide-react";
 import { useState } from "react";
 import { BackButton } from "@/components/app/BackButton";
@@ -38,7 +40,13 @@ function initialRoster(): MatchPlayerSeed[] {
   return [mePlayer(), listOpponents()[1]!, listOpponents()[0]!, listOpponents()[2]!];
 }
 
+/** Com sessão, o 2 contra 2 real (a sala cria-se em /play/private); sem sessão, demonstração. */
 function Teams() {
+  const server = useServerLessonsEnabled();
+  return server ? <ServerTeams /> : <DemoTeams />;
+}
+
+function DemoTeams() {
   const [roster, setRoster] = useState<MatchPlayerSeed[]>(initialRoster);
   const [started, setStarted] = useState(false);
   const teams: [ScoreTeam, ScoreTeam] = [
