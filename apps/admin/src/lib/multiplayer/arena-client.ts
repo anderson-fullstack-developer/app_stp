@@ -212,6 +212,12 @@ export const arena = {
   ready: (ready: boolean) => ack<{ room: ArenaRoomDto }>("room:ready", { ready }),
   start: () => ack("room:start"),
   invite: (userId: string) => ack("room:invite", { userId }),
+  /** Desafiar um amigo para um duelo (cria a sala de 2 e envia-lhe o convite). */
+  async challenge(userId: string) {
+    const r = await ack<{ room: ArenaRoomDto }>("duel:challenge", { userId });
+    if (r.ok) set({ room: r.room, closed: false, finished: null, reward: null, match: null });
+    return r;
+  },
   dismissInvite: () => set({ invite: null }),
   async answer(optionId: string): Promise<ArenaAnswerAck> {
     const m = state.match;

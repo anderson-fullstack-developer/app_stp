@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { PublicUserDto, RelationshipDto } from "@stp/types/api";
-import { Check, Flame, Search, UserMinus, UserPlus, X } from "lucide-react";
+import { Check, Flame, Search, Swords, UserMinus, UserPlus, X } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar } from "@/components/app/Badges";
@@ -125,6 +125,12 @@ export function ServerFriends() {
                 user={f}
                 detail={t("social.weeklyXp", { level: f.level, xp: f.weeklyXp })}
               >
+                <Link to="/play/duel" search={{ friend: f.id }} className="col-span-2 block">
+                  <AppButton size="sm" className="w-full">
+                    <Swords className="size-4" />
+                    {t("social.challenge")}
+                  </AppButton>
+                </Link>
                 <AppButton
                   size="sm"
                   variant="secondary"
