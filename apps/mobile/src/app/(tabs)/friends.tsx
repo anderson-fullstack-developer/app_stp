@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { PublicUserDto } from "@stp/types/api";
-import { Check, Flame, Search, UserMinus, UserPlus, X } from "lucide-react-native";
+import { router } from "expo-router";
+import { Check, Flame, Search, Swords, UserMinus, UserPlus, X } from "lucide-react-native";
 import { type ReactNode, useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/client";
@@ -74,6 +75,14 @@ export default function FriendsTab() {
             user={f}
             detail={t("social.weeklyXp", { level: f.level, xp: f.weeklyXp })}
           >
+            <AppButton
+              size="md"
+              icon={<Swords size={16} color={colors.primaryForeground} />}
+              style={{ flexBasis: "100%" }}
+              onPress={() => router.push({ pathname: "/duel", params: { friend: f.id } })}
+            >
+              {t("social.challenge")}
+            </AppButton>
             <AppButton
               size="md"
               variant="secondary"
@@ -270,18 +279,24 @@ function PersonCard({
   return (
     <Card style={styles.card}>
       <View style={styles.row}>
-        <Avatar name={user.name} color={user.avatarColor} size={52} />
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <AppText variant="bodyStrong" numberOfLines={1}>
-            {user.name}
-          </AppText>
-          <AppText variant="caption" tone="muted" numberOfLines={1}>
-            @{user.username}
-          </AppText>
-          <AppText variant="caption" tone="muted">
-            {detail}
-          </AppText>
-        </View>
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => router.push(`/user/${user.id}`)}
+          style={styles.personLink}
+        >
+          <Avatar name={user.name} color={user.avatarColor} size={52} />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <AppText variant="bodyStrong" numberOfLines={1}>
+              {user.name}
+            </AppText>
+            <AppText variant="caption" tone="muted" numberOfLines={1}>
+              @{user.username}
+            </AppText>
+            <AppText variant="caption" tone="muted">
+              {detail}
+            </AppText>
+          </View>
+        </Pressable>
         {inline ?? (
           <View style={styles.streak}>
             <Flame size={16} color={colors.destructive} fill={colors.destructive} />
@@ -313,8 +328,9 @@ const styles = StyleSheet.create({
   input: { flex: 1, fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.foreground },
   card: { padding: space.lg, borderRadius: 24 },
   row: { flexDirection: "row", alignItems: "center", gap: space.md },
+  personLink: { flex: 1, flexDirection: "row", alignItems: "center", gap: space.md, minWidth: 0 },
   streak: { flexDirection: "row", alignItems: "center", gap: 4 },
-  actions: { flexDirection: "row", gap: space.sm, marginTop: space.md },
+  actions: { flexDirection: "row", flexWrap: "wrap", gap: space.sm, marginTop: space.md },
   pill: {
     height: 36,
     justifyContent: "center",

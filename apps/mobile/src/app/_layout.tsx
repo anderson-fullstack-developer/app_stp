@@ -67,6 +67,20 @@ export default function RootLayout() {
               <Stack.Screen name="daily" />
               <Stack.Screen name="daily-play" options={{ presentation: "fullScreenModal" }} />
               <Stack.Screen name="design" />
+              <Stack.Screen name="user/[id]" />
+              <Stack.Screen name="shop" />
+              <Stack.Screen name="arena" />
+              <Stack.Screen name="arena-join" />
+              <Stack.Screen name="duel" />
+              <Stack.Screen name="arena-history" />
+              <Stack.Screen
+                name="arena-match"
+                options={{ presentation: "fullScreenModal", gestureEnabled: false }}
+              />
+              <Stack.Screen
+                name="points-match"
+                options={{ presentation: "fullScreenModal", gestureEnabled: false }}
+              />
             </Stack>
             <OfflineBanner />
           </View>

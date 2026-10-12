@@ -28,6 +28,7 @@ import {
 import { LessonPath } from "@/features/learn/LessonPath";
 import { StreakCard } from "@/features/learn/StreakCard";
 import { NetoIntroOnce } from "@/features/neto/NetoIntro";
+import { useHasUnreadNotifications } from "@/features/notifications/useUnread";
 
 /** Aprender (igual à web): cabeçalho, estatísticas, nível, sequência, desafio e caminho. */
 export default function Learn() {
@@ -43,6 +44,7 @@ export default function Learn() {
   const [refreshing, setRefreshing] = useState(false);
 
   const p = me.data?.progress;
+  const hasUnread = useHasUnreadNotifications();
   const name = user?.firstName ?? me.data?.name ?? "…";
   const language = languages.data?.flatMap((c) => c.languages).find((l) => l.id === lang);
   const states = new Map((progress.data?.lessons ?? []).map((l) => [l.lessonId, l.state]));
@@ -79,7 +81,7 @@ export default function Learn() {
             style={styles.bell}
           >
             <Bell size={20} color={colors.foreground} />
-            {p && !p.streak.activeToday ? <View style={styles.dot} /> : null}
+            {(p && !p.streak.activeToday) || hasUnread ? <View style={styles.dot} /> : null}
           </Pressable>
         </View>
         <View style={styles.pills}>
@@ -93,11 +95,17 @@ export default function Learn() {
             icon={<Star size={18} color={colors.accentDeep} fill={colors.accentDeep} />}
             value={p?.xpTotal ?? "–"}
           />
-          <StatPill
-            tone="coins"
-            icon={<Coins size={18} color={colors.secondary} />}
-            value={p?.coins ?? "–"}
-          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("shop.title")}
+            onPress={() => router.push("/shop")}
+          >
+            <StatPill
+              tone="coins"
+              icon={<Coins size={18} color={colors.secondary} />}
+              value={p?.coins ?? "–"}
+            />
+          </Pressable>
         </View>
       </View>
 
