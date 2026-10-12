@@ -146,6 +146,7 @@ As conquistas não dão XP (evita que o XP de conquistas distorça os rankings s
   - abandonar não dá recompensa de participação;
   - o Premium não altera nada na partida;
   - **duelo 1 contra 1 entre amigos** (decidido a 2026-10-12): paga vitória +120 XP +20 moedas e derrota +40 XP +5 moedas, mas só nos **3 primeiros duelos premiados por dia local** (contam dentro das 10 partidas premiadas). Pontos por resposta: 100 + até 50 pela rapidez; desempate por certas e depois pelo tempo total; empate em tudo = os dois em 1.º; quem sai a meio perde logo;
+  - **2 contra 2** (sala privada de 4, 2 por equipa): 8 perguntas, a equipa soma os pontos dos dois (100 + até 50 pela rapidez); desempate por certas e tempo; empate total = todos em 1.º; equipa que sai toda perde logo. Paga vitória +120 XP +20 moedas e derrota +40 XP +5 moedas a cada jogador (são 4 jogadores reais), dentro das 10 partidas premiadas por dia;
   - quem já foi eliminado na Sobrevivência pode sair sem perder o lugar nem a recompensa (só quem sai ainda vivo abandona).
 
 ## 10. Premium e menores

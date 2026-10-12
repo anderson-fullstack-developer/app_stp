@@ -3,7 +3,12 @@ import { PrismaService } from "../database/prisma.service.js";
 import { SocialService } from "../social/social.service.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import { isPubliclyListed, visibleContentStatuses } from "../languages/visibility.js";
-import { buildQuestions, type StoredQuestion, toPublicQuestion } from "../lessons/lesson-rules.js";
+import {
+  buildQuestions,
+  type QuizItem,
+  type StoredQuestion,
+  toPublicQuestion,
+} from "../lessons/lesson-rules.js";
 import { loadQuizItems } from "../lessons/quiz-items.js";
 import { grantActivity, loadRewardTable } from "../progress/grant.js";
 import { isValidTimeZone, localDate } from "../progress/rules/local-date.js";
@@ -28,6 +33,8 @@ import {
   normalizeConfig,
   rankDuel,
   rankRemaining,
+  rankTeams,
+  type TeamId,
   rewardEligible,
   scoreAnswer,
   survivalReward,
@@ -87,13 +94,17 @@ interface Member {
   connected: boolean;
   joinedAt: number;
   graceTimer: ReturnType<typeof setTimeout> | null;
+  /** 2 contra 2: equipa escolhida na sala de espera. */
+  team: TeamId | null;
 }
 
-export type ArenaMode = "survival" | "duel";
+export type ArenaMode = "survival" | "duel" | "teams";
 
 interface Match {
   id: string;
   mode: ArenaMode;
+  /** 2 contra 2: equipa de cada jogador (fixa durante a partida). */
+  teams: Map<string, TeamId>;
   /** Duelo: pontos e tempo total de resposta (ms) por jogador. */
   scores: Map<string, number>;
   answerMs: Map<string, number>;
@@ -136,6 +147,7 @@ interface Room {
 }
 
 const LOCALES = ["pt", "en"];
+const QUIZ_CACHE_MS = 5 * 60 * 1000;
 const socketRoom = (code: string) => `arena:${code}`;
 
 /**
@@ -191,7 +203,9 @@ export class ArenaService implements OnModuleDestroy {
       config:
         mode === "duel"
           ? { players: 2, lives: 1, seconds: ARENA_CONFIG.duel.seconds }
-          : normalizeConfig(input.config),
+          : mode === "teams"
+            ? { players: 4, lives: 1, seconds: ARENA_CONFIG.teams.seconds }
+            : normalizeConfig(input.config),
       languageId,
       locale: LOCALES.includes(who.uiLocale) ? who.uiLocale : "en",
       members: new Map(),
@@ -252,6 +266,11 @@ export class ArenaService implements OnModuleDestroy {
       }
       if (member) member.connected = false;
       this.roomOf.delete(userId);
+      if (room.match.mode === "teams" && this.teamGone(room, room.match)) {
+        this.clearTimer(room.match);
+        void this.finish(room);
+        return;
+      }
       this.maybeResolveEarly(room);
       this.cancelIfEmpty(room);
       this.broadcastRoom(room);
@@ -277,6 +296,22 @@ export class ArenaService implements OnModuleDestroy {
     if (room.match) throw new ArenaError("ROOM_STARTED", "A partida já começou.");
     room.members.get(userId)!.ready = ready;
     this.broadcastRoom(room);
+    return this.view(room);
+  }
+
+  /** 2 contra 2: mudar de equipa na sala de espera (máximo 2 por equipa). */
+  setTeam(userId: string, team: TeamId): RoomView {
+    const room = this.requireRoom(userId);
+    if (room.mode !== "teams") throw new ArenaError("NOT_TEAMS", "Esta sala não é de equipas.");
+    if (room.match) throw new ArenaError("ROOM_STARTED", "A partida já começou.");
+    const member = room.members.get(userId)!;
+    if (member.team !== team) {
+      const taken = [...room.members.values()].filter((m) => m.team === team).length;
+      if (taken >= 2) throw new ArenaError("TEAM_FULL", "Essa equipa já tem 2 jogadores.");
+      member.team = team;
+      member.ready = false;
+      this.broadcastRoom(room);
+    }
     return this.view(room);
   }
 
@@ -405,6 +440,12 @@ export class ArenaService implements OnModuleDestroy {
     if (questions.length < 4) {
       throw new ArenaError("NO_QUESTIONS", "Ainda não há perguntas suficientes nesta língua.");
     }
+    if (room.mode === "teams") {
+      const count = (t: TeamId) => members.filter((m) => m.team === t).length;
+      if (members.length !== 4 || count("A") !== 2 || count("B") !== 2) {
+        throw new ArenaError("TEAMS_INCOMPLETE", "São precisas 2 pessoas em cada equipa.");
+      }
+    }
     const playerIds = members.map((m) => m.identity.userId);
     const row = await this.prisma.arenaMatch.create({
       data: {
@@ -430,6 +471,7 @@ export class ArenaService implements OnModuleDestroy {
     const match: Match = {
       id: row.id,
       mode: room.mode,
+      teams: new Map(members.filter((m) => m.team).map((m) => [m.identity.userId, m.team!])),
       scores: new Map(playerIds.map((id) => [id, 0])),
       answerMs: new Map(playerIds.map((id) => [id, 0])),
       questions,
@@ -526,8 +568,8 @@ export class ArenaService implements OnModuleDestroy {
       const a = match.answers.get(p.id);
       outcomes[p.id] = !a ? "timeout" : a.optionId === q.correctOptionId ? "correct" : "wrong";
     }
-    if (match.mode === "duel") {
-      this.resolveDuelRound(room, match, q.correctOptionId, outcomes);
+    if (match.mode !== "survival") {
+      this.resolvePointsRound(room, match, q.correctOptionId, outcomes);
       return;
     }
     const { players, summary } = applySurvivalRound(match.players, outcomes, match.round);
@@ -570,7 +612,7 @@ export class ArenaService implements OnModuleDestroy {
   }
 
   /** Duelo: ninguém perde vidas; soma pontos (certa + rapidez) e tempo de resposta. */
-  private resolveDuelRound(
+  private resolvePointsRound(
     room: Room,
     match: Match,
     correctOptionId: string,
@@ -613,7 +655,12 @@ export class ArenaService implements OnModuleDestroy {
         voided: false,
       },
     });
-    const done = match.round >= ARENA_CONFIG.duel.questions || match.left.size > 0;
+    const total =
+      match.mode === "duel" ? ARENA_CONFIG.duel.questions : ARENA_CONFIG.teams.questions;
+    const done =
+      match.round >= total ||
+      (match.mode === "duel" && match.left.size > 0) ||
+      (match.mode === "teams" && this.teamGone(room, match));
     this.schedule(
       room,
       () => (done ? void this.finish(room) : this.nextQuestion(room)),
@@ -627,24 +674,29 @@ export class ArenaService implements OnModuleDestroy {
     match.phase = "finished";
     this.clearTimer(match);
     const duel = match.mode === "duel";
-    const duelPlaces = duel
-      ? rankDuel(
-          match.players.map((p) => ({
-            id: p.id,
-            score: match.scores.get(p.id) ?? 0,
-            correct: p.correct,
-            answerMs: match.answerMs.get(p.id) ?? 0,
-            left: match.left.has(p.id),
-          })),
-        )
-      : null;
+    const teams = match.mode === "teams";
+    const scoreRows = match.players.map((p) => ({
+      id: p.id,
+      score: match.scores.get(p.id) ?? 0,
+      correct: p.correct,
+      answerMs: match.answerMs.get(p.id) ?? 0,
+      left: match.left.has(p.id),
+      team: (match.teams.get(p.id) ?? "A") as TeamId,
+    }));
+    const teamResult = teams ? rankTeams(scoreRows) : null;
+    const pointPlaces = duel ? rankDuel(scoreRows) : (teamResult?.places ?? null);
     const ranked = (
-      duelPlaces
-        ? match.players.map((p) => ({ ...p, placement: duelPlaces.get(p.id) ?? 2 }))
+      pointPlaces
+        ? match.players.map((p) => ({ ...p, placement: pointPlaces.get(p.id) ?? 2 }))
         : rankRemaining(match.players)
-    ).sort((a, b) => (a.placement ?? 99) - (b.placement ?? 99));
-    // Duelo entre amigos paga (até 3 por dia); Sobrevivência privada só com 4+ jogadores.
-    const eligible = duel || rewardEligible(true, match.players.length);
+    ).sort(
+      (a, b) =>
+        (a.placement ?? 99) - (b.placement ?? 99) ||
+        (match.scores.get(b.id) ?? 0) - (match.scores.get(a.id) ?? 0),
+    );
+    // Duelo entre amigos paga (até 3 por dia); 2 contra 2 tem sempre 4 jogadores reais;
+    // Sobrevivência privada só com 4+ jogadores.
+    const eligible = duel || teams || rewardEligible(true, match.players.length);
     const table = await loadRewardTable(this.prisma);
     const now = new Date();
     const rewards = new Map<string, { xp: number; coins: number; reason: string }>();
@@ -654,27 +706,42 @@ export class ArenaService implements OnModuleDestroy {
       let reward = { xp: 0, coins: 0, reason: left ? "left" : eligible ? "ok" : "private_small" };
       if (!left && eligible) {
         const place = p.placement ?? ranked.length;
-        const r = duel ? duelReward(place) : survivalReward(place);
+        const r = duel || teams ? duelReward(place) : survivalReward(place);
+        const pay = () =>
+          this.prisma.$transaction(
+            async (tx) => {
+              const limit = await this.dailyLimitReached(tx, p.id, now, duel);
+              if (limit) return { xp: 0, coins: 0, reason: limit };
+              await grantActivity(tx, {
+                userId: p.id,
+                now,
+                sourceType: duel ? "arena_duel" : teams ? "arena_teams" : "arena_match",
+                sourceId: match.id,
+                xp: [{ reason: duel && place === 1 ? "DUEL_WIN" : "ARENA_PLACE", amount: r.xp }],
+                coins: [{ reason: "ARENA_PLACE", amount: r.coins }],
+                correctAnswersDelta: p.correct,
+                lessonsCompletedDelta: 0,
+                table,
+              });
+              return { ...r, reason: "ok" };
+            },
+            // Com a base de dados lenta, 5 s (o padrão) não chegam para pagar com segurança.
+            { maxWait: 10_000, timeout: 20_000 },
+          );
         try {
-          reward = await this.prisma.$transaction(async (tx) => {
-            const limit = await this.dailyLimitReached(tx, p.id, now, duel);
-            if (limit) return { xp: 0, coins: 0, reason: limit };
-            await grantActivity(tx, {
-              userId: p.id,
-              now,
-              sourceType: duel ? "arena_duel" : "arena_match",
-              sourceId: match.id,
-              xp: [{ reason: duel && place === 1 ? "DUEL_WIN" : "ARENA_PLACE", amount: r.xp }],
-              coins: [{ reason: "ARENA_PLACE", amount: r.coins }],
-              correctAnswersDelta: p.correct,
-              lessonsCompletedDelta: 0,
-              table,
-            });
-            return { ...r, reason: "ok" };
-          });
-        } catch (e) {
-          this.logger.error({ err: e, matchId: match.id, userId: p.id }, "Falha a pagar a Arena");
-          reward = { xp: 0, coins: 0, reason: "ok" };
+          reward = await pay();
+        } catch (first) {
+          // Uma nova tentativa é segura: o pagamento é idempotente (mesma partida = mesma chave).
+          this.logger.warn(
+            { err: first, matchId: match.id, userId: p.id },
+            "A repetir o pagamento",
+          );
+          try {
+            reward = await pay();
+          } catch (e) {
+            this.logger.error({ err: e, matchId: match.id, userId: p.id }, "Falha a pagar a Arena");
+            reward = { xp: 0, coins: 0, reason: "error" };
+          }
         }
       }
       rewards.set(p.id, reward);
@@ -712,12 +779,19 @@ export class ArenaService implements OnModuleDestroy {
       timeouts: p.timeouts,
       left: match.left.has(p.id),
       score: match.scores.get(p.id) ?? 0,
+      team: match.teams.get(p.id) ?? null,
     }));
     this.emit({ room: socketRoom(room.code) }, "match:finished", {
       matchId: match.id,
       standings,
       rewarded: eligible,
       rounds: match.round,
+      ...(teamResult
+        ? {
+            teams: { A: teamResult.totals.A.score, B: teamResult.totals.B.score },
+            winnerTeam: teamResult.winner,
+          }
+        : {}),
     });
     for (const [userId, r] of rewards) {
       this.emit({ user: userId }, "match:reward", { matchId: match.id, ...r });
@@ -756,11 +830,16 @@ export class ArenaService implements OnModuleDestroy {
     const today = new Date(`${localDate(now, tz)}T00:00:00Z`);
     const rows = await tx.xpEvent.groupBy({
       by: ["sourceType"],
-      where: { userId, localDate: today, sourceType: { in: ["arena_match", "arena_duel"] } },
+      where: {
+        userId,
+        localDate: today,
+        sourceType: { in: ["arena_match", "arena_duel", "arena_teams"] },
+      },
       _count: true,
     });
     const count = (t: string) => rows.find((r) => r.sourceType === t)?._count ?? 0;
-    if (count("arena_match") + count("arena_duel") >= ARENA_CONFIG.maxRewardedMatchesPerDay) {
+    const all = count("arena_match") + count("arena_duel") + count("arena_teams");
+    if (all >= ARENA_CONFIG.maxRewardedMatchesPerDay) {
       return "daily_limit";
     }
     if (duel && count("arena_duel") >= ARENA_CONFIG.maxRewardedDuelsPerDay) return "duel_limit";
@@ -787,7 +866,17 @@ export class ArenaService implements OnModuleDestroy {
 
   /* ------------------------------ auxiliares ------------------------------ */
 
-  private async loadQuestions(languageId: string, locale: string): Promise<StoredQuestion[]> {
+  /**
+   * Palavras da língua para perguntas, em memória durante uns minutos: assim começar uma
+   * partida não lê o vocabulário todo da base de dados de cada vez. O conteúdo aprovado
+   * muda pouco; uma palavra nova aparece na Arena no máximo após QUIZ_CACHE_MS.
+   */
+  private readonly quizCache = new Map<string, { at: number; items: QuizItem[] }>();
+
+  private async quizItems(languageId: string, locale: string): Promise<QuizItem[]> {
+    const key = `${languageId}:${locale}`;
+    const hit = this.quizCache.get(key);
+    if (hit && Date.now() - hit.at < QUIZ_CACHE_MS) return hit.items;
     const language = await this.prisma.language.findUniqueOrThrow({
       where: { id: languageId },
       select: { status: true },
@@ -797,10 +886,23 @@ export class ArenaService implements OnModuleDestroy {
       { languageId, status: { in: visibleContentStatuses(language.status) } },
       locale,
     );
-    // Uma palavra por pergunta (sem repetições), por ordem aleatória.
+    // Uma entrada por palavra (a mesma palavra pode estar em vários exercícios).
     const unique = [...new Map(items.map((i) => [i.vocabularyId, i])).values()];
-    const chosen = unique.sort(() => Math.random() - 0.5).slice(0, ARENA_CONFIG.maxRounds);
-    return buildQuestions(chosen, unique, Math.random).filter((q) => q.options.length >= 2);
+    this.quizCache.set(key, { at: Date.now(), items: unique });
+    return unique;
+  }
+
+  private async loadQuestions(languageId: string, locale: string): Promise<StoredQuestion[]> {
+    const pool = await this.quizItems(languageId, locale);
+    // Fisher–Yates: ordem aleatória sem viés; sem repetir palavras na partida.
+    const chosen = [...pool];
+    for (let i = chosen.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [chosen[i], chosen[j]] = [chosen[j]!, chosen[i]!];
+    }
+    return buildQuestions(chosen.slice(0, ARENA_CONFIG.maxRounds), pool, Math.random).filter(
+      (q) => q.options.length >= 2,
+    );
   }
 
   private currentQuestion(match: Match): StoredQuestion | undefined {
@@ -829,6 +931,7 @@ export class ArenaService implements OnModuleDestroy {
       eliminated: match.mode === "survival" && p.lives <= 0,
       left: match.left.has(p.id),
       score: match.scores.get(p.id) ?? 0,
+      team: match.teams.get(p.id) ?? null,
     }));
   }
 
@@ -863,6 +966,7 @@ export class ArenaService implements OnModuleDestroy {
           ready: m.identity.userId === room.hostId || m.ready,
           connected: m.connected,
           isHost: m.identity.userId === room.hostId,
+          team: m.team,
         })),
     };
   }
@@ -874,8 +978,25 @@ export class ArenaService implements OnModuleDestroy {
       connected: true,
       joinedAt: Date.now() + room.members.size, // ordem estável mesmo no mesmo ms
       graceTimer: null,
+      team: room.mode === "teams" ? this.openTeam(room) : null,
     });
     this.roomOf.set(who.userId, room.code);
+  }
+
+  /** Equipa com menos gente (para quem acabou de entrar). */
+  private openTeam(room: Room): TeamId {
+    const inA = [...room.members.values()].filter((m) => m.team === "A").length;
+    const inB = [...room.members.values()].filter((m) => m.team === "B").length;
+    return inA <= inB ? "A" : "B";
+  }
+
+  /** 2 contra 2: alguma equipa ficou sem ninguém a jogar? */
+  private teamGone(room: Room, match: Match): boolean {
+    return (["A", "B"] as const).some((t) =>
+      match.players
+        .filter((p) => match.teams.get(p.id) === t)
+        .every((p) => match.left.has(p.id) || !room.members.get(p.id)?.connected),
+    );
   }
 
   private markConnected(room: Room, member: Member, connected: boolean) {
