@@ -11,6 +11,7 @@ import { AppModule } from "../src/app.module.js";
 import { configureApp } from "../src/configure-app.js";
 import { loadEnv } from "../src/config/env.js";
 import { PrismaService } from "../src/database/prisma.service.js";
+import { localDate } from "../src/progress/rules/local-date.js";
 
 /** Contra a base de dados real (Neon); ignorado sem DATABASE_URL (CI). */
 const dbUrl = process.env["DATABASE_URL"];
@@ -298,6 +299,91 @@ describe.skipIf(!dbUrl)(
         xp: 250,
         rewarded: true,
       });
+    });
+
+    it("duelo 1 contra 1: desafio a amigos, arranque automático, pontos e prémios", async () => {
+      const a = await connect(ids["ana"]!);
+      const b = await connect(ids["bia"]!);
+      expect(await ack(a, "duel:challenge", { userId: ids["caio"] })).toMatchObject({
+        ok: false,
+        code: "NOT_FRIENDS",
+      });
+      // A Bia já fez 3 duelos premiados hoje: joga, mas não recebe.
+      const bia = await prisma.user.findUniqueOrThrow({ where: { id: ids["bia"]! } });
+      const today = new Date(`${localDate(new Date(), bia.timezone)}T00:00:00Z`);
+      for (let i = 0; i < 3; i++) {
+        await prisma.xpEvent.create({
+          data: {
+            userId: ids["bia"]!,
+            amount: 1,
+            reason: "ARENA_PLACE",
+            sourceType: "arena_duel",
+            sourceId: `teste-${tag}-${i}`,
+            localDate: today,
+          },
+        });
+      }
+
+      const invited = next(b, "arena:invite");
+      const challenged = await ack(a, "duel:challenge", { userId: ids["bia"] });
+      expect(challenged).toMatchObject({
+        ok: true,
+        room: { mode: "duel", config: { players: 2 } },
+      });
+      const invite = await invited;
+      expect(invite).toMatchObject({ mode: "duel", from: { userId: ids["ana"] } });
+
+      // A Ana responde sempre certo; a Bia sempre errado.
+      const answer = (s: Socket, right: boolean) => (p: Payload) => {
+        const correct = correctOption(invite["code"]);
+        const opts = p["question"].options as { id: string }[];
+        const optionId = right ? correct : opts.find((o) => o.id !== correct)!.id;
+        void ack(s, "match:answer", { questionId: p["question"].questionId, optionId });
+      };
+      a.on("match:question", answer(a, true));
+      b.on("match:question", answer(b, false));
+      const finished = next(a, "match:finished");
+      const rewardA = next(a, "match:reward");
+      const rewardB = next(b, "match:reward");
+      expect(await ack(b, "room:join", { code: invite["code"] })).toMatchObject({ ok: true });
+
+      const result = await finished;
+      expect(result["rounds"]).toBe(10);
+      const [first, second] = result["standings"] as Payload[];
+      expect(first).toMatchObject({ userId: ids["ana"], place: 1, correct: 10 });
+      expect(first!["score"]).toBeGreaterThanOrEqual(1000);
+      expect(second).toMatchObject({ userId: ids["bia"], place: 2, score: 0, wrong: 10 });
+      expect(await rewardA).toMatchObject({ xp: 120, coins: 20, reason: "ok" });
+      expect(await rewardB).toMatchObject({ xp: 0, reason: "duel_limit" });
+      const saved = await prisma.arenaMatch.findFirstOrThrow({
+        where: { roomCode: invite["code"], mode: "duel" },
+      });
+      expect(saved).toMatchObject({ status: "FINISHED", rounds: 10, rewarded: true });
+      const win = await prisma.xpEvent.findFirstOrThrow({
+        where: { userId: ids["ana"]!, sourceType: "arena_duel", sourceId: saved.id },
+      });
+      expect(win).toMatchObject({ reason: "DUEL_WIN", amount: 120 });
+      a.off("match:question");
+      b.off("match:question");
+      await ack(a, "room:leave");
+      await ack(b, "room:leave");
+    });
+
+    it("duelo: quem sai a meio perde e o outro ganha logo", async () => {
+      const a = await connect(ids["ana"]!);
+      const b = await connect(ids["bia"]!);
+      const invited = next(b, "arena:invite");
+      await ack(a, "duel:challenge", { userId: ids["bia"] });
+      const { code } = await invited;
+      const q = next(b, "match:question");
+      await ack(b, "room:join", { code });
+      await q;
+      const finished = next(a, "match:finished");
+      await ack(b, "room:leave");
+      const result = await finished;
+      expect(result["standings"][0]).toMatchObject({ userId: ids["ana"], place: 1 });
+      expect(result["standings"][1]).toMatchObject({ userId: ids["bia"], left: true });
+      await ack(a, "room:leave");
     });
   },
 );

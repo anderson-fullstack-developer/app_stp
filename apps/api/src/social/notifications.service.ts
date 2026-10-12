@@ -53,6 +53,7 @@ export class NotificationsService {
         type: "arena_invite" as const,
         at: new Date(i.at).toISOString(),
         code: i.code,
+        mode: i.mode,
         expiresAt: new Date(i.expiresAt).toISOString(),
         user: {
           id: i.from.userId,

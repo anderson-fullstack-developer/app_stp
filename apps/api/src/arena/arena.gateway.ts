@@ -27,6 +27,13 @@ const CreateBody = z.object({
 const JoinBody = z.object({ code: z.string().trim().min(4).max(12) });
 const ReadyBody = z.object({ ready: z.boolean() });
 const InviteBody = z.object({ userId: z.uuid() });
+const ChallengeBody = z.object({
+  userId: z.uuid(),
+  languageId: z
+    .string()
+    .regex(/^[a-z][a-z0-9_-]{1,40}$/)
+    .optional(),
+});
 const AnswerBody = z.object({ questionId: z.string().max(80), optionId: z.string().max(80) });
 
 type ArenaSocket = Socket & { data: { identity?: ArenaIdentity } };
@@ -127,6 +134,16 @@ export class ArenaGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     return this.run(socket, async (who) => {
       await this.arena.invite(who, InviteBody.parse(body).userId);
       return {};
+    });
+  }
+
+  @SubscribeMessage("duel:challenge")
+  challenge(@ConnectedSocket() socket: ArenaSocket, @MessageBody() body: unknown) {
+    return this.run(socket, async (who) => {
+      const input = ChallengeBody.parse(body);
+      const room = await this.arena.challenge(who, input.userId, input.languageId);
+      await this.joinSocketRoom(socket, who.userId);
+      return { room };
     });
   }
 
