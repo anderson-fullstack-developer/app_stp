@@ -144,3 +144,27 @@ Resultado esperado: **PEGI 3 / Todos**, com o aviso "Os utilizadores interagem".
 10. [ ] Pedir acesso à produção e publicar
 
 Já feito na app: identificador e versão, só 3 permissões (internet, vibração, som), ícones 1024², ecrã de abertura, textos em português e inglês, botão voltar seguro nas partidas.
+
+## 8. Gerar a build Android (EAS)
+
+A configuração já está em `apps/mobile/eas.json`:
+
+| Perfil | Para quê | Resultado |
+|---|---|---|
+| `preview` | Instalar diretamente em telemóveis de teste | APK (link de download) |
+| `production` | Enviar para a Play Store | AAB, `versionCode` incrementado automaticamente pela EAS |
+
+Passos (uma vez):
+
+1. Criar conta em expo.dev e, em `apps/mobile`: `pnpm dlx eas-cli login` e `pnpm dlx eas-cli init` (liga o projeto e grava o `projectId` no `app.json`).
+2. No painel da EAS → **Environment variables**, criar para `preview` e `production`:
+   - `EXPO_PUBLIC_API_URL` = endereço público da API (ver `docs/DEPLOY.md`), sem `/api/v1`
+   - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` = chave pública do Clerk **de produção** (`pk_live_…`)
+   - Visibilidade: "Plain text" ou "Sensitive" (são públicas — vão dentro da app).
+3. Build de teste: `pnpm dlx eas-cli build -p android --profile preview`
+4. Build da loja: `pnpm dlx eas-cli build -p android --profile production`
+5. Envio: o **primeiro** AAB carrega-se à mão na Play Console (teste interno). Depois disso,
+   `pnpm dlx eas-cli submit -p android --profile production` envia como rascunho para o teste interno
+   (precisa de uma chave de conta de serviço da Google — nunca no repositório).
+
+A chave de assinatura é gerada e guardada pela EAS; a Google Play ativa a "Assinatura de apps da Play" no primeiro envio.
