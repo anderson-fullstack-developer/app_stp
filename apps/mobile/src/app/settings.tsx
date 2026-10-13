@@ -216,6 +216,23 @@ export default function Settings() {
           </Row>
         </Card>
 
+        <AppText variant="overline" tone="muted" style={{ marginTop: space.lg }}>
+          {t("settings.support")}
+        </AppText>
+        <Card style={styles.group}>
+          <Pressable accessibilityRole="link" onPress={() => router.push("/terms")}>
+            <Row label={t("settings.terms")}>
+              <ChevronRight size={18} color={colors.mutedForeground} />
+            </Row>
+          </Pressable>
+          <View style={styles.sep} />
+          <Pressable accessibilityRole="link" onPress={() => router.push("/privacy")}>
+            <Row label={t("settings.privacyPolicy")}>
+              <ChevronRight size={18} color={colors.mutedForeground} />
+            </Row>
+          </Pressable>
+        </Card>
+
         <Pressable accessibilityRole="button" onPress={() => setNetoOpen(true)} style={styles.neto}>
           <Neto mood="happy" size={88} />
           <AppText variant="small" tone="primary" style={{ marginTop: space.sm }}>

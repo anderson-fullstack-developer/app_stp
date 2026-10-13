@@ -67,7 +67,7 @@ const Row = ({
 }: {
   label: string;
   value?: string | undefined;
-  to?: "/premium" | "/settings/account";
+  to?: "/premium" | "/settings/account" | "/privacy" | "/terms";
 }) => {
   const inner = (
     <span className="flex w-full items-center justify-between px-4 py-3.5 font-semibold">
@@ -239,10 +239,9 @@ function Settings() {
             <span className="flex-1">{t("neto.aboutRow")}</span>
             <ChevronRight className="size-4 text-muted-foreground" />
           </button>
-          <Row label={t("settings.privacy")} />
           <Row label={t("settings.help")} />
-          <Row label={t("settings.terms")} />
-          <Row label={t("settings.privacyPolicy")} />
+          <Row label={t("settings.terms")} to="/terms" />
+          <Row label={t("settings.privacyPolicy")} to="/privacy" />
         </Group>
         <SessionButton />
         <NetoIntro open={netoOpen} onClose={() => setNetoOpen(false)} />

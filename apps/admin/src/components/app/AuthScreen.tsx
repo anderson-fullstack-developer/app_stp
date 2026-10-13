@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
+import { LEGAL } from "@stp/config";
+import { Link } from "@tanstack/react-router";
+import { Trans, useTranslation } from "react-i18next";
 import { LogoMark } from "@/components/app/Brand";
 import { PhoneFrame } from "@/layouts/AppShell";
 
@@ -13,7 +15,17 @@ export function AuthScreen({ title, children }: { title: string; children: React
         <h1 className="mt-4 font-display text-3xl font-bold text-primary-foreground">{title}</h1>
         <p className="mt-1 text-sm text-primary-foreground/80">{t("login.subtitle")} 🔥</p>
       </div>
-      <div className="flex flex-1 justify-center px-4 pb-8 pt-6">{children}</div>
+      <div className="flex flex-1 justify-center px-4 pt-6">{children}</div>
+      <p className="px-8 pb-8 pt-4 text-center text-xs leading-relaxed text-muted-foreground">
+        <Trans
+          i18nKey="legal.consent"
+          values={{ age: LEGAL.minimumAge }}
+          components={{
+            terms: <Link to="/terms" className="font-semibold text-primary underline" />,
+            privacy: <Link to="/privacy" className="font-semibold text-primary underline" />,
+          }}
+        />
+      </p>
     </PhoneFrame>
   );
 }

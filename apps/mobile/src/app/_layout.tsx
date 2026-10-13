@@ -69,6 +69,8 @@ export default function RootLayout() {
               <Stack.Screen name="design" />
               <Stack.Screen name="user/[id]" />
               <Stack.Screen name="shop" />
+              <Stack.Screen name="privacy" />
+              <Stack.Screen name="terms" />
               <Stack.Screen name="arena" />
               <Stack.Screen name="arena-join" />
               <Stack.Screen name="duel" />
