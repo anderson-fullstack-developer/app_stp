@@ -396,6 +396,12 @@ Correções de robustez feitas no fecho: transações com prazo de 20 s (a Neon 
 Fica para o fim, com chaves/contas (pedido do dono do produto): deploy (Railway), webhook do Clerk, armazenamento de áudios (R2), Play Store/EAS, pagamentos (Premium) e AdMob. Fica para depois: matchmaking público, torneios, ligas, ranking mensal, viagem, escolas.
 - Recompensas por posição a partir de `RewardRule`; histórico de partidas; conquistas de vitórias.
 
+### Preparação da publicação (2026-10-13)
+
+Pronto sem contas: app Android (`com.falaneto.app`, 3 permissões, ícones, Arena em pt/en, botão voltar seguro), `apps/mobile/eas.json` (preview APK, produção AAB), imagem Docker da API + `railway.json` (guia em `docs/DEPLOY.md`), Política de Privacidade e Termos (web `/privacy` e `/terms`, app em Definições, aviso no registo), ícone 512 e imagens de destaque (`apps/mobile/store/`) e ficha da loja (`docs/PLAY_STORE.md`).
+
+Falta (precisa do dono do produto): D-05 idade mínima, email de suporte, contas Railway / Expo / Google Play, chaves de produção do Clerk e webhook, capturas de ecrã num telemóvel real, teste fechado de 14 dias.
+
 **Passo 4.5 — Notificações push** · M
 - Expo Notifications / FCM; preferências por categoria.
 
@@ -457,14 +463,14 @@ O desenvolvimento pode estar pronto e a app continuar vazia. Para evitar isso:
 
 - [ ] Conta de programador na Play Console (verificação de identidade).
 - [ ] `applicationId` definitivo (ex.: `st.linguastp.app` — **não pode mudar depois de publicado**).
-- [ ] Ícone, *adaptive icon*, splash, capturas de ecrã, descrição em PT (e EN/FR mais tarde).
-- [ ] Política de privacidade e termos de serviço publicados num URL.
+- [x] Ícone, *adaptive icon*, splash, descrição em PT e EN (`docs/PLAY_STORE.md`). Falta: capturas de ecrã.
+- [x] Política de privacidade e termos escritos (web `/privacy`, `/terms`). Falta: web online.
 - [ ] Formulário *Data safety* (dados recolhidos: email, nome, progresso, analytics, publicidade).
-- [ ] **Eliminação de conta** dentro da app e por um link web.
+- [x] **Eliminação de conta** dentro da app (Definições) e na web (`/settings/account`).
 - [ ] Classificação de conteúdo (questionário IARC) e público-alvo. Se crianças forem público-alvo → *Families Policy* (restrições a anúncios e analytics).
-- [ ] Permissões mínimas (microfone só se o exercício de pronúncia entrar; pedir no momento de uso).
+- [x] Permissões mínimas (microfone só se o exercício de pronúncia entrar; pedir no momento de uso).
 - [ ] API level alvo exigido pela Google no momento (Expo SDK atual cumpre).
-- [ ] Build `.aab` assinado com EAS; `versionCode` incrementado automaticamente.
+- [x] Configuração EAS (`.aab`, `versionCode` automático). Falta: conta Expo e a primeira build.
 - [ ] Testes internos → **teste fechado com testadores durante pelo menos 14 dias** (regra para contas pessoais novas) → produção.
 - [ ] Produtos de subscrição criados na Play Console e ligados ao RevenueCat.
 - [ ] AdMob com consentimento RGPD (UMP) para utilizadores da UE/UK.
