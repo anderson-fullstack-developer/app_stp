@@ -1,0 +1,19 @@
+# Nunca enviar segredos nem lixo local para a imagem.
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+**/dist
+**/.turbo
+**/.expo
+**/.tanstack
+**/coverage
+.git
+.github
+apps/api/src/generated
+apps/admin/src
+apps/admin/public
+apps/mobile/src
+apps/mobile/assets
+content
+docs
