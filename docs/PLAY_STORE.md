@@ -83,9 +83,11 @@ Made for anyone who wants to talk with family, connect with their roots or prepa
 
 | Recurso | Tamanho | Estado |
 |---|---|---|
-| Ícone da loja | 512 × 512 PNG | Gerar a partir de `apps/mobile/assets/images/icon.png` (1024²) |
-| Imagem de destaque | 1024 × 500 | Por fazer (Neto + nome da app) |
+| Ícone da loja | 512 × 512 PNG | ✅ `apps/mobile/store/icon-512.png` |
+| Imagem de destaque | 1024 × 500 | ✅ `apps/mobile/store/feature-graphic-pt.png` e `-en.png` |
 | Capturas de ecrã (telemóvel) | mín. 2, ideal 6–8, 1080 × 1920 | Por tirar num telemóvel real com login |
+
+As imagens geram-se com `node scripts/render-store-graphics.mjs` (a partir dos SVG da marca).
 
 Capturas sugeridas, por esta ordem: Aprender (caminho de lições) · uma pergunta da lição · resultado com o Neto · desafio do dia · Arena (partida) · ranking · amigos · perfil.
 
