@@ -143,3 +143,17 @@ export const MULTIPLAYER_CONFIG = {
   participationReward: { xp: 40, coins: 5 },
   matchRewards: { win: { xp: 120, coins: 20 }, lose: { xp: 40, coins: 5 } },
 } as const;
+
+/**
+ * Dados usados na Política de Privacidade e nos Termos (web e app).
+ * ⚠️ Decisões pendentes: idade mínima (D-05, recomendado 13) e email público de suporte.
+ * Enquanto `supportEmail` for null, os textos mostram um aviso em vez de um contacto inventado.
+ */
+export const LEGAL = {
+  /** Responsável pelo tratamento dos dados. */
+  controller: "Anderson Neto",
+  minimumAge: 13,
+  supportEmail: null as string | null,
+  /** Data da última revisão dos textos (AAAA-MM-DD). */
+  updatedAt: "2026-10-13",
+} as const;

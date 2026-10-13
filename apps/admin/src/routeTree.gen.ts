@@ -21,11 +21,13 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PremiumRouteImport } from './routes/premium'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as SchoolsRouteImport } from './routes/schools'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TravelRouteImport } from './routes/travel'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAchievementsRouteImport } from './routes/admin.achievements'
@@ -129,6 +131,11 @@ const PremiumRoute = PremiumRouteImport.update({
   path: '/premium',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -152,6 +159,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TravelRoute = TravelRouteImport.update({
@@ -378,11 +390,13 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/ranking': typeof RankingRoute
   '/schools': typeof SchoolsRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
+  '/terms': typeof TermsRoute
   '/travel': typeof TravelRoute
   '/admin/achievements': typeof AdminAchievementsRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -438,11 +452,13 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/ranking': typeof RankingRoute
   '/schools': typeof SchoolsRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
+  '/terms': typeof TermsRoute
   '/travel': typeof TravelRoute
   '/admin/achievements': typeof AdminAchievementsRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -500,11 +516,13 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/premium': typeof PremiumRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/ranking': typeof RankingRoute
   '/schools': typeof SchoolsRoute
   '/settings': typeof SettingsRoute
   '/shop': typeof ShopRoute
+  '/terms': typeof TermsRoute
   '/travel': typeof TravelRoute
   '/admin/achievements': typeof AdminAchievementsRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -563,11 +581,13 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/premium'
+    | '/privacy'
     | '/profile'
     | '/ranking'
     | '/schools'
     | '/settings'
     | '/shop'
+    | '/terms'
     | '/travel'
     | '/admin/achievements'
     | '/admin/ads'
@@ -623,11 +643,13 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/premium'
+    | '/privacy'
     | '/profile'
     | '/ranking'
     | '/schools'
     | '/settings'
     | '/shop'
+    | '/terms'
     | '/travel'
     | '/admin/achievements'
     | '/admin/ads'
@@ -684,11 +706,13 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/premium'
+    | '/privacy'
     | '/profile'
     | '/ranking'
     | '/schools'
     | '/settings'
     | '/shop'
+    | '/terms'
     | '/travel'
     | '/admin/achievements'
     | '/admin/ads'
@@ -746,11 +770,13 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
   PremiumRoute: typeof PremiumRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
   RankingRoute: typeof RankingRoute
   SchoolsRoute: typeof SchoolsRoute
   SettingsRoute: typeof SettingsRoute
   ShopRoute: typeof ShopRoute
+  TermsRoute: typeof TermsRoute
   TravelRoute: typeof TravelRoute
   AdminForbiddenRoute: typeof AdminForbiddenRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -859,6 +885,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PremiumRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -892,6 +925,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/travel': {
@@ -1256,11 +1296,13 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
   PremiumRoute: PremiumRoute,
+  PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
   RankingRoute: RankingRoute,
   SchoolsRoute: SchoolsRoute,
   SettingsRoute: SettingsRoute,
   ShopRoute: ShopRoute,
+  TermsRoute: TermsRoute,
   TravelRoute: TravelRoute,
   AdminForbiddenRoute: AdminForbiddenRoute,
   AdminLoginRoute: AdminLoginRoute,

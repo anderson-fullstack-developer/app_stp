@@ -13,7 +13,7 @@
 | Tags | Línguas, Aprendizagem de línguas, Educação |
 | Email de contacto | ⚠️ Decisão: um email público de suporte (ex.: `suporte@falaneto.app`) |
 | Site | ⚠️ Decisão: o domínio da web, quando estiver online |
-| Política de privacidade | ⚠️ Obrigatória: um URL público (ver secção 6) |
+| Política de privacidade | `https://<domínio-da-web>/privacy` (inglês: `/privacy?lang=en`) — página pronta; falta a web estar online |
 
 ## 2. Textos da loja
 
@@ -128,7 +128,7 @@ Resultado esperado: **PEGI 3 / Todos**, com o aviso "Os utilizadores interagem".
 - **Recomendação:** **13 anos ou mais** no lançamento. Abaixo dos 13 a app entra no programa "Famílias" da Google, que tem regras extra (anúncios só certificados para crianças, sem analytics normais, consentimento parental). Pode alargar-se depois, com essas regras cumpridas.
 - O registo deve então pedir a confirmação da idade mínima, e a política de privacidade deve dizê-lo.
 
-**Política de privacidade (obrigatória antes de publicar):** um texto público que diga que dados se recolhem (secção 4), para quê, quem os trata (Clerk, Neon, Railway), quanto tempo se guardam, como apagar a conta e um contacto. Publicar na web (ex.: `/privacidade`) quando o site estiver online.
+**Política de privacidade (obrigatória antes de publicar):** um texto público que diga que dados se recolhem (secção 4), para quê, quem os trata (Clerk, Neon, Railway), quanto tempo se guardam, como apagar a conta e um contacto. Já escrita (pt e en) em `packages/i18n/src/legal.ts`, publicada na web em `/privacy` e `/terms` e na app em Definições. A idade mínima e o email de suporte vêm de `LEGAL` em `packages/config` — enquanto o email não existir, o texto mostra "[email de suporte a definir]". Rever com um jurista antes do lançamento.
 
 ## 7. Lista de verificação até à publicação
 
@@ -136,7 +136,7 @@ Resultado esperado: **PEGI 3 / Todos**, com o aviso "Os utilizadores interagem".
 2. [ ] Conta Expo (EAS Build) — gerar o AAB de produção
 3. [ ] Servidor online (Railway) e `EXPO_PUBLIC_API_URL` de produção na build
 4. [ ] Webhook do Clerk configurado e chaves de produção do Clerk
-5. [ ] Política de privacidade publicada e URL na ficha
+5. [ ] Web online (política em `/privacy`) e URL na ficha; email de suporte em `LEGAL.supportEmail`
 6. [ ] Decisão D-05 (idade mínima) e público-alvo preenchido
 7. [ ] Ficha da loja: textos (secção 2), imagens (secção 3)
 8. [ ] Formulário de segurança dos dados (secção 4) e classificação (secção 5)

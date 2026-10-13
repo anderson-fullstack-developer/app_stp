@@ -15,6 +15,7 @@ import { useLanguages } from "@/api/queries";
 import { DEFAULT_LEARNING_LANGUAGE } from "@/config";
 import { AppButton, AppText, colors, haptics, LoadingState, ProgressBar, space } from "@/design";
 import { useGoogleSignIn } from "@/features/auth/useGoogleSignIn";
+import { LegalConsent } from "@/features/legal/LegalConsent";
 
 const STEPS = 5;
 const REASONS = [
@@ -344,6 +345,7 @@ export default function Onboarding() {
             <AppButton disabled={!canNext} loading={google.busy} onPress={finish}>
               {t("register.google")}
             </AppButton>
+            <LegalConsent />
             <AppButton variant="ghost" size="md" onPress={() => router.replace("/sign-in")}>
               {t("onboarding.haveAccount")}
             </AppButton>

@@ -551,6 +551,10 @@ export const pt = {
     lungie: "Lung'Ie / Principense",
     other: "Outra",
   },
+  legal: {
+    consent:
+      "Ao continuar, aceitas os <terms>Termos de Utilização</terms> e a <privacy>Política de Privacidade</privacy> e confirmas que tens {{age}} anos ou mais.",
+  },
 };
 
 /** Forma das mensagens: o inglês (e futuros idiomas) tem de ter exatamente as mesmas chaves. */

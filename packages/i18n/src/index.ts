@@ -7,6 +7,7 @@ import { pt, type Messages } from "./locales/pt";
 
 export type { Messages };
 export { pt, en };
+export { fillLegal, LEGAL_DOCS, type LegalDoc, type LegalKind, type LegalSection, type LegalVars } from "./legal";
 
 /** Idiomas da interface. `available: false` = aparece como "em breve". */
 export const LOCALES = [

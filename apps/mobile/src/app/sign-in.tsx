@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { AppButton, AppText, Card, colors, Neto, space } from "@/design";
 import { useGoogleSignIn } from "@/features/auth/useGoogleSignIn";
+import { LegalConsent } from "@/features/legal/LegalConsent";
 
 /** Entrar com Google (a conta é a mesma da app web: o progresso fica no servidor). */
 export default function SignIn() {
@@ -34,6 +35,7 @@ export default function SignIn() {
           </AppText>
         ) : null}
       </Card>
+      <LegalConsent />
       <AppButton variant="ghost" size="md" onPress={() => router.back()}>
         {t("common.back")}
       </AppButton>

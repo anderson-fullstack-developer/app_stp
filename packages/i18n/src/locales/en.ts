@@ -551,4 +551,8 @@ export const en: Messages = {
     lungie: "Lung'Ie / Principense",
     other: "Other",
   },
+  legal: {
+    consent:
+      "By continuing, you accept the <terms>Terms of Use</terms> and the <privacy>Privacy Policy</privacy> and confirm you are {{age}} or over.",
+  },
 };
