@@ -11,9 +11,7 @@
 .git
 .github
 apps/api/src/generated
-apps/admin/src
-apps/admin/public
+apps/admin/.output
 apps/mobile/src
 apps/mobile/assets
-content
 docs

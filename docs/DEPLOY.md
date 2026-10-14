@@ -1,6 +1,12 @@
-# Fala Neto — Pôr a API online (Railway)
+# Fala Neto — Pôr a API e a web online (Railway)
 
-> Tudo o que é código já está pronto: `apps/api/Dockerfile`, `.dockerignore` e `railway.json` na raiz.
+> Tudo o que é código já está pronto: um Dockerfile por serviço, `.dockerignore` na raiz e um `railway.json` por serviço.
+>
+> | Serviço | Dockerfile | Config Railway |
+> |---|---|---|
+> | API (NestJS) | `apps/api/Dockerfile` | `railway.json` (raiz) |
+> | Web (app + painel) | `apps/admin/Dockerfile` | `apps/admin/railway.json` |
+>
 > Quando a conta da Railway existir, o deploy é ligar o repositório e colar as variáveis.
 > Plano geral e ambientes: `docs/BACKEND.md` (secções 2–4).
 
@@ -45,6 +51,26 @@ Os valores **nunca** vão para o repositório — só para o painel da Railway.
 | `SENTRY_DSN` | — | Opcional, quando houver Sentry |
 | `APP_VERSION` | ex.: `1.0.0` | Opcional, aparece no `/health` |
 
+## 3b. Serviço da web
+
+No **mesmo projeto** da Railway: **New → GitHub Repo** (o mesmo repositório) e, em **Settings**:
+
+- Root directory: vazio. **Config-as-code:** `/apps/admin/railway.json` (tem de se indicar à mão — o da raiz é o da API).
+- Domínio: o principal, ex.: `falaneto.app`.
+- Health check: `/privacy` (página pública, sem sessão).
+
+**Variáveis** (as `VITE_*` são públicas e entram no JavaScript do browser: a Railway passa-as à build; se mudarem, é preciso novo deploy):
+
+| Variável | Valor | Quando é usada |
+|---|---|---|
+| `VITE_API_URL` | URL da API, ex.: `https://api.falaneto.app` (sem `/api/v1`) | build |
+| `VITE_CLERK_PUBLISHABLE_KEY` | `pk_live_…` | build e execução |
+| `CLERK_SECRET_KEY` | `sk_live_…` (o mesmo da API) | execução — **segredo** |
+| `VITE_SOCKET_URL` | (não definir — usa a API) | build |
+| `PORT` | (não definir) | a Railway define-a |
+
+Depois de a web ter domínio, pôr esse domínio em `CORS_ORIGINS` e `CLERK_AUTHORIZED_PARTIES` **da API**, e no Clerk (produção) → **Domains**.
+
 ## 4. Webhook do Clerk
 
 No painel do Clerk (produção) → **Webhooks → Add endpoint**:
@@ -55,7 +81,6 @@ No painel do Clerk (produção) → **Webhooks → Add endpoint**:
 
 ## 5. Depois do deploy
 
-- **Web:** apontar `VITE_API_URL` (ver `apps/admin/.env.example`) para o novo domínio.
 - **App Android:** `EXPO_PUBLIC_API_URL` de produção no perfil `production` do `apps/mobile/eas.json`.
 - **Conteúdo:** o seed (`pnpm --filter @stp/api db:seed`) corre-se à mão, uma vez, a partir do computador com a `DIRECT_URL` de produção — nunca no arranque do contentor.
 - **Primeiro admin:** `pnpm --filter @stp/api exec tsx scripts/grant-role.ts <email> ADMIN`, com as variáveis de produção.
@@ -69,4 +94,9 @@ docker build -f apps/api/Dockerfile -t fala-neto-api .
 docker run --rm -p 3000:3000 --env-file apps/api/.env fala-neto-api
 # noutra janela:
 curl http://localhost:3000/api/v1/health
+
+# web (as VITE_* entram na build)
+docker build -f apps/admin/Dockerfile -t fala-neto-web --build-arg VITE_API_URL=http://localhost:3000 --build-arg VITE_CLERK_PUBLISHABLE_KEY=pk_test_... .
+docker run --rm -p 8080:3000 -e CLERK_SECRET_KEY=sk_test_... -e VITE_CLERK_PUBLISHABLE_KEY=pk_test_... fala-neto-web
+# abrir http://localhost:8080
 ```
