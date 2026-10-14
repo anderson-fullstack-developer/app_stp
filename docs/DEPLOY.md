@@ -1,22 +1,22 @@
 # Fala Neto — Pôr a API e a web online (Railway)
 
-> Tudo o que é código já está pronto: um Dockerfile por serviço, `.dockerignore` na raiz e um `railway.json` por serviço.
+> Um Dockerfile por serviço e `.dockerignore` na raiz. **Sem `railway.json`:** o "Config as Code" da Railway foi descontinuado (serviços novos já não o podem usar). Cada serviço escolhe o seu Dockerfile pela variável `RAILWAY_DOCKERFILE_PATH`.
 >
-> | Serviço | Dockerfile | Config Railway |
-> |---|---|---|
-> | API (NestJS) | `apps/api/Dockerfile` | `railway.json` (raiz) |
-> | Web (app + painel) | `apps/admin/Dockerfile` | `apps/admin/railway.json` |
+> | Serviço | `RAILWAY_DOCKERFILE_PATH` | Porta do domínio | Health check |
+> |---|---|---|---|
+> | API (NestJS) | `apps/api/Dockerfile` | 8080 | `/api/v1/health` |
+> | Web (app + painel) | `apps/admin/Dockerfile` | 8080 | `/privacy` |
 >
-> Quando a conta da Railway existir, o deploy é ligar o repositório e colar as variáveis.
+> A Railway define `PORT=8080`; o domínio público tem de apontar para essa porta.
 > Plano geral e ambientes: `docs/BACKEND.md` (secções 2–4).
 
 ## 1. Como funciona
 
-- A Railway lê `railway.json` e constrói a imagem com `apps/api/Dockerfile` (a partir da raiz do monorepo).
+- A Railway constrói a imagem com o Dockerfile indicado em `RAILWAY_DOCKERFILE_PATH` (a partir da raiz do monorepo).
 - Ao arrancar, o contentor corre `prisma migrate deploy` (aplica só migrações pendentes) e depois `node dist/main.js`.
   Se uma migração falhar, a API **não** arranca — a versão anterior continua no ar.
-- A Railway só troca para a nova versão quando `GET /api/v1/health` responde 200 (até 120 s).
-- Deploy automático em cada push para `main` que mexa em `apps/api/**`, `packages/**` ou `pnpm-lock.yaml`.
+- Com o health check configurado (Settings → Deploy → Healthcheck Path), a Railway só troca para a nova versão quando ele responde 200.
+- Deploy automático em cada push para `main` (opcional: Settings → Build → Watch Paths, ex.: `apps/api/**`, `packages/**`, `pnpm-lock.yaml`).
 - A Arena (Socket.IO) guarda as salas em memória (ADR-08): usar **1 réplica** por serviço.
 
 ## 2. Passos na Railway (uma vez)
@@ -24,11 +24,11 @@
 1. **New Project → Deploy from GitHub repo** → `anderson-fullstack-developer/app_stp`.
 2. Em **Settings** do serviço:
    - Root directory: vazio (raiz do repositório — o Dockerfile precisa do monorepo).
-   - Config-as-code: `railway.json` (detetado automaticamente).
+   - Apagar o Build/Start Command que a Railway sugere (o Dockerfile já os define).
    - Região: UE (Amesterdão), perto do Neon.
    - Réplicas: **1**.
-3. Em **Variables**, colar as variáveis da secção 3.
-4. Em **Networking → Generate Domain** (ou domínio próprio, ex.: `api.falaneto.app`).
+3. Em **Variables**, colar as variáveis da secção 3 e `RAILWAY_DOCKERFILE_PATH=apps/api/Dockerfile`.
+4. Em **Networking → Generate Domain**, porta **8080** (ou domínio próprio, ex.: `api.falaneto.app`).
 5. Abrir `https://<domínio>/api/v1/health` → deve dizer `ok`.
 6. Repetir para staging (`stp-api-staging`) com a base de dados/branch Neon de staging.
 
@@ -39,7 +39,8 @@ Os valores **nunca** vão para o repositório — só para o painel da Railway.
 | Variável | Valor em produção | Notas |
 |---|---|---|
 | `NODE_ENV` | `production` | Torna obrigatórias as variáveis marcadas abaixo |
-| `PORT` | (não definir) | A Railway define-a sozinha |
+| `PORT` | (não definir) | A Railway define 8080 |
+| `RAILWAY_DOCKERFILE_PATH` | `apps/api/Dockerfile` | Diz à Railway que Dockerfile usar |
 | `DATABASE_URL` | Neon, host **com** `-pooler`, `?sslmode=verify-full` | **Obrigatória** |
 | `DIRECT_URL` | Neon, host **sem** `-pooler`, `?sslmode=require` | Usada pelas migrações |
 | `CLERK_SECRET_KEY` | `sk_live_…` (instância de produção do Clerk) | **Obrigatória** |
@@ -55,8 +56,8 @@ Os valores **nunca** vão para o repositório — só para o painel da Railway.
 
 No **mesmo projeto** da Railway: **New → GitHub Repo** (o mesmo repositório) e, em **Settings**:
 
-- Root directory: vazio. **Config-as-code:** `/apps/admin/railway.json` (tem de se indicar à mão — o da raiz é o da API).
-- Domínio: o principal, ex.: `falaneto.app`.
+- Root directory: vazio. Sem Build/Start Command.
+- Domínio: o principal, ex.: `falaneto.app` (porta 8080).
 - Health check: `/privacy` (página pública, sem sessão).
 
 **Variáveis** (as `VITE_*` são públicas e entram no JavaScript do browser: a Railway passa-as à build; se mudarem, é preciso novo deploy):
@@ -67,7 +68,8 @@ No **mesmo projeto** da Railway: **New → GitHub Repo** (o mesmo repositório) 
 | `VITE_CLERK_PUBLISHABLE_KEY` | `pk_live_…` | build e execução |
 | `CLERK_SECRET_KEY` | `sk_live_…` (o mesmo da API) | execução — **segredo** |
 | `VITE_SOCKET_URL` | (não definir — usa a API) | build |
-| `PORT` | (não definir) | a Railway define-a |
+| `PORT` | (não definir) | a Railway define 8080 |
+| `RAILWAY_DOCKERFILE_PATH` | `apps/admin/Dockerfile` | Diz à Railway que Dockerfile usar |
 
 Depois de a web ter domínio, pôr esse domínio em `CORS_ORIGINS` e `CLERK_AUTHORIZED_PARTIES` **da API**, e no Clerk (produção) → **Domains**.
 
