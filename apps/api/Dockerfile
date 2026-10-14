@@ -24,8 +24,8 @@ COPY packages ./packages
 # O postinstall da raiz corre `prisma generate`, que precisa do schema.
 COPY apps/api/prisma apps/api/prisma
 COPY apps/api/prisma.config.ts apps/api/prisma.config.ts
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter "@stp/api..."
+# Sem --mount=type=cache: a Railway exige um id próprio por serviço e recusa outros formatos.
+RUN pnpm install --frozen-lockfile --filter "@stp/api..."
 
 # ---------- compilação ----------
 FROM deps AS build

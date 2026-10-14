@@ -21,8 +21,8 @@ COPY apps/mobile/package.json apps/mobile/package.json
 COPY apps/api/package.json apps/api/package.json
 COPY packages ./packages
 # --ignore-scripts: o postinstall da raiz gera o cliente Prisma da API, que a web não usa.
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter "@stp/admin..." --ignore-scripts
+# Sem --mount=type=cache: a Railway exige um id próprio por serviço e recusa outros formatos.
+RUN pnpm install --frozen-lockfile --filter "@stp/admin..." --ignore-scripts
 
 # ---------- compilação ----------
 FROM deps AS build
