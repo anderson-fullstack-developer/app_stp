@@ -44,3 +44,6 @@ dist-ssr
 # Cliente Prisma gerado (recriado por `prisma generate`, também no postinstall)
 apps/api/src/generated/
 .design/
+
+# Ficheiros locais com segredos (variáveis para colar na Railway)
+*-variaveis.txt
