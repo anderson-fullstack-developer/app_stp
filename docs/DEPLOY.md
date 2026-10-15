@@ -10,6 +10,15 @@
 > A Railway define `PORT=8080`; o domínio público tem de apontar para essa porta.
 > Plano geral e ambientes: `docs/BACKEND.md` (secções 2–4).
 
+## 0. Em produção (desde 2026-10-14)
+
+| Serviço | Endereço |
+|---|---|
+| Web (app + painel em `/admin`) | https://stpadmin-production.up.railway.app |
+| API | https://stpapi-production.up.railway.app/api/v1/health |
+
+O nome `stpadmin` vem da pasta `apps/admin`; o site é a app completa. **Ao mudar o domínio da web**, atualizar na API `CORS_ORIGINS` e `CLERK_AUTHORIZED_PARTIES` — sem isso o login falha.
+
 ## 1. Como funciona
 
 - A Railway constrói a imagem com o Dockerfile indicado em `RAILWAY_DOCKERFILE_PATH` (a partir da raiz do monorepo).
