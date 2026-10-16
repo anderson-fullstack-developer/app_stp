@@ -28,6 +28,8 @@ const SOURCES = {
   notify: require("../../assets/sounds/notify.wav"),
   accepted: require("../../assets/sounds/accepted.wav"),
   challenge: require("../../assets/sounds/challenge.wav"),
+  // Boas-vindas
+  hello: require("../../assets/sounds/hello.wav"),
 } as const;
 export type UiSound = keyof typeof SOURCES;
 

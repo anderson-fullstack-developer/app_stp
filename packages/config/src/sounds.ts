@@ -27,7 +27,8 @@ export type SoundName =
   | "roomFull"
   | "notify"
   | "accepted"
-  | "challenge";
+  | "challenge"
+  | "hello";
 
 export interface Note {
   /** Frequência inicial (Hz). */
@@ -158,5 +159,12 @@ export const SOUND_RECIPES: Record<SoundName, Note[]> = {
     { f: D6, t: 0.2, d: 0.38, type: "triangle", g: 0.26 },
     { f: G6, t: 0.2, d: 0.3, type: "sine", g: 0.06 },
     { f: G5 / 2, t: 0.2, d: 0.35, type: "sine", g: 0.12 },
+  ],
+  /** O Neto a dizer "olá!" no ecrã de boas-vindas: duas sílabas a subir e um brilho. */
+  hello: [
+    { f: 440, to: 660, d: 0.15, type: "sine", g: 0.24 },
+    { f: 620, to: 990, t: 0.17, d: 0.24, type: "triangle", g: 0.2 },
+    { f: E6, t: 0.36, d: 0.16, type: "sine", g: 0.06 },
+    { f: G6, t: 0.44, d: 0.3, type: "sine", g: 0.05 },
   ],
 };

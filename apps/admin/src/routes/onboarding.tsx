@@ -1,7 +1,7 @@
 import { SignUp } from "@clerk/tanstack-react-start";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Check } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Neto } from "@/components/app/Neto";
 import { useTranslation } from "react-i18next";
 import {
@@ -18,6 +18,7 @@ import { ProgressBar } from "@/components/app/Primitives";
 import { settings, useSettings } from "@/hooks/use-settings";
 import { useCountries, useLanguages } from "@/hooks/use-service";
 import { PhoneFrame } from "@/layouts/AppShell";
+import { sound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 import i18n from "@/i18n";
 import { APP_NAME } from "@stp/config";
@@ -64,6 +65,13 @@ function Onboarding() {
   const { data: langs } = useLanguages();
   const { data: countries } = useCountries();
   const currentLocale = locale ?? i18n.language;
+
+  // O Neto diz "olá" quando o balão de boas-vindas aparece.
+  useEffect(() => {
+    if (step !== 0) return;
+    const id = setTimeout(() => sound.play("hello", { onlyIfInteracted: true }), 350);
+    return () => clearTimeout(id);
+  }, [step]);
 
   if (step === 0) {
     return (

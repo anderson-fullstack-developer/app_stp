@@ -1,15 +1,22 @@
 import { useAuth } from "@clerk/expo";
 import { Image } from "expo-image";
 import { Redirect, router } from "expo-router";
+import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { AppButton, AppText, colors, Neto, radius, shadows, space } from "@/design";
+import { AppButton, AppText, colors, Neto, radius, shadows, sound, space } from "@/design";
 
 /** Boas-vindas (igual ao 1.º ecrã do onboarding da web): ilha, Neto a apresentar-se, começar. */
 export default function Welcome() {
   const { t } = useTranslation();
   const { isSignedIn } = useAuth();
+  // O Neto diz "olá" quando o balão de boas-vindas aparece.
+  useEffect(() => {
+    if (isSignedIn) return;
+    const id = setTimeout(() => sound.play("hello"), 350);
+    return () => clearTimeout(id);
+  }, [isSignedIn]);
   if (isSignedIn) return <Redirect href="/learn" />;
 
   return (
