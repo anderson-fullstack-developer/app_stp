@@ -145,6 +145,7 @@ model Language {
   roles           UserRole[]
   learners        User[]            @relation("LearningLanguage")
   recordings      Recording[]
+  voiceTasks      VoiceTask[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
@@ -223,6 +224,10 @@ model User {
   voiceProfile           VoiceContributor?
   recordings             Recording[]             @relation("RecordingSpeaker")
   recordingReviews       RecordingReview[]
+  voiceTasks             VoiceTask[]             @relation("VoiceTaskAssignee")
+  voiceTasksCreated      VoiceTask[]             @relation("VoiceTaskCreator")
+  voicePayouts           VoicePayout[]           @relation("VoicePayoutUser")
+  voicePayoutsCreated    VoicePayout[]           @relation("VoicePayoutCreator")
 
   @@index([status])
   @@map("users")
@@ -298,6 +303,7 @@ model Unit {
   status      ContentStatus @default(DRAFT)
   course      Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons     Lesson[]
+  voiceTasks  VoiceTask[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -541,6 +547,72 @@ enum RejectReason {
   OTHER
 }
 
+enum VoiceTaskKind {
+  /// Gravar palavras (paga por gravação aprovada).
+  RECORD
+  /// Ouvir e avaliar gravações (paga por avaliação real; controlos não contam).
+  REVIEW
+}
+
+enum VoiceTaskStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+/// Tarefa paga atribuída a uma pessoa (ex.: "Gravar 200 palavras — Comida", 0,10 € cada).
+model VoiceTask {
+  id          String            @id @default(uuid(7)) @db.Uuid
+  kind        VoiceTaskKind
+  assigneeId  String            @db.Uuid
+  languageId  String
+  title       String
+  notes       String?
+  /// Quantidade pedida (gravações enviadas e não rejeitadas, ou avaliações reais).
+  target      Int
+  /// Preço por unidade, em cêntimos (inteiros: nunca arredondamentos de vírgula flutuante).
+  rateCents   Int
+  currency    String            @default("EUR")
+  /// Gravar só palavras de uma unidade do curso (null = qualquer palavra da língua).
+  unitId      String?           @db.Uuid
+  dueAt       DateTime?
+  status      VoiceTaskStatus   @default(ACTIVE)
+  createdById String            @db.Uuid
+  createdAt   DateTime          @default(now())
+  completedAt DateTime?
+  assignee    User              @relation("VoiceTaskAssignee", fields: [assigneeId], references: [id])
+  createdBy   User              @relation("VoiceTaskCreator", fields: [createdById], references: [id])
+  language    Language          @relation(fields: [languageId], references: [id])
+  unit        Unit?             @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  recordings  Recording[]
+  reviews     RecordingReview[]
+
+  @@index([assigneeId, status])
+  @@index([status, createdAt])
+  @@map("voice_tasks")
+}
+
+/// Pagamento feito a quem contribui (registado pelo administrador; o dinheiro sai por fora).
+model VoicePayout {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  userId      String   @db.Uuid
+  amountCents Int
+  currency    String   @default("EUR")
+  /// SEPA, LOCAL_BANK, STRIPE, OTHER.
+  method      String
+  /// Referência da transferência (para conferir).
+  reference   String?
+  note        String?
+  paidAt      DateTime @default(now())
+  createdById String   @db.Uuid
+  user        User     @relation("VoicePayoutUser", fields: [userId], references: [id])
+  createdBy   User     @relation("VoicePayoutCreator", fields: [createdById], references: [id])
+
+  @@index([userId, paidAt])
+  @@map("voice_payouts")
+}
+
 /// Quem contribui com a voz (falador e/ou ouvinte): consentimento, maioridade e variante.
 model VoiceContributor {
   userId         String   @id @db.Uuid
@@ -548,6 +620,12 @@ model VoiceContributor {
   displayName    String?
   /// Ilha / região da variante falada (ex.: "Santiago").
   region         String?
+  /// Como prefere receber: SEPA, LOCAL_BANK, STRIPE, OTHER.
+  payoutMethod   String?
+  /// IBAN, número de conta ou telefone (dado sensível: só a própria pessoa e administradores).
+  payoutDetails  String?
+  /// Pausado pelo administrador: não recebe trabalho novo.
+  paused         Boolean  @default(false)
   /// Confirmou ter a idade mínima (VOICE_CONFIG.minimumAge).
   adultConfirmed Boolean
   /// Versão do texto de consentimento aceite (muda quando o texto muda).
@@ -574,6 +652,8 @@ model Recording {
   status       RecordingStatus   @default(PENDING)
   approvals    Int               @default(0)
   rejections   Int               @default(0)
+  /// Tarefa a que pertence (define o preço).
+  taskId       String?           @db.Uuid
   /// Áudio criado na aprovação (é o que a app toca).
   audioId      String?           @unique @db.Uuid
   decidedAt    DateTime?
@@ -582,30 +662,36 @@ model Recording {
   language     Language          @relation(fields: [languageId], references: [id])
   speaker      User              @relation("RecordingSpeaker", fields: [speakerId], references: [id])
   audio        AudioAsset?       @relation(fields: [audioId], references: [id])
+  task         VoiceTask?        @relation(fields: [taskId], references: [id], onDelete: SetNull)
   reviews      RecordingReview[]
 
   @@index([status, languageId, createdAt])
   @@index([speakerId, createdAt])
   @@index([vocabularyId])
+  @@index([taskId])
   @@map("recordings")
 }
 
 /// Voto de um ouvinte. Controlo = gravação já decidida (mede a atenção; não decide nem paga).
 model RecordingReview {
-  id          String         @id @default(uuid(7)) @db.Uuid
-  recordingId String         @db.Uuid
-  listenerId  String         @db.Uuid
+  id          String        @id @default(uuid(7)) @db.Uuid
+  recordingId String        @db.Uuid
+  listenerId  String        @db.Uuid
   verdict     ReviewVerdict
   reason      RejectReason?
-  isControl   Boolean        @default(false)
+  isControl   Boolean       @default(false)
   /// Controlo: o voto coincidiu com a decisão final?
   matched     Boolean?
-  createdAt   DateTime       @default(now())
-  recording   Recording      @relation(fields: [recordingId], references: [id], onDelete: Cascade)
-  listener    User           @relation(fields: [listenerId], references: [id])
+  /// Tarefa a que pertence (define o preço).
+  taskId      String?       @db.Uuid
+  createdAt   DateTime      @default(now())
+  recording   Recording     @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  task        VoiceTask?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  listener    User          @relation(fields: [listenerId], references: [id])
 
   @@unique([recordingId, listenerId])
   @@index([listenerId, createdAt])
+  @@index([taskId])
   @@map("recording_reviews")
 }
 

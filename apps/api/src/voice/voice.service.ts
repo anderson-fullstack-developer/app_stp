@@ -9,11 +9,12 @@ import {
 } from "@nestjs/common";
 import { shortGloss } from "../courses/course-builder.js";
 import { PrismaService } from "../database/prisma.service.js";
-import type { Role } from "../generated/prisma/client.js";
+import type { Role, VoiceTask } from "../generated/prisma/client.js";
 import { isPubliclyListed, visibleContentStatuses } from "../languages/visibility.js";
 import type { AuthUser } from "../users/users.service.js";
 import { AudioStorage } from "./audio-storage.js";
 import { MediaUrls } from "./media-urls.js";
+import { taskFinished, taskMoney, taskRemaining, taskStats } from "./voice-progress.js";
 import {
   AUDIO_MIME_TYPES,
   controlMatched,
@@ -24,6 +25,7 @@ import {
 } from "./voice-rules.js";
 
 type VoiceRole = Extract<Role, "VOICE_SPEAKER" | "VOICE_LISTENER">;
+type TaskKind = VoiceTask["kind"];
 
 export interface WordToRecord {
   vocabularyId: string;
@@ -42,13 +44,17 @@ export interface ReviewItem {
   durationMs: number;
 }
 
+export const PAYOUT_METHODS = ["SEPA", "MBWAY", "STRIPE", "OTHER"] as const;
+
 const RANGE_DAYS = 7;
 
 /**
- * Gravações de pronúncia: Faladores gravam palavras, Ouvintes aprovam ou rejeitam.
+ * Gravações de pronúncia (trabalho pago por tarefas): Faladores gravam palavras, Ouvintes
+ * aprovam ou rejeitam. Todo o trabalho pertence a uma tarefa atribuída pelo administrador,
+ * que define o preço — é assim que se sabe exatamente quanto pagar.
  * - quem grava nunca avalia as próprias gravações (e os ouvintes não sabem quem gravou);
  * - 2 votos iguais decidem; empate 1–1 espera por um 3.º ouvinte;
- * - perguntas de controlo (gravações já decididas) medem a atenção dos ouvintes;
+ * - perguntas de controlo (gravações já decididas) medem a atenção e não são pagas;
  * - aprovada → passa a áudio da palavra (lições, desafio do dia e Arena).
  */
 @Injectable()
@@ -74,27 +80,36 @@ export class VoiceService {
       listed.filter((l) => this.hasRole(user, role, l.id)).map((l) => ({ id: l.id, name: l.name }));
     const since = new Date(Date.now() - RANGE_DAYS * 86_400_000);
     const today = todayFrom ?? new Date(new Date().toISOString().slice(0, 10));
-    const [recorded, approved, reviews, byStatus, recordedToday, reviewsTotal, reviewsToday] =
-      await Promise.all([
-        this.prisma.recording.count({ where: { speakerId: user.id, createdAt: { gte: since } } }),
-        this.prisma.recording.count({
-          where: { speakerId: user.id, status: "APPROVED", decidedAt: { gte: since } },
-        }),
-        this.prisma.recordingReview.count({
-          where: { listenerId: user.id, isControl: false, createdAt: { gte: since } },
-        }),
-        this.prisma.recording.groupBy({
-          by: ["status"],
-          where: { speakerId: user.id },
-          _count: true,
-        }),
-        this.prisma.recording.count({ where: { speakerId: user.id, createdAt: { gte: today } } }),
-        // Controlos contam aqui: a pessoa não sabe quais são (e também ouviu).
-        this.prisma.recordingReview.count({ where: { listenerId: user.id } }),
-        this.prisma.recordingReview.count({
-          where: { listenerId: user.id, createdAt: { gte: today } },
-        }),
-      ]);
+    const [
+      recorded,
+      approved,
+      reviews,
+      byStatus,
+      recordedToday,
+      reviewsTotal,
+      reviewsToday,
+      activeTasks,
+    ] = await Promise.all([
+      this.prisma.recording.count({ where: { speakerId: user.id, createdAt: { gte: since } } }),
+      this.prisma.recording.count({
+        where: { speakerId: user.id, status: "APPROVED", decidedAt: { gte: since } },
+      }),
+      this.prisma.recordingReview.count({
+        where: { listenerId: user.id, isControl: false, createdAt: { gte: since } },
+      }),
+      this.prisma.recording.groupBy({
+        by: ["status"],
+        where: { speakerId: user.id },
+        _count: true,
+      }),
+      this.prisma.recording.count({ where: { speakerId: user.id, createdAt: { gte: today } } }),
+      // Controlos contam aqui: a pessoa não sabe quais são (e também ouviu).
+      this.prisma.recordingReview.count({ where: { listenerId: user.id } }),
+      this.prisma.recordingReview.count({
+        where: { listenerId: user.id, createdAt: { gte: today } },
+      }),
+      this.prisma.voiceTask.count({ where: { assigneeId: user.id, status: "ACTIVE" } }),
+    ]);
     const status = (s: "PENDING" | "APPROVED" | "REJECTED") =>
       byStatus.find((r) => r.status === s)?._count ?? 0;
     return {
@@ -107,8 +122,12 @@ export class VoiceService {
             displayName: profile.displayName,
             region: profile.region,
             consentCurrent: profile.consentVersion === VOICE_RULES.consentVersion,
+            paused: profile.paused,
+            payoutMethod: profile.payoutMethod,
+            payoutDetails: profile.payoutDetails,
           }
         : null,
+      activeTasks,
       last7Days: { recorded, approved, reviews },
       /** Falador: tudo o que já enviou, por estado. */
       speaker: {
@@ -154,29 +173,150 @@ export class VoiceService {
     return this.me(user);
   }
 
+  /** Como prefere receber (IBAN, telefone MB WAY…). Só a própria pessoa e administradores veem. */
+  async savePayoutDetails(
+    user: AuthUser,
+    input: { method: (typeof PAYOUT_METHODS)[number]; details: string },
+  ) {
+    const profile = await this.prisma.voiceContributor.findUnique({ where: { userId: user.id } });
+    if (!profile) {
+      throw new ForbiddenException({
+        code: "CONSENT_REQUIRED",
+        message: "Aceita primeiro as condições de participação.",
+      });
+    }
+    await this.prisma.voiceContributor.update({
+      where: { userId: user.id },
+      data: { payoutMethod: input.method, payoutDetails: input.details },
+    });
+    return { ok: true };
+  }
+
+  /* ---------------------------------- tarefas ---------------------------------- */
+
+  /** As minhas tarefas, com o progresso e o dinheiro de cada uma. */
+  async myTasks(user: AuthUser) {
+    const tasks = await this.prisma.voiceTask.findMany({
+      where: { assigneeId: user.id },
+      orderBy: [{ status: "asc" }, { dueAt: "asc" }, { createdAt: "desc" }],
+      include: {
+        language: { select: { name: true } },
+        unit: { select: { title: true } },
+      },
+    });
+    const stats = await taskStats(
+      this.prisma,
+      tasks.map((t) => t.id),
+    );
+    return tasks.map((t) => {
+      const s = stats.get(t.id)!;
+      return {
+        id: t.id,
+        kind: t.kind,
+        title: t.title,
+        notes: t.notes,
+        languageId: t.languageId,
+        languageName: t.language.name,
+        unitTitle: t.unit?.title ?? null,
+        target: t.target,
+        rateCents: t.rateCents,
+        currency: t.currency,
+        dueAt: t.dueAt?.toISOString() ?? null,
+        status: t.status,
+        createdAt: t.createdAt.toISOString(),
+        progress: { ...s, remaining: taskRemaining(t, s) },
+        ...taskMoney(t, s),
+      };
+    });
+  }
+
+  /** Ganhos: o que já foi aprovado, o que espera decisão, o que já recebi e o saldo. */
+  async earnings(user: AuthUser) {
+    const [tasks, payouts] = await Promise.all([
+      this.prisma.voiceTask.findMany({
+        where: { assigneeId: user.id },
+        select: { id: true, kind: true, rateCents: true },
+      }),
+      this.prisma.voicePayout.findMany({
+        where: { userId: user.id },
+        orderBy: { paidAt: "desc" },
+        select: {
+          id: true,
+          amountCents: true,
+          currency: true,
+          method: true,
+          reference: true,
+          note: true,
+          paidAt: true,
+        },
+      }),
+    ]);
+    const stats = await taskStats(
+      this.prisma,
+      tasks.map((t) => t.id),
+    );
+    // Esta semana (desde segunda-feira, UTC).
+    const now = new Date();
+    const monday = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() - ((now.getUTCDay() + 6) % 7),
+      ),
+    );
+    const week = await taskStats(
+      this.prisma,
+      tasks.map((t) => t.id),
+      { from: monday },
+    );
+    let earned = 0;
+    let pending = 0;
+    let thisWeek = 0;
+    for (const t of tasks) {
+      const m = taskMoney(t, stats.get(t.id)!);
+      earned += m.earnedCents;
+      pending += m.pendingCents;
+      thisWeek += taskMoney(t, week.get(t.id)!).earnedCents;
+    }
+    const paid = payouts.reduce((sum, p) => sum + p.amountCents, 0);
+    return {
+      currency: "EUR",
+      earnedCents: earned,
+      pendingCents: pending,
+      thisWeekCents: thisWeek,
+      paidCents: paid,
+      balanceCents: earned - paid,
+      payouts: payouts.map((p) => ({ ...p, paidAt: p.paidAt.toISOString() })),
+    };
+  }
+
   /* --------------------------------- faladores --------------------------------- */
 
   /**
-   * Próximas palavras para gravar: primeiro as das lições, depois as que têm menos vozes.
-   * Saem da fila as que já gravei (pendentes ou aprovadas) e as que já têm vozes suficientes.
+   * Próximas palavras da tarefa: as das lições primeiro, depois as que têm menos vozes.
+   * Saem as que já gravei (pendentes ou aprovadas) e as que já têm vozes suficientes; a fila
+   * nunca passa do que falta na tarefa.
    */
-  async wordsToRecord(
-    user: AuthUser,
-    languageId: string,
-    locale: string,
-    limit = 10,
-  ): Promise<WordToRecord[]> {
-    await this.assertContributor(user, "VOICE_SPEAKER", languageId);
-    const visible = await this.visibleStatuses(languageId);
+  async wordsToRecord(user: AuthUser, taskId: string, locale: string): Promise<WordToRecord[]> {
+    const { task } = await this.requireTask(user, taskId, "RECORD");
+    const s = (await taskStats(this.prisma, [task.id])).get(task.id)!;
+    const remaining = taskRemaining(task, s);
+    if (remaining <= 0) return [];
+    const visible = await this.visibleStatuses(task.languageId);
     const mine = await this.prisma.recording.findMany({
-      where: { speakerId: user.id, languageId, status: { in: ["PENDING", "APPROVED"] } },
+      where: {
+        speakerId: user.id,
+        languageId: task.languageId,
+        status: { in: ["PENDING", "APPROVED"] },
+      },
       select: { vocabularyId: true },
     });
     const rows = await this.prisma.vocabulary.findMany({
       where: {
-        languageId,
+        languageId: task.languageId,
         status: { in: visible },
         id: { notIn: mine.map((m) => m.vocabularyId) },
+        ...(task.unitId ? { exercises: { some: { lesson: { unitId: task.unitId } } } } : {}),
       },
       select: {
         id: true,
@@ -199,7 +339,7 @@ export class VoiceService {
           a._count.recordings - b._count.recordings ||
           a.word.localeCompare(b.word),
       )
-      .slice(0, limit)
+      .slice(0, Math.min(10, remaining))
       .map((r) => ({
         vocabularyId: r.id,
         word: r.word,
@@ -211,7 +351,13 @@ export class VoiceService {
 
   async record(
     user: AuthUser,
-    input: { vocabularyId: string; mimeType: string; durationMs: number; data: string },
+    input: {
+      taskId: string;
+      vocabularyId: string;
+      mimeType: string;
+      durationMs: number;
+      data: string;
+    },
   ) {
     if (!this.storage.enabled) {
       throw new ServiceUnavailableException({
@@ -219,15 +365,32 @@ export class VoiceService {
         message: "O armazenamento de áudio ainda não está configurado.",
       });
     }
+    const { task, profile } = await this.requireTask(user, input.taskId, "RECORD");
     const vocab = await this.prisma.vocabulary.findUnique({
       where: { id: input.vocabularyId },
-      select: { id: true, languageId: true, status: true },
+      select: {
+        id: true,
+        languageId: true,
+        status: true,
+        _count: task.unitId
+          ? { select: { exercises: { where: { lesson: { unitId: task.unitId } } } } }
+          : false,
+      },
     });
-    if (!vocab)
-      throw new NotFoundException({ code: "WORD_NOT_FOUND", message: "Palavra não encontrada." });
-    const profile = await this.assertContributor(user, "VOICE_SPEAKER", vocab.languageId);
-    if (!(await this.visibleStatuses(vocab.languageId)).includes(vocab.status)) {
-      throw new NotFoundException({ code: "WORD_NOT_FOUND", message: "Palavra não encontrada." });
+    const inScope =
+      vocab &&
+      vocab.languageId === task.languageId &&
+      (!task.unitId || (vocab._count as { exercises: number } | undefined)?.exercises) &&
+      (await this.visibleStatuses(task.languageId)).includes(vocab.status);
+    if (!vocab || !inScope) {
+      throw new NotFoundException({
+        code: "WORD_NOT_FOUND",
+        message: "Esta palavra não faz parte da tarefa.",
+      });
+    }
+    const s = (await taskStats(this.prisma, [task.id])).get(task.id)!;
+    if (taskRemaining(task, s) <= 0) {
+      throw new ConflictException({ code: "TASK_FULL", message: "Esta tarefa já está completa." });
     }
     const mime = normalizeMime(input.mimeType);
     if (!mime) {
@@ -263,12 +426,13 @@ export class VoiceService {
     const id = randomUUID();
     const storageKey = `rec_${id}.${AUDIO_MIME_TYPES[mime]}`;
     await this.storage.put(storageKey, data);
-    const rec = await this.prisma.recording.create({
+    return this.prisma.recording.create({
       data: {
         id,
         vocabularyId: vocab.id,
         languageId: vocab.languageId,
         speakerId: user.id,
+        taskId: task.id,
         region: profile.region,
         storageKey,
         mimeType: mime,
@@ -277,7 +441,6 @@ export class VoiceService {
       },
       select: { id: true, status: true },
     });
-    return rec;
   }
 
   /**
@@ -298,6 +461,7 @@ export class VoiceService {
         status: true,
         createdAt: true,
         decidedAt: true,
+        task: { select: { title: true } },
         vocabulary: {
           select: {
             word: true,
@@ -315,6 +479,7 @@ export class VoiceService {
       word: r.vocabulary.word,
       gloss: this.gloss(r.vocabulary.translations[0]?.text, locale),
       status: r.status,
+      taskTitle: r.task?.title ?? null,
       createdAt: r.createdAt.toISOString(),
       decidedAt: r.decidedAt?.toISOString() ?? null,
       rejectReasons: [...new Set(r.reviews.flatMap((v) => (v.reason ? [v.reason] : [])))],
@@ -324,14 +489,16 @@ export class VoiceService {
   /* --------------------------------- ouvintes ---------------------------------- */
 
   /**
-   * Próxima gravação para ouvir: pendente, de outra pessoa, ainda não avaliada por mim.
-   * De vez em quando (controlRate) vem uma já decidida, para medir a atenção — o ouvinte
-   * não sabe qual é qual.
+   * Próxima gravação para ouvir na tarefa: pendente, de outra pessoa, ainda não avaliada
+   * por mim. De vez em quando (controlRate) vem uma já decidida, para medir a atenção — o
+   * ouvinte não sabe qual é qual.
    */
-  async nextReview(user: AuthUser, languageId: string, locale: string): Promise<ReviewItem | null> {
-    await this.assertContributor(user, "VOICE_LISTENER", languageId);
+  async nextReview(user: AuthUser, taskId: string, locale: string): Promise<ReviewItem | null> {
+    const { task } = await this.requireTask(user, taskId, "REVIEW");
+    const s = (await taskStats(this.prisma, [task.id])).get(task.id)!;
+    if (taskRemaining(task, s) <= 0) return null;
     const base = {
-      languageId,
+      languageId: task.languageId,
       speakerId: { not: user.id },
       reviews: { none: { listenerId: user.id } },
     };
@@ -363,15 +530,15 @@ export class VoiceService {
     };
   }
 
-  /** Áudio de uma gravação (ouvintes da língua e administradores; nunca o próprio falador). */
+  /** Áudio de uma gravação: ouvintes da língua, administradores e o próprio falador. */
   async audio(user: AuthUser, recordingId: string): Promise<{ data: Buffer; mime: string }> {
     const rec = await this.prisma.recording.findUnique({
       where: { id: recordingId },
       select: { languageId: true, speakerId: true, storageKey: true, mimeType: true },
     });
     if (!rec) throw new NotFoundException("Gravação não encontrada.");
-    // Ouvintes da língua (nunca a própria, para avaliar), administradores e o próprio
-    // falador (no seu painel, para ouvir o que gravou).
+    // Ouvintes (nunca a própria, para avaliar), administradores e o próprio falador (no
+    // seu painel, para ouvir o que gravou).
     const own = rec.speakerId === user.id;
     const listener = this.hasRole(user, "VOICE_LISTENER", rec.languageId) && !own;
     if (!this.isAdmin(user) && !listener && !own) {
@@ -385,22 +552,29 @@ export class VoiceService {
   async review(
     user: AuthUser,
     recordingId: string,
-    input: { verdict: "APPROVE" | "REJECT"; reason: string | null },
+    input: { taskId: string; verdict: "APPROVE" | "REJECT"; reason: string | null },
   ) {
+    const { task } = await this.requireTask(user, input.taskId, "REVIEW");
     const rec = await this.prisma.recording.findUnique({
       where: { id: recordingId },
-      select: { id: true, languageId: true, speakerId: true, status: true },
+      select: { id: true, languageId: true, speakerId: true, status: true, taskId: true },
     });
-    if (!rec) throw new NotFoundException("Gravação não encontrada.");
-    await this.assertContributor(user, "VOICE_LISTENER", rec.languageId);
+    if (!rec || rec.languageId !== task.languageId) {
+      throw new NotFoundException("Gravação não encontrada.");
+    }
     if (rec.speakerId === user.id) {
       throw new ForbiddenException({
         code: "OWN_RECORDING",
         message: "Não podes avaliar as tuas próprias gravações.",
       });
     }
+    const s = (await taskStats(this.prisma, [task.id])).get(task.id)!;
+    if (taskRemaining(task, s) <= 0) {
+      throw new ConflictException({ code: "TASK_FULL", message: "Esta tarefa já está completa." });
+    }
     const reason = input.verdict === "REJECT" ? (input.reason ?? "OTHER") : null;
 
+    let approvedNow = false;
     try {
       await this.prisma.$transaction(
         async (tx) => {
@@ -416,6 +590,7 @@ export class VoiceService {
               data: {
                 recordingId: rec.id,
                 listenerId: user.id,
+                taskId: task.id,
                 verdict: input.verdict,
                 reason: reason as never,
                 isControl: true,
@@ -428,6 +603,7 @@ export class VoiceService {
             data: {
               recordingId: rec.id,
               listenerId: user.id,
+              taskId: task.id,
               verdict: input.verdict,
               reason: reason as never,
             },
@@ -437,6 +613,7 @@ export class VoiceService {
           const status = decide(approvals, rejections);
           let audioId: string | null = null;
           if (status === "APPROVED") {
+            approvedNow = true;
             const speaker = await tx.voiceContributor.findUnique({
               where: { userId: fresh.speakerId },
               select: { displayName: true, region: true },
@@ -487,99 +664,58 @@ export class VoiceService {
       }
       throw e;
     }
+    // Tarefas que ficaram pagas por inteiro passam a concluídas.
+    await this.completeIfFinished([task.id, ...(approvedNow && rec.taskId ? [rec.taskId] : [])]);
     return { ok: true };
   }
 
-  /* ---------------------------- administração e pagamentos ---------------------------- */
-
-  async overview(languageId: string) {
-    const [pending, approved, rejected, words, withAudio, contributors] = await Promise.all([
-      this.prisma.recording.count({ where: { languageId, status: "PENDING" } }),
-      this.prisma.recording.count({ where: { languageId, status: "APPROVED" } }),
-      this.prisma.recording.count({ where: { languageId, status: "REJECTED" } }),
-      this.prisma.vocabulary.count({ where: { languageId, exercises: { some: {} } } }),
-      this.prisma.vocabulary.count({
-        where: { languageId, exercises: { some: {} }, audio: { status: "APPROVED" } },
-      }),
-      this.prisma.voiceContributor.count(),
-    ]);
-    return {
-      pending,
-      approved,
-      rejected,
-      lessonWords: words,
-      lessonWordsWithAudio: withAudio,
-      contributors,
-    };
-  }
-
-  /**
-   * Contas para pagar (período [from, to)): gravações aprovadas por falador e votos (sem
-   * controlos) por ouvinte, com a taxa de acerto nos controlos. Os valores em dinheiro
-   * calculam-se no painel a partir de VOICE_CONFIG.pay (decisão do dono).
-   */
-  async report(from: Date, to: Date) {
-    const range = { gte: from, lt: to };
-    const [recorded, approved, reviews, controls, controlsOk] = await Promise.all([
-      this.prisma.recording.groupBy({
-        by: ["speakerId"],
-        where: { createdAt: range },
-        _count: true,
-      }),
-      this.prisma.recording.groupBy({
-        by: ["speakerId"],
-        where: { status: "APPROVED", decidedAt: range },
-        _count: true,
-      }),
-      this.prisma.recordingReview.groupBy({
-        by: ["listenerId"],
-        where: { isControl: false, createdAt: range },
-        _count: true,
-      }),
-      this.prisma.recordingReview.groupBy({
-        by: ["listenerId"],
-        where: { isControl: true, createdAt: range },
-        _count: true,
-      }),
-      this.prisma.recordingReview.groupBy({
-        by: ["listenerId"],
-        where: { isControl: true, matched: true, createdAt: range },
-        _count: true,
-      }),
-    ]);
-    const ids = new Set([
-      ...recorded.map((r) => r.speakerId),
-      ...approved.map((r) => r.speakerId),
-      ...reviews.map((r) => r.listenerId),
-      ...controls.map((r) => r.listenerId),
-    ]);
-    const users = await this.prisma.user.findMany({
-      where: { id: { in: [...ids] } },
-      select: { id: true, username: true, name: true, email: true },
-    });
-    const count = (list: { _count: number }[], key: "speakerId" | "listenerId", id: string) =>
-      (list as ({ _count: number } & Record<string, string | number>)[]).find((r) => r[key] === id)
-        ?._count ?? 0;
-    return {
-      from: from.toISOString(),
-      to: to.toISOString(),
-      people: users
-        .map((u) => ({
-          userId: u.id,
-          username: u.username,
-          name: u.name,
-          email: u.email,
-          recorded: count(recorded, "speakerId", u.id),
-          approved: count(approved, "speakerId", u.id),
-          reviews: count(reviews, "listenerId", u.id),
-          controls: count(controls, "listenerId", u.id),
-          controlsMatched: count(controlsOk, "listenerId", u.id),
-        }))
-        .sort((a, b) => b.approved + b.reviews - (a.approved + a.reviews)),
-    };
-  }
-
   /* --------------------------------- auxiliares --------------------------------- */
+
+  /** Tarefa minha, ativa, do tipo certo; com papel, consentimento e sem pausa. */
+  private async requireTask(user: AuthUser, taskId: string, kind: TaskKind) {
+    const task = await this.prisma.voiceTask.findUnique({ where: { id: taskId } });
+    if (!task || task.assigneeId !== user.id || task.kind !== kind) {
+      throw new NotFoundException({ code: "TASK_NOT_FOUND", message: "Tarefa não encontrada." });
+    }
+    if (task.status !== "ACTIVE") {
+      throw new ForbiddenException({
+        code: "TASK_NOT_ACTIVE",
+        message: "Esta tarefa não está ativa.",
+      });
+    }
+    const profile = await this.assertContributor(
+      user,
+      kind === "RECORD" ? "VOICE_SPEAKER" : "VOICE_LISTENER",
+      task.languageId,
+    );
+    if (profile.paused) {
+      throw new ForbiddenException({
+        code: "PAUSED",
+        message: "A tua participação está em pausa. Fala com a equipa.",
+      });
+    }
+    return { task, profile };
+  }
+
+  private async completeIfFinished(taskIds: string[]) {
+    const ids = [...new Set(taskIds)];
+    const tasks = await this.prisma.voiceTask.findMany({
+      where: { id: { in: ids }, status: "ACTIVE" },
+      select: { id: true, kind: true, target: true },
+    });
+    if (!tasks.length) return;
+    const stats = await taskStats(
+      this.prisma,
+      tasks.map((t) => t.id),
+    );
+    const done = tasks.filter((t) => taskFinished(t, stats.get(t.id)!)).map((t) => t.id);
+    if (done.length) {
+      await this.prisma.voiceTask.updateMany({
+        where: { id: { in: done }, status: "ACTIVE" },
+        data: { status: "COMPLETED", completedAt: new Date() },
+      });
+    }
+  }
 
   private isAdmin(user: AuthUser) {
     return user.roles.some((r) => r.role === "ADMIN" || r.role === "SUPER_ADMIN");
