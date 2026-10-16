@@ -96,11 +96,14 @@ export function MatchmakingScreen({
   size,
   full,
   onCancel,
+  note,
 }: {
   players: MatchPlayerSeed[];
   size: number;
   full: boolean;
   onCancel: () => void;
+  /** Linha extra por baixo da contagem (ex.: "Começa em 42 s"). */
+  note?: string | undefined;
 }) {
   const cols = size > 8 ? "grid-cols-4 gap-2" : "grid-cols-4 gap-3";
   useJoinSounds(players.length, full);
@@ -120,6 +123,7 @@ export function MatchmakingScreen({
         >
           {players.length}/{size}
         </p>
+        {note && <p className="mt-2 text-sm font-semibold opacity-85">{note}</p>}
       </div>
       <div className={cn("mx-auto mt-8 grid w-full max-w-sm justify-items-center", cols)}>
         {Array.from({ length: size }, (_, i) => (

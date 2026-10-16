@@ -1,4 +1,3 @@
-import { useServerLessonsEnabled } from "@/hooks/use-server-lessons";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Coins, HeartPulse, KeyRound, Swords, Target, Trophy, Users } from "lucide-react";
@@ -28,24 +27,19 @@ function Play() {
     session.setPending(null);
   }, []);
   const s = MULTIPLAYER_CONFIG.publicSurvival;
-  // Com sessão, ainda não há procura de desconhecidos: a Sobrevivência joga-se em sala com amigos.
-  const server = useServerLessonsEnabled();
+  // Com sessão, /play/search entra na fila real do servidor; sem sessão, mostra a demonstração.
   const [first, second, third] = MULTIPLAYER_CONFIG.survivalRewards;
   return (
     <TabLayout header={<AppHeader title="Jogar" />}>
       <div className="space-y-3">
-        <Link to={server ? "/play/private" : "/play/survival"} className="block">
+        <Link to="/play/search" className="block">
           <GameModeCard
             featured
             icon={HeartPulse}
             title="Sobrevivência Online"
-            text={
-              server
-                ? `Cria uma sala, convida amigos (até 16) e responde às mesmas perguntas. Errar tira uma vida; o último sobrevivente vence. Prémios com 4 ou mais jogadores.`
-                : `${s.players} jogadores · ${s.lives} vidas · ${s.seconds}s por pergunta. O último sobrevivente vence.`
-            }
+            text={`Até ${s.players} jogadores de todo o mundo · ${s.lives} vidas · ${s.seconds}s por pergunta. O último sobrevivente vence.`}
             bg="bg-cocoa text-secondary-foreground"
-            cta={server ? "Jogar com amigos" : "Procurar partida"}
+            cta="Procurar partida"
           >
             <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
               {[
@@ -96,7 +90,7 @@ function Play() {
             <GameModeCard
               icon={KeyRound}
               title="Sala Privada"
-              text="Cria ou entra com código"
+              text="Joga com amigos (código)"
               bg="bg-ocean-grad text-ocean-foreground"
             />
           </Link>

@@ -13,7 +13,8 @@ import { BackButton } from "@/components/app/BackButton";
 import { AppButton } from "@/components/app/Buttons";
 import { Avatar } from "@/components/app/Badges";
 import { LoadingState, Modal, SectionTitle } from "@/components/app/Primitives";
-import { LobbyPlayer, OptionPicker, RoomCode } from "@/components/play/LobbyUI";
+import { useNow } from "@/components/play/arena-hooks";
+import { LobbyPlayer, MatchmakingScreen, OptionPicker, RoomCode } from "@/components/play/LobbyUI";
 import {
   AnswerFeedback,
   CountdownOverlay,
@@ -473,6 +474,78 @@ function InviteBanner({
         <X className="size-4" />
       </button>
     </div>
+  );
+}
+
+/* ------------------------- Procurar partida (desconhecidos) ------------------------- */
+
+/**
+ * Sobrevivência pública: o servidor junta-nos a uma sala de espera que começa sozinha
+ * (ao encher, ou pouco depois de haver o mínimo de jogadores). Sem bots.
+ */
+export function ServerSearch() {
+  const s = useArena(true);
+  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
+  const [queued, setQueued] = useState(false);
+  const asked = useRef(false);
+  const now = useNow();
+
+  // Entra na fila uma vez; ao sair do ecrã sem a partida ter começado, sai da fila.
+  useEffect(() => {
+    if (s.status !== "ready" || asked.current) return;
+    asked.current = true;
+    void arena.findMatch("survival").then((r) => {
+      if (r.ok) setQueued(true);
+      else setError(errorText(r));
+    });
+  }, [s.status]);
+  useEffect(
+    () => () => {
+      asked.current = false;
+      if (!arena.getState().match) void arena.leave();
+    },
+    [],
+  );
+
+  const room = queued && s.room?.isPublic && s.room.mode === "survival" ? s.room : null;
+  useEffect(() => {
+    if (room && s.match && s.match.phase !== "finished") navigate({ to: "/play/survival" });
+  }, [room, s.match, navigate]);
+
+  const cancel = () => navigate({ to: "/challenges" });
+  const players = (room?.members ?? []).map((m) => ({
+    id: m.userId,
+    name: m.name,
+    color: avatarColor(m.avatarColor),
+    isMe: m.userId === s.me,
+  }));
+  const min = MULTIPLAYER_CONFIG.matchmaking.minPlayers;
+  const startsIn = room?.autoStartAt
+    ? Math.max(0, Math.ceil((room.autoStartAt - now) / 1000))
+    : null;
+  const note = error
+    ? error
+    : !room
+      ? s.status === "ready"
+        ? "A procurar uma sala…"
+        : "A ligar ao servidor da Arena…"
+      : startsIn !== null
+        ? `Começa em ${startsIn}s · entra mais gente até lá`
+        : players.length < min
+          ? `Começa quando houver ${min} jogadores (faltam ${min - players.length})`
+          : "A começar…";
+
+  return (
+    <PhoneFrame>
+      <MatchmakingScreen
+        players={players}
+        size={room?.config.players ?? MULTIPLAYER_CONFIG.publicSurvival.players}
+        full={Boolean(room && players.length >= room.config.players)}
+        note={note}
+        onCancel={cancel}
+      />
+    </PhoneFrame>
   );
 }
 

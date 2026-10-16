@@ -6,6 +6,7 @@ import { AppButton } from "@/components/app/Buttons";
 import { EmptyState } from "@/components/app/Primitives";
 import { GameResultStats, Podium, RewardRow } from "@/components/play/ResultUI";
 import { PhoneFrame } from "@/layouts/AppShell";
+import { arena } from "@/lib/multiplayer/arena-client";
 import { session } from "@/lib/multiplayer/session-store";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -27,6 +28,10 @@ export const Route = createFileRoute("/play/results")({
 function Results() {
   const { t } = useTranslation();
   const [r] = useState(() => session.getResult());
+  const [privateRoom] = useState(() => {
+    const room = arena.getState().room;
+    return Boolean(room && !room.isPublic);
+  });
   if (!r) {
     return (
       <PhoneFrame>
@@ -92,7 +97,8 @@ function Results() {
           ]}
         />
         <div className="space-y-3">
-          <Link to="/play/survival">
+          {/* Partida privada: volta à sala dos amigos; pública (ou demo): procura outra. */}
+          <Link to={privateRoom ? "/play/private" : "/play/search"}>
             <AppButton>Jogar novamente</AppButton>
           </Link>
           <Link to="/challenges">
