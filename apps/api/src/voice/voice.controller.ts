@@ -42,6 +42,11 @@ const ProfileBody = z.object({
   adultConfirmed: z.boolean(),
   consentAccepted: z.boolean(),
 });
+const MeQuery = z.object({ todayFrom: z.iso.datetime({ offset: true }).optional() });
+const MineQuery = z.object({
+  locale: Locale,
+  status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
+});
 const WordsQuery = z.object({ languageId: LanguageId, locale: Locale });
 const RecordBody = z.object({
   vocabularyId: Id,
@@ -76,8 +81,8 @@ export class VoiceController {
 
   @Get("voice/me")
   @ApiOkResponse({ description: "Papéis, consentimento e números dos últimos 7 dias." })
-  me(@CurrentUser() user: AuthUser) {
-    return this.voice.me(user);
+  me(@CurrentUser() user: AuthUser, @Query(new ZodPipe(MeQuery)) q: z.infer<typeof MeQuery>) {
+    return this.voice.me(user, q.todayFrom ? new Date(q.todayFrom) : undefined);
   }
 
   @Put("voice/profile")
@@ -105,6 +110,12 @@ export class VoiceController {
     @Body(new ZodPipe(RecordBody)) body: z.infer<typeof RecordBody>,
   ) {
     return this.voice.record(user, body);
+  }
+
+  @Get("voice/recordings/mine")
+  @ApiOkResponse({ description: "As minhas gravações (estado e motivos das rejeições)." })
+  mine(@CurrentUser() user: AuthUser, @Query(new ZodPipe(MineQuery)) q: z.infer<typeof MineQuery>) {
+    return this.voice.myRecordings(user, q.locale, q.status);
   }
 
   @Get("voice/review/next")

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { APP_NAME, VOICE_CONFIG } from "@stp/config";
 import { Mic, Play, RotateCcw, Send, SkipForward, Square } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -9,6 +9,7 @@ import { AppButton } from "@/components/app/Buttons";
 import { LoadingState } from "@/components/app/Primitives";
 import { VoiceGate } from "@/components/voice/VoiceGate";
 import { VoicePage } from "@/components/voice/VoicePage";
+import { VoiceStats } from "@/components/voice/VoiceStats";
 import { blobToBase64, type RecordingIssue, useRecorder } from "@/hooks/use-recorder";
 import { voiceError } from "@/hooks/use-voice";
 import { sound } from "@/lib/sound";
@@ -32,7 +33,10 @@ function RecordPage() {
       <VoiceGate>
         {(me) =>
           me.speakerLanguages[0] ? (
-            <Recorder languageId={me.speakerLanguages[0].id} storage={me.storageEnabled} />
+            <>
+              <VoiceStats kind="speaker" />
+              <Recorder languageId={me.speakerLanguages[0].id} storage={me.storageEnabled} />
+            </>
           ) : (
             <p className="text-center font-semibold">{t("voice.notInvited")}</p>
           )
@@ -227,6 +231,9 @@ function Recorder({ languageId, storage }: { languageId: string; storage: boolea
           {t("voice.skip")}
         </button>
         <p className="hidden text-xs text-muted-foreground sm:block">{t("voice.shortcuts")}</p>
+        <Link to="/voice/mine" className="block text-sm font-bold text-primary">
+          {t("voice.mine.open")}
+        </Link>
       </div>
     </>
   );

@@ -565,6 +565,25 @@ export const en: Messages = {
     storageOff:
       "The server does not store audio in this environment yet. Recordings are coming soon.",
     last7: "Last 7 days: {{recorded}} recorded · {{approved}} approved · {{reviews}} reviewed",
+    stats: {
+      today: "Today",
+      total: "Total",
+      approved: "Approved",
+      pending: "Waiting",
+      rejected: "Rejected",
+      reviewed: "Reviewed",
+    },
+    mine: {
+      title: "My dashboard",
+      open: "Open my dashboard",
+      all: "All",
+      empty: "No recordings here yet.",
+      reasons: "Reason: {{list}}",
+      play: "Play",
+      status: { PENDING: "Waiting", APPROVED: "Approved", REJECTED: "Rejected" },
+      tipRejected:
+        "Record rejected words again, paying attention to the reason — they come back to your word list.",
+    },
     recordCard: "Record words",
     recordCardText: "Read each word aloud, with the natural pronunciation of your island.",
     listenCard: "Review recordings",

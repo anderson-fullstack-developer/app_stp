@@ -290,6 +290,10 @@ export interface VoiceMeDto {
   consentVersion: string;
   profile: { displayName: string | null; region: string | null; consentCurrent: boolean } | null;
   last7Days: { recorded: number; approved: number; reviews: number };
+  /** Falador: tudo o que já enviou, por estado ("today" = desde o início do dia local). */
+  speaker: { today: number; total: number; pending: number; approved: number; rejected: number };
+  /** Ouvinte: avaliações feitas. */
+  listener: { today: number; total: number };
 }
 
 /** GET /api/v1/voice/words */
@@ -309,6 +313,18 @@ export interface VoiceReviewItemDto {
   partOfSpeech: string;
   region: string | null;
   durationMs: number;
+}
+
+/** GET /api/v1/voice/recordings/mine */
+export interface VoiceMyRecordingDto {
+  recordingId: string;
+  word: string;
+  gloss: string | null;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  createdAt: string;
+  decidedAt: string | null;
+  /** Motivos dados pelos ouvintes (sem dizer quem). */
+  rejectReasons: VoiceRejectReason[];
 }
 
 export type VoiceRejectReason = "PRONUNCIATION" | "NOISE" | "WRONG_WORD" | "CUT_OFF" | "OTHER";
