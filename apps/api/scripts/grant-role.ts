@@ -9,7 +9,15 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, type Role } from "../src/generated/prisma/client.js";
 
-const ROLES: Role[] = ["MODERATOR", "CONTENT_EDITOR", "LINGUIST", "ADMIN", "SUPER_ADMIN"];
+const ROLES: Role[] = [
+  "MODERATOR",
+  "CONTENT_EDITOR",
+  "LINGUIST",
+  "ADMIN",
+  "SUPER_ADMIN",
+  "VOICE_SPEAKER",
+  "VOICE_LISTENER",
+];
 const url = process.env["DATABASE_URL"];
 if (!url) throw new Error("Falta DATABASE_URL (apps/api/.env).");
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
