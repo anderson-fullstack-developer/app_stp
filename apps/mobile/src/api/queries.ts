@@ -148,7 +148,8 @@ export function useNotifications() {
     queryKey: keys.notifications,
     queryFn: () => api.get<NotificationDto[]>("/me/notifications"),
     enabled: Boolean(isSignedIn),
-    refetchInterval: 60_000,
+    // Curto o suficiente para o aviso (som + topo do ecrã) chegar quase na hora.
+    refetchInterval: 20_000,
   });
 }
 

@@ -30,6 +30,10 @@ const NAMES: SoundName[] = [
   "victory",
   "defeat",
   "join",
+  // Notificações
+  "notify",
+  "accepted",
+  "challenge",
 ];
 
 function wave(type: Note["type"], phase: number) {

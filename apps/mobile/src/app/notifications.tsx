@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/client";
 import { useMe, useNotifications } from "@/api/queries";
+import { notificationText } from "@/features/notifications/text";
 import { NOTIFICATIONS_SEEN_KEY } from "@/features/notifications/useUnread";
 import {
   AppButton,
@@ -50,22 +51,7 @@ export default function Notifications() {
     onSettled: () => qc.invalidateQueries({ queryKey: ["social"] }),
   });
 
-  const text = (n: NotificationDto) => {
-    if (n.type === "friend_request") return t("social.notifFriendRequest", { name: n.user.name });
-    if (n.type === "friend_accepted") return t("social.notifFriendAccepted", { name: n.user.name });
-    if (n.type === "arena_invite") {
-      return n.mode === "duel"
-        ? t("social.notifDuelInvite", { name: n.user.name })
-        : t("social.notifArenaInvite", { name: n.user.name });
-    }
-    const titles = t("achievementsList", { returnObjects: true }) as Record<
-      string,
-      { title: string }
-    >;
-    return t("social.notifAchievement", {
-      title: titles[n.achievementKey]?.title ?? n.achievementKey,
-    });
-  };
+  const text = (n: NotificationDto) => notificationText(t, n);
   const when = (iso: string) =>
     new Date(iso).toLocaleDateString(i18n.language, { day: "numeric", month: "short" });
 

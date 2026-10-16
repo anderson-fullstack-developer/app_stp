@@ -24,6 +24,10 @@ const SOURCES = {
   victory: require("../../assets/sounds/victory.wav"),
   defeat: require("../../assets/sounds/defeat.wav"),
   join: require("../../assets/sounds/join.wav"),
+  // Notificações
+  notify: require("../../assets/sounds/notify.wav"),
+  accepted: require("../../assets/sounds/accepted.wav"),
+  challenge: require("../../assets/sounds/challenge.wav"),
 } as const;
 export type UiSound = keyof typeof SOURCES;
 
