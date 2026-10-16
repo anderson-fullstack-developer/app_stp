@@ -34,6 +34,8 @@ const NAMES: SoundName[] = [
   "notify",
   "accepted",
   "challenge",
+  // Boas-vindas
+  "hello",
 ];
 
 function wave(type: Note["type"], phase: number) {

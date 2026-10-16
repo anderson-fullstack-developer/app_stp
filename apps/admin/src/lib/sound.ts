@@ -38,6 +38,7 @@ const HAPTICS: Partial<Record<SoundName, number | number[]>> = {
   notify: 15,
   accepted: [15, 30, 15],
   challenge: [30, 40, 30, 40, 60],
+  hello: 12,
 };
 
 let ctx: AudioContext | null = null;
@@ -93,9 +94,19 @@ export const scaleStep = (step: number) =>
   2 ** ((MAJOR[Math.max(0, Math.min(step, MAJOR.length - 1))] ?? 0) / 12);
 
 export const sound = {
-  /** `pitch` multiplica as frequências (1 = original; ver scaleStep). */
-  play(name: SoundName, opts?: { pitch?: number }) {
+  /**
+   * `pitch` multiplica as frequências (1 = original; ver scaleStep).
+   * `onlyIfInteracted`: para sons que tocam sozinhos ao abrir um ecrã. O navegador só deixa
+   * tocar depois de a pessoa interagir com a página; sem isso, o som ficaria "preso" e
+   * tocaria fora de tempo no primeiro clique — por isso não toca.
+   */
+  play(name: SoundName, opts?: { pitch?: number; onlyIfInteracted?: boolean }) {
     if (typeof window === "undefined") return;
+    if (opts?.onlyIfInteracted) {
+      const activation = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } })
+        .userActivation;
+      if (!activation?.hasBeenActive) return;
+    }
     const now = performance.now();
     if (now - (lastPlayed.get(name) ?? -Infinity) < MIN_GAP_MS) return;
     lastPlayed.set(name, now);
