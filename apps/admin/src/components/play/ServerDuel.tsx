@@ -6,12 +6,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { MULTIPLAYER_CONFIG } from "@stp/config";
 import type { QuizQuestion } from "@stp/types/multiplayer";
-import { Swords } from "lucide-react";
+import { Search, Swords } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/app/Badges";
 import { BackButton } from "@/components/app/BackButton";
 import { AppButton } from "@/components/app/Buttons";
-import { EmptyState, LoadingState } from "@/components/app/Primitives";
+import { EmptyState, LoadingState, SectionTitle } from "@/components/app/Primitives";
 import {
   Confetti,
   CountdownOverlay,
@@ -87,6 +87,14 @@ function PickFriend({ s, friend }: { s: ArenaState; friend?: string | undefined 
     void challenge(friend);
   }, [friend, s.status]);
 
+  const search = async () => {
+    setBusy("search");
+    setError(null);
+    const r = await arena.findMatch("duel");
+    if (!r.ok) setError(ERROR_TEXT[r.code] ?? r.message);
+    setBusy(null);
+  };
+
   const list = friends.data?.friends ?? [];
   return (
     <PhoneFrame>
@@ -94,12 +102,22 @@ function PickFriend({ s, friend }: { s: ArenaState; friend?: string | undefined 
       <main className="flex flex-1 flex-col gap-3 px-4 pb-8">
         <div className="rounded-[1.75rem] bg-forest p-5 text-primary-foreground pattern-leaf">
           <Swords className="size-8" />
-          <p className="mt-2 font-display text-2xl font-bold">Desafia um amigo</p>
+          <p className="mt-2 font-display text-2xl font-bold">Duelo 1 contra 1</p>
           <p className="text-sm opacity-85">
             {MULTIPLAYER_CONFIG.duel.questions} perguntas iguais para os dois. Cada certa vale 100
             pontos, mais um bónus por responderes depressa.
           </p>
+          <AppButton
+            variant="light"
+            className="mt-4"
+            disabled={s.status !== "ready" || busy !== null}
+            onClick={() => void search()}
+          >
+            <Search className="size-5" />
+            {busy === "search" ? "A procurar…" : "Procurar adversário"}
+          </AppButton>
         </div>
+        <SectionTitle>Ou desafia um amigo</SectionTitle>
         {s.status !== "ready" && (
           <p className="text-center text-sm font-semibold text-muted-foreground">
             A ligar ao servidor da Arena…
@@ -178,10 +196,12 @@ function DuelWaiting({ s }: { s: ArenaState }) {
         <p className="font-semibold text-muted-foreground">
           {other
             ? "A preparar o duelo…"
-            : "Convite enviado! O duelo começa assim que o teu amigo entrar (o convite dura 10 minutos)."}
+            : room.isPublic
+              ? "À procura de um adversário… O duelo começa assim que alguém entrar."
+              : "Convite enviado! O duelo começa assim que o teu amigo entrar (o convite dura 10 minutos)."}
         </p>
         <AppButton variant="secondary" onClick={() => void arena.leave()}>
-          Cancelar duelo
+          {room.isPublic ? "Cancelar procura" : "Cancelar duelo"}
         </AppButton>
       </main>
     </PhoneFrame>
@@ -328,10 +348,13 @@ function DuelResult({ s }: { s: ArenaState }) {
     sound.play(won ? "victory" : "defeat");
   }, [won]);
 
+  // Duelo com desconhecido: procura outro adversário; com amigo: desafia-o outra vez.
+  const publicDuel = Boolean(s.room?.isPublic);
   const again = async () => {
     const opponent = theirs?.userId;
     await arena.leave();
-    if (opponent) await arena.challenge(opponent);
+    if (publicDuel) await arena.findMatch("duel");
+    else if (opponent) await arena.challenge(opponent);
   };
   const leave = async () => {
     await arena.leave();
@@ -381,10 +404,10 @@ function DuelResult({ s }: { s: ArenaState }) {
           {note && <p className="mt-2 text-sm text-muted-foreground">{note}</p>}
         </div>
         <div className="mt-auto space-y-3">
-          {theirs && !theirs.left && (
+          {(publicDuel || (theirs && !theirs.left)) && (
             <AppButton onClick={() => void again()}>
-              <Swords className="size-5" />
-              Desafiar outra vez
+              {publicDuel ? <Search className="size-5" /> : <Swords className="size-5" />}
+              {publicDuel ? "Procurar outro adversário" : "Desafiar outra vez"}
             </AppButton>
           )}
           <Link to="/play/history" className="block">

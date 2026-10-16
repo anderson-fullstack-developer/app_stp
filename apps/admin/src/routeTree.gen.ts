@@ -60,6 +60,7 @@ import { Route as PlayHistoryRouteImport } from './routes/play.history'
 import { Route as PlayJoinRouteImport } from './routes/play.join'
 import { Route as PlayPrivateRouteImport } from './routes/play.private'
 import { Route as PlayResultsRouteImport } from './routes/play.results'
+import { Route as PlaySearchRouteImport } from './routes/play.search'
 import { Route as PlaySurvivalRouteImport } from './routes/play.survival'
 import { Route as PlayTeamsRouteImport } from './routes/play.teams'
 import { Route as PlayTournamentsRouteImport } from './routes/play.tournaments'
@@ -326,6 +327,11 @@ const PlayResultsRoute = PlayResultsRouteImport.update({
   path: '/play/results',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlaySearchRoute = PlaySearchRouteImport.update({
+  id: '/play/search',
+  path: '/play/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlaySurvivalRoute = PlaySurvivalRouteImport.update({
   id: '/play/survival',
   path: '/play/survival',
@@ -428,6 +434,7 @@ export interface FileRoutesByFullPath {
   '/play/join': typeof PlayJoinRoute
   '/play/private': typeof PlayPrivateRoute
   '/play/results': typeof PlayResultsRoute
+  '/play/search': typeof PlaySearchRoute
   '/play/survival': typeof PlaySurvivalRoute
   '/play/teams': typeof PlayTeamsRoute
   '/play/tournaments': typeof PlayTournamentsRoute
@@ -490,6 +497,7 @@ export interface FileRoutesByTo {
   '/play/join': typeof PlayJoinRoute
   '/play/private': typeof PlayPrivateRoute
   '/play/results': typeof PlayResultsRoute
+  '/play/search': typeof PlaySearchRoute
   '/play/survival': typeof PlaySurvivalRoute
   '/play/teams': typeof PlayTeamsRoute
   '/play/tournaments': typeof PlayTournamentsRoute
@@ -554,6 +562,7 @@ export interface FileRoutesById {
   '/play/join': typeof PlayJoinRoute
   '/play/private': typeof PlayPrivateRoute
   '/play/results': typeof PlayResultsRoute
+  '/play/search': typeof PlaySearchRoute
   '/play/survival': typeof PlaySurvivalRoute
   '/play/teams': typeof PlayTeamsRoute
   '/play/tournaments': typeof PlayTournamentsRoute
@@ -619,6 +628,7 @@ export interface FileRouteTypes {
     | '/play/join'
     | '/play/private'
     | '/play/results'
+    | '/play/search'
     | '/play/survival'
     | '/play/teams'
     | '/play/tournaments'
@@ -681,6 +691,7 @@ export interface FileRouteTypes {
     | '/play/join'
     | '/play/private'
     | '/play/results'
+    | '/play/search'
     | '/play/survival'
     | '/play/teams'
     | '/play/tournaments'
@@ -744,6 +755,7 @@ export interface FileRouteTypes {
     | '/play/join'
     | '/play/private'
     | '/play/results'
+    | '/play/search'
     | '/play/survival'
     | '/play/teams'
     | '/play/tournaments'
@@ -789,6 +801,7 @@ export interface RootRouteChildren {
   PlayJoinRoute: typeof PlayJoinRoute
   PlayPrivateRoute: typeof PlayPrivateRoute
   PlayResultsRoute: typeof PlayResultsRoute
+  PlaySearchRoute: typeof PlaySearchRoute
   PlaySurvivalRoute: typeof PlaySurvivalRoute
   PlayTeamsRoute: typeof PlayTeamsRoute
   PlayTournamentsRoute: typeof PlayTournamentsRoute
@@ -1158,6 +1171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayResultsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/search': {
+      id: '/play/search'
+      path: '/play/search'
+      fullPath: '/play/search'
+      preLoaderRoute: typeof PlaySearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/play/survival': {
       id: '/play/survival'
       path: '/play/survival'
@@ -1315,6 +1335,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlayJoinRoute: PlayJoinRoute,
   PlayPrivateRoute: PlayPrivateRoute,
   PlayResultsRoute: PlayResultsRoute,
+  PlaySearchRoute: PlaySearchRoute,
   PlaySurvivalRoute: PlaySurvivalRoute,
   PlayTeamsRoute: PlayTeamsRoute,
   PlayTournamentsRoute: PlayTournamentsRoute,

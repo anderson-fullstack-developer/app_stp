@@ -104,6 +104,11 @@ export function createArenaClient(options: ArenaClientOptions) {
     state = { ...state, ...patch };
     listeners.forEach((l) => l());
   };
+  /** Sala com a hora de arranque automático já no relógio deste dispositivo. */
+  const localRoom = (room: ArenaRoomDto): ArenaRoomDto => {
+    const skew = (room.serverNow ?? Date.now()) - Date.now();
+    return room.autoStartAt ? { ...room, autoStartAt: room.autoStartAt - skew } : room;
+  };
   const setMatch = (patch: Partial<ArenaMatchState>) => {
     if (state.match) set({ match: { ...state.match, ...patch } });
   };
@@ -129,7 +134,7 @@ export function createArenaClient(options: ArenaClientOptions) {
     if (!r.ok || !r.state) return;
     const m = r.state.match;
     set({
-      room: r.state.room,
+      room: localRoom(r.state.room),
       match: m
         ? {
             ...emptyMatch(m.matchId),
@@ -164,7 +169,7 @@ export function createArenaClient(options: ArenaClientOptions) {
     socket.on("disconnect", () => {
       if (state.status !== "unauthorized") set({ status: "offline" });
     });
-    socket.on("room:state", (room: ArenaRoomDto) => set({ room, closed: false }));
+    socket.on("room:state", (room: ArenaRoomDto) => set({ room: localRoom(room), closed: false }));
     socket.on("room:closed", () => set({ room: null, closed: true, match: null }));
     socket.on("match:countdown", (p: ArenaCountdownEvent) => {
       offset = p.serverNow - Date.now();
@@ -230,12 +235,25 @@ export function createArenaClient(options: ArenaClientOptions) {
 
     async create(config: ArenaConfigDto, mode: "survival" | "teams" = "survival") {
       const r = await ack<{ room: ArenaRoomDto }>("room:create", { config, mode });
-      if (r.ok) set({ room: r.room, closed: false, finished: null, reward: null, match: null });
+      if (r.ok) {
+        set({ room: localRoom(r.room), closed: false, finished: null, reward: null, match: null });
+      }
       return r;
     },
     async join(code: string) {
       const r = await ack<{ room: ArenaRoomDto }>("room:join", { code });
-      if (r.ok) set({ room: r.room, closed: false, finished: null, reward: null });
+      if (r.ok) set({ room: localRoom(r.room), closed: false, finished: null, reward: null });
+      return r;
+    },
+    /**
+     * "Procurar partida" com desconhecidos: o servidor junta a pessoa a uma sala pública
+     * (ou abre uma) que começa sozinha. Para desistir, `leave()`.
+     */
+    async findMatch(mode: "survival" | "duel") {
+      const r = await ack<{ room: ArenaRoomDto }>("queue:join", { mode });
+      if (r.ok) {
+        set({ room: localRoom(r.room), closed: false, finished: null, reward: null, match: null });
+      }
       return r;
     },
     async leave() {
@@ -246,7 +264,7 @@ export function createArenaClient(options: ArenaClientOptions) {
     /** 2 contra 2: trocar de equipa na sala de espera. */
     async setTeam(team: "A" | "B") {
       const r = await ack<{ room: ArenaRoomDto }>("room:team", { team });
-      if (r.ok) set({ room: r.room });
+      if (r.ok) set({ room: localRoom(r.room) });
       return r;
     },
     start: () => ack("room:start"),
@@ -254,7 +272,9 @@ export function createArenaClient(options: ArenaClientOptions) {
     /** Desafiar um amigo para um duelo (cria a sala de 2 e envia-lhe o convite). */
     async challenge(userId: string) {
       const r = await ack<{ room: ArenaRoomDto }>("duel:challenge", { userId });
-      if (r.ok) set({ room: r.room, closed: false, finished: null, reward: null, match: null });
+      if (r.ok) {
+        set({ room: localRoom(r.room), closed: false, finished: null, reward: null, match: null });
+      }
       return r;
     },
     dismissInvite: () => set({ invite: null }),

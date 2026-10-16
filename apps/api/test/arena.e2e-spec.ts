@@ -465,9 +465,7 @@ describe.skipIf(!dbUrl)(
         room: { mode: "duel", isPublic: true, status: "WAITING" },
       });
       // Pedir outra vez não abre outra sala.
-      expect((await ack(a, "queue:join", { mode: "duel" }))["room"].code).toBe(
-        first["room"].code,
-      );
+      expect((await ack(a, "queue:join", { mode: "duel" }))["room"].code).toBe(first["room"].code);
       const started = next(a, "match:question");
       const second = await ack(b, "queue:join", { mode: "duel" });
       expect(second["room"].code).toBe(first["room"].code);
@@ -486,7 +484,8 @@ describe.skipIf(!dbUrl)(
         ["ana", "bia", "caio", "duda"].map((n) => connect(ids[n]!)),
       );
       const rooms: Payload[] = [];
-      for (const s of players.slice(0, 3)) rooms.push(await ack(s, "queue:join", { mode: "survival" }));
+      for (const s of players.slice(0, 3))
+        rooms.push(await ack(s, "queue:join", { mode: "survival" }));
       expect(new Set(rooms.map((r) => r["room"].code)).size).toBe(1);
       expect(rooms[2]!["room"]).toMatchObject({ isPublic: true, autoStartAt: null });
       expect(await ack(players[0]!, "room:start")).toMatchObject({ ok: false, code: "NOT_HOST" });
