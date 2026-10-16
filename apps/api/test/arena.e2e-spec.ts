@@ -176,6 +176,9 @@ describe.skipIf(!dbUrl)(
       await ack(d!, "match:answer", { questionId: qid, optionId: right });
       const r1 = await reveal1; // todos responderam: a ronda fecha antes do prazo
       expect(r1["correctOptionId"]).toBe(right);
+      // Pronúncia real só na revelação (null quando a palavra não tem gravação).
+      expect(r1).toHaveProperty("audio");
+      expect(question).not.toHaveProperty("audio");
       expect(r1["outcomes"]).toEqual({
         [ids["ana"]!]: "correct",
         [ids["bia"]!]: "wrong",
