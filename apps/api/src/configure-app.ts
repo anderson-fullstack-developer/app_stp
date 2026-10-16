@@ -1,4 +1,5 @@
 import { type INestApplication, VersioningType } from "@nestjs/common";
+import type { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import helmet from "helmet";
 import { ArenaIoAdapter } from "./arena/arena-io.adapter.js";
@@ -10,6 +11,8 @@ import type { Env } from "./config/env.js";
  */
 export function configureApp(app: INestApplication, env: Env): void {
   app.use(helmet());
+  // Gravações de pronúncia chegam em base64 (até ~270 KB); o resto é muito mais pequeno.
+  (app as NestExpressApplication).useBodyParser("json", { limit: "400kb" });
   app.enableCors({
     origin: env.CORS_ORIGINS,
     credentials: true,

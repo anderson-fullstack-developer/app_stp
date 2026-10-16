@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 import { MIN_LESSON_QUESTIONS } from "../courses/courses.service.js";
 import { PrismaService } from "../database/prisma.service.js";
+import { MediaUrls } from "../voice/media-urls.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import type { ContentStatus } from "../generated/prisma/enums.js";
 import { isPubliclyListed, visibleContentStatuses } from "../languages/visibility.js";
@@ -48,7 +49,10 @@ export interface LessonResult {
  */
 @Injectable()
 export class LessonsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly media: MediaUrls,
+  ) {}
 
   /** Lições visíveis do curso pela ordem de jogo (unidade, depois lição). */
   private async courseLessonIds(courseId: string, visible: ContentStatus[]) {
@@ -258,7 +262,9 @@ export class LessonsService {
       correctLabel: right.label,
       word: vocab?.word ?? null,
       // Áudio e fonte só depois de responder (antes, revelariam a resposta).
-      audio: vocab?.audio ? { url: vocab.audio.url, speaker: vocab.audio.speakerName } : null,
+      audio: vocab?.audio
+        ? { url: this.media.abs(vocab.audio.url), speaker: vocab.audio.speakerName }
+        : null,
       sourceUrl: vocab?.sourceRef ?? null,
     };
   }

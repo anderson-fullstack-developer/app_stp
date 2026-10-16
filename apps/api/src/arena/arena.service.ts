@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
 import { PrismaService } from "../database/prisma.service.js";
 import { SocialService } from "../social/social.service.js";
+import { MediaUrls } from "../voice/media-urls.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import { isPubliclyListed, visibleContentStatuses } from "../languages/visibility.js";
 import {
@@ -179,6 +180,7 @@ export class ArenaService implements OnModuleDestroy {
   constructor(
     private readonly prisma: PrismaService,
     private readonly social: SocialService,
+    private readonly media: MediaUrls,
     @Inject(ARENA_TIMINGS) private readonly timings: ArenaTimings,
   ) {}
 
@@ -1053,7 +1055,9 @@ export class ArenaService implements OnModuleDestroy {
     });
     return new Map(
       rows.flatMap((r) =>
-        r.audio ? [[r.id, { url: r.audio.url, speaker: r.audio.speakerName }] as const] : [],
+        r.audio
+          ? [[r.id, { url: this.media.abs(r.audio.url), speaker: r.audio.speakerName }] as const]
+          : [],
       ),
     );
   }
