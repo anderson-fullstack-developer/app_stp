@@ -22,6 +22,8 @@ export const ARENA_CONFIG = {
   maxRewardedMatchesPerDay: 10,
   /** Mínimo para começar uma partida. */
   minPlayersToStart: 2,
+  /** Sobrevivência pública ("Procurar partida"): mínimo e espera antes de começar sozinha. */
+  matchmaking: { minPlayers: 4, waitSeconds: 60 },
   /** Duelo 1 contra 1: 10 perguntas iguais, ganha quem fizer mais pontos. */
   duel: { questions: 10, seconds: 10 },
   /** 2 contra 2: 8 perguntas, a equipa soma os pontos dos dois. */

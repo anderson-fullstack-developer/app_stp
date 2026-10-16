@@ -24,6 +24,12 @@ export interface RoomView {
   config: ArenaConfig;
   languageId: string;
   locale: string;
+  /** Sala de "Procurar partida" (desconhecidos; começa sozinha). */
+  isPublic: boolean;
+  /** Sobrevivência pública: hora oficial (epoch ms) a que começa sozinha; null = à espera do mínimo. */
+  autoStartAt: number | null;
+  /** Relógio do servidor quando este estado foi enviado (para o cliente acertar a contagem). */
+  serverNow: number;
   members: RoomMemberView[];
 }
 

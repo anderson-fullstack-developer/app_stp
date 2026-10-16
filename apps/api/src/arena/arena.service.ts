@@ -51,6 +51,8 @@ export interface ArenaTimings {
   lateGraceMs: number;
   /** Quanto tempo uma pessoa desligada na sala de espera fica antes de sair. */
   lobbyGraceMs: number;
+  /** Sobrevivência pública: espera depois de haver o mínimo de jogadores. */
+  matchmakingWaitMs: number;
 }
 
 export const ARENA_TIMINGS = Symbol("ARENA_TIMINGS");
@@ -60,6 +62,7 @@ export const DEFAULT_ARENA_TIMINGS: ArenaTimings = {
   finalMs: 2_600,
   lateGraceMs: 400,
   lobbyGraceMs: 20_000,
+  matchmakingWaitMs: ARENA_CONFIG.matchmaking.waitSeconds * 1000,
 };
 
 /** Quem está ligado (dados de apresentação lidos da BD na ligação). */
@@ -144,6 +147,13 @@ interface Room {
   locale: string;
   members: Map<string, Member>;
   match: Match | null;
+  /** Sala de "Procurar partida": qualquer pessoa pode cair nela; começa sozinha. */
+  isPublic: boolean;
+  /** A partida está a ser preparada (perguntas, registo): ninguém entra nem começa outra. */
+  starting: boolean;
+  /** Sobrevivência pública: hora (epoch ms) a que começa sozinha, se já houver o mínimo. */
+  autoStartAt: number | null;
+  autoTimer: ReturnType<typeof setTimeout> | null;
 }
 
 const LOCALES = ["pt", "en"];
@@ -182,6 +192,7 @@ export class ArenaService implements OnModuleDestroy {
   async createRoom(
     who: ArenaIdentity,
     input: { config?: Partial<ArenaConfig>; languageId?: string; mode?: ArenaMode },
+    isPublic = false,
   ): Promise<RoomView> {
     this.assertNotPlaying(who.userId);
     this.leaveCurrent(who.userId);
@@ -211,6 +222,10 @@ export class ArenaService implements OnModuleDestroy {
       members: new Map(),
       match: null,
       invitesSent: 0,
+      isPublic,
+      starting: false,
+      autoStartAt: null,
+      autoTimer: null,
     };
     this.rooms.set(code, room);
     this.addMember(room, who);
@@ -228,7 +243,7 @@ export class ArenaService implements OnModuleDestroy {
       return this.view(room);
     }
     this.assertNotPlaying(who.userId);
-    if (room.match) throw new ArenaError("ROOM_STARTED", "A partida já começou.");
+    if (room.match || room.starting) throw new ArenaError("ROOM_STARTED", "A partida já começou.");
     if (room.members.size >= room.config.players) {
       throw new ArenaError("ROOM_FULL", "A sala está cheia.");
     }
@@ -237,11 +252,42 @@ export class ArenaService implements OnModuleDestroy {
     this.broadcastRoom(room);
     if (room.mode === "duel" && room.members.size === 2) {
       // Duelo: começa sozinho quando o adversário entra.
-      void this.start(room.hostId).catch((e: unknown) => {
-        this.logger.warn({ err: e, code: room.code }, "Duelo não arrancou");
-      });
+      this.beginInBackground(room);
     }
+    this.updateAutoStart(room);
     return this.view(room);
+  }
+
+  /**
+   * "Procurar partida": junta a pessoa à sala pública à espera mais cheia (mesmo modo,
+   * língua e idioma da interface) ou abre uma nova. Sem bots: só pessoas reais.
+   */
+  async findMatch(
+    who: ArenaIdentity,
+    input: { mode: "survival" | "duel"; languageId?: string },
+  ): Promise<RoomView> {
+    this.assertNotPlaying(who.userId);
+    const current = this.currentRoom(who.userId);
+    if (current?.isPublic && !current.match && current.mode === input.mode) {
+      return this.view(current); // já está na fila
+    }
+    const languageId = input.languageId ?? who.learningLanguageId ?? "kabuverdianu";
+    const locale = LOCALES.includes(who.uiLocale) ? who.uiLocale : "en";
+    const open = [...this.rooms.values()]
+      .filter(
+        (r) =>
+          r.isPublic &&
+          !r.match &&
+          !r.starting &&
+          r.mode === input.mode &&
+          r.languageId === languageId &&
+          r.locale === locale &&
+          r.members.size < r.config.players &&
+          !r.members.has(who.userId),
+      )
+      .sort((a, b) => b.members.size - a.members.size)[0];
+    if (open) return this.joinRoom(who, open.code);
+    return this.createRoom(who, { mode: input.mode, languageId }, true);
   }
 
   leave(userId: string) {
@@ -289,6 +335,7 @@ export class ArenaService implements OnModuleDestroy {
       next.ready = false;
     }
     this.broadcastRoom(room);
+    this.updateAutoStart(room);
   }
 
   setReady(userId: string, ready: boolean): RoomView {
@@ -324,6 +371,7 @@ export class ArenaService implements OnModuleDestroy {
     this.markConnected(room, member, false);
     if (!room.match) {
       member.graceTimer = setTimeout(() => this.leave(userId), this.timings.lobbyGraceMs);
+      this.updateAutoStart(room);
     } else {
       this.maybeResolveEarly(room);
       this.cancelIfEmpty(room);
@@ -337,6 +385,7 @@ export class ArenaService implements OnModuleDestroy {
     const member = room?.members.get(userId);
     if (!room || !member) return null;
     this.markConnected(room, member, true);
+    this.updateAutoStart(room);
     return { room: this.view(room), match: room.match ? this.matchView(room.match) : null };
   }
 
@@ -421,21 +470,82 @@ export class ArenaService implements OnModuleDestroy {
 
   /* ------------------------------ partida ------------------------------ */
 
+  /** O anfitrião começa a partida (salas privadas; as públicas começam sozinhas). */
   async start(userId: string): Promise<void> {
     const room = this.requireRoom(userId);
-    if (room.hostId !== userId) throw new ArenaError("NOT_HOST", "Só o anfitrião pode começar.");
-    if (room.match) throw new ArenaError("ROOM_STARTED", "A partida já começou.");
+    if (room.hostId !== userId || room.isPublic) {
+      throw new ArenaError("NOT_HOST", "Só o anfitrião pode começar.");
+    }
+    await this.begin(room);
+  }
+
+  private async begin(room: Room): Promise<void> {
+    if (room.match || room.starting) throw new ArenaError("ROOM_STARTED", "A partida já começou.");
     const members = [...room.members.values()].filter((m) => m.connected);
     if (members.length < ARENA_CONFIG.minPlayersToStart) {
       throw new ArenaError("NOT_ENOUGH_PLAYERS", "São precisos pelo menos 2 jogadores.");
     }
+    // Duelos e salas públicas não têm "pronto": começam sozinhos.
     if (
       room.mode !== "duel" &&
+      !room.isPublic &&
       members.some((m) => m.identity.userId !== room.hostId && !m.ready)
     ) {
       throw new ArenaError("NOT_READY", "Ainda há jogadores que não estão prontos.");
     }
+    this.clearAutoStart(room);
+    room.starting = true;
+    try {
+      await this.createMatch(room, members);
+    } finally {
+      room.starting = false;
+    }
+  }
 
+  private beginInBackground(room: Room) {
+    void this.begin(room).catch((e: unknown) => {
+      this.logger.warn({ err: e, code: room.code }, "A partida não arrancou");
+    });
+  }
+
+  /**
+   * Sobrevivência pública: começa já se a sala encheu; com o mínimo de jogadores, marca a
+   * hora de começar (e avisa a sala); abaixo do mínimo, cancela essa hora.
+   */
+  private updateAutoStart(room: Room) {
+    if (!room.isPublic || room.mode !== "survival" || room.match || room.starting) return;
+    if (!this.rooms.has(room.code)) return;
+    const connected = [...room.members.values()].filter((m) => m.connected).length;
+    if (connected >= room.config.players) {
+      this.beginInBackground(room);
+      return;
+    }
+    if (connected < ARENA_CONFIG.matchmaking.minPlayers) {
+      if (room.autoStartAt !== null) {
+        this.clearAutoStart(room);
+        this.broadcastRoom(room);
+      }
+      return;
+    }
+    if (room.autoStartAt !== null) return;
+    room.autoStartAt = Date.now() + this.timings.matchmakingWaitMs;
+    room.autoTimer = setTimeout(() => {
+      room.autoTimer = null;
+      room.autoStartAt = null;
+      const still = [...room.members.values()].filter((m) => m.connected).length;
+      if (still >= ARENA_CONFIG.matchmaking.minPlayers) this.beginInBackground(room);
+      else this.broadcastRoom(room);
+    }, this.timings.matchmakingWaitMs);
+    this.broadcastRoom(room);
+  }
+
+  private clearAutoStart(room: Room) {
+    if (room.autoTimer) clearTimeout(room.autoTimer);
+    room.autoTimer = null;
+    room.autoStartAt = null;
+  }
+
+  private async createMatch(room: Room, members: Member[]): Promise<void> {
     const questions = await this.loadQuestions(room.languageId, room.locale);
     if (questions.length < 4) {
       throw new ArenaError("NO_QUESTIONS", "Ainda não há perguntas suficientes nesta língua.");
@@ -695,8 +805,8 @@ export class ArenaService implements OnModuleDestroy {
         (match.scores.get(b.id) ?? 0) - (match.scores.get(a.id) ?? 0),
     );
     // Duelo entre amigos paga (até 3 por dia); 2 contra 2 tem sempre 4 jogadores reais;
-    // Sobrevivência privada só com 4+ jogadores.
-    const eligible = duel || teams || rewardEligible(true, match.players.length);
+    // Sobrevivência privada só com 4+ jogadores (a pública já começa com 4+).
+    const eligible = duel || teams || rewardEligible(!room.isPublic, match.players.length);
     const table = await loadRewardTable(this.prisma);
     const now = new Date();
     const rewards = new Map<string, { xp: number; coins: number; reason: string }>();
@@ -797,6 +907,12 @@ export class ArenaService implements OnModuleDestroy {
       this.emit({ user: userId }, "match:reward", { matchId: match.id, ...r });
     }
 
+    if (room.isPublic) {
+      // Sala pública: acaba aqui (sem aviso de "fechada", para o resultado ficar no ecrã).
+      // Para jogar outra vez, procura-se nova partida.
+      this.retireRoom(room);
+      return;
+    }
     // A sala volta à espera para poderem jogar outra vez; quem saiu já não está nela.
     room.match = null;
     for (const id of match.departed) room.members.delete(id);
@@ -957,6 +1073,9 @@ export class ArenaService implements OnModuleDestroy {
       config: room.config,
       languageId: room.languageId,
       locale: room.locale,
+      isPublic: room.isPublic,
+      autoStartAt: room.autoStartAt,
+      serverNow: Date.now(),
       members: [...room.members.values()]
         .sort((a, b) => a.joinedAt - b.joinedAt)
         .map((m) => ({
@@ -1023,6 +1142,21 @@ export class ArenaService implements OnModuleDestroy {
     this.emit({ room: socketRoom(room.code) }, "room:closed", { code: room.code, reason });
   }
 
+  /** Remove a sala sem avisar os clientes (o último estado continua no ecrã deles). */
+  private retireRoom(room: Room) {
+    this.clearTimers(room);
+    for (const id of room.members.keys()) {
+      if (this.roomOf.get(id) === room.code) this.roomOf.delete(id);
+    }
+    this.rooms.delete(room.code);
+    this.emit({ room: socketRoom(room.code) }, "room:retired", { code: room.code });
+  }
+
+  private currentRoom(userId: string): Room | undefined {
+    const code = this.roomOf.get(userId);
+    return code ? this.rooms.get(code) : undefined;
+  }
+
   private requireRoom(userId: string): Room {
     const code = this.roomOf.get(userId);
     const room = code ? this.rooms.get(code) : undefined;
@@ -1066,6 +1200,7 @@ export class ArenaService implements OnModuleDestroy {
   }
 
   private clearTimers(room: Room) {
+    this.clearAutoStart(room);
     if (room.match) this.clearTimer(room.match);
     for (const m of room.members.values()) if (m.graceTimer) clearTimeout(m.graceTimer);
   }

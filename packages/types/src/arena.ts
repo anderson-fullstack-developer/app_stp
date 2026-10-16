@@ -2,8 +2,8 @@
  * Contrato em tempo real da Arena (Socket.IO, namespace /arena) — espelho de
  * apps/api/src/arena/arena.types.ts. O servidor decide tudo; o cliente só envia intenções.
  *
- * Cliente → servidor (com resposta): room:create, room:join, room:leave, room:ready,
- * room:start, room:resync, match:answer.
+ * Cliente → servidor (com resposta): room:create, room:join, queue:join, room:leave,
+ * room:ready, room:start, room:resync, match:answer.
  * Servidor → cliente: arena:ready, room:state, room:closed, match:countdown, match:question,
  * match:answered, match:reveal, match:final, match:finished, match:reward.
  */
@@ -34,6 +34,12 @@ export interface ArenaRoomDto {
   config: ArenaConfigDto;
   languageId: string;
   locale: string;
+  /** Sala de "Procurar partida" (desconhecidos; começa sozinha). */
+  isPublic: boolean;
+  /** Sobrevivência pública: hora oficial (epoch ms) a que começa sozinha; null = à espera do mínimo. */
+  autoStartAt: number | null;
+  /** Relógio do servidor quando este estado foi enviado. */
+  serverNow: number;
   members: ArenaMemberDto[];
 }
 

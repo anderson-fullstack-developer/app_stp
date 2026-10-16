@@ -130,6 +130,11 @@ export const MULTIPLAYER_CONFIG = {
     lives: SURVIVAL_STARTING_LIVES,
     seconds: QUESTION_DURATION,
   },
+  /**
+   * "Procurar partida" (desconhecidos): a Sobrevivência pública começa sozinha quando enche
+   * ou `waitSeconds` depois de ter pelo menos `minPlayers`. Sem bots.
+   */
+  matchmaking: { minPlayers: 4, waitSeconds: 60 },
   duel: { questions: DUEL_QUESTION_COUNT, seconds: QUESTION_DURATION },
   teams: { questions: 8, seconds: QUESTION_DURATION },
   scoring: { base: 100, maxSpeedBonus: 50 },

@@ -26,6 +26,13 @@ const CreateBody = z.object({
     .optional(),
 });
 const JoinBody = z.object({ code: z.string().trim().min(4).max(12) });
+const QueueBody = z.object({
+  mode: z.enum(["survival", "duel"]),
+  languageId: z
+    .string()
+    .regex(/^[a-z][a-z0-9_-]{1,40}$/)
+    .optional(),
+});
 const ReadyBody = z.object({ ready: z.boolean() });
 const TeamBody = z.object({ team: z.enum(["A", "B"]) });
 const InviteBody = z.object({ userId: z.uuid() });
@@ -58,7 +65,13 @@ export class ArenaGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     this.server = server;
     this.arena.setEmitter((target, event, payload) => {
       const room = "room" in target ? target.room : `user:${target.user}`;
+      // Sala removida: os sockets deixam de a ouvir (os clientes não recebem nada).
+      if (event === "room:retired") {
+        this.server.in(room).socketsLeave(room);
+        return;
+      }
       this.server.to(room).emit(event, payload);
+      if (event === "room:closed") this.server.in(room).socketsLeave(room);
     });
   }
 
@@ -110,6 +123,20 @@ export class ArenaGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
   join(@ConnectedSocket() socket: ArenaSocket, @MessageBody() body: unknown) {
     return this.run(socket, async (who) => {
       const room = this.arena.joinRoom(who, JoinBody.parse(body).code);
+      await this.joinSocketRoom(socket, who.userId);
+      return { room };
+    });
+  }
+
+  /** "Procurar partida": entra na fila pública (sala de espera que começa sozinha). */
+  @SubscribeMessage("queue:join")
+  queue(@ConnectedSocket() socket: ArenaSocket, @MessageBody() body: unknown) {
+    return this.run(socket, async (who) => {
+      const input = QueueBody.parse(body);
+      const room = await this.arena.findMatch(who, {
+        mode: input.mode,
+        ...(input.languageId ? { languageId: input.languageId } : {}),
+      });
       await this.joinSocketRoom(socket, who.userId);
       return { room };
     });
