@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { AuthScreen } from "@/admin/AuthScreen";
-import { ROLE_LABEL } from "@/admin/permissions";
+import { PANEL_ROLES, ROLE_LABEL } from "@/admin/permissions";
 import { adminAuth } from "@/services/admin";
 import type { AdminRole } from "@/admin/types";
 import { Field, Select, TextInput } from "@/admin/ui";
@@ -59,7 +59,7 @@ function AdminLogin() {
           <Select<AdminRole>
             value={role}
             onChange={setRole}
-            options={(Object.keys(ROLE_LABEL) as AdminRole[]).map((r) => ({
+            options={PANEL_ROLES.map((r) => ({
               value: r,
               label: `${ROLE_LABEL[r]} · ${r}`,
             }))}

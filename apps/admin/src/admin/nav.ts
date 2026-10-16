@@ -14,6 +14,7 @@ import {
   Layers,
   ListChecks,
   Megaphone,
+  Mic,
   MessageSquareText,
   Settings,
   Target,
@@ -50,6 +51,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { to: "/admin/phrases", label: "Frases", icon: MessageSquareText, perm: "content.edit" },
       { to: "/admin/exercises", label: "Exercícios", icon: ListChecks, perm: "content.edit" },
       { to: "/admin/audios", label: "Áudios", icon: FileAudio, perm: "content.edit" },
+      { to: "/admin/voice", label: "Gravações (vozes)", icon: Mic, perm: "rewards.manage" },
     ],
   },
   {

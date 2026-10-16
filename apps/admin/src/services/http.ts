@@ -46,5 +46,6 @@ export const http = {
   post: <T>(r: ApiResource, p: (string | number)[], b?: unknown) => apiRequest<T>("POST", r, p, b),
   patch: <T>(r: ApiResource, p: (string | number)[], b?: unknown) =>
     apiRequest<T>("PATCH", r, p, b),
+  put: <T>(r: ApiResource, p: (string | number)[], b?: unknown) => apiRequest<T>("PUT", r, p, b),
   del: <T>(r: ApiResource, ...p: (string | number)[]) => apiRequest<T>("DELETE", r, p),
 };

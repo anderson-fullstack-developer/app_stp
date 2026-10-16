@@ -49,6 +49,7 @@ import { Route as AdminSearchRouteImport } from './routes/admin.search'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminVocabularyRouteImport } from './routes/admin.vocabulary'
+import { Route as AdminVoiceRouteImport } from './routes/admin.voice'
 import { Route as AdminForbiddenRouteImport } from './routes/admin_.forbidden'
 import { Route as AdminLoginRouteImport } from './routes/admin_.login'
 import { Route as AdminSessionExpiredRouteImport } from './routes/admin_.session-expired'
@@ -69,6 +70,9 @@ import { Route as SettingsAccountRouteImport } from './routes/settings_.account'
 import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
 import { Route as SignUpSplatRouteImport } from './routes/sign-up.$'
 import { Route as UserUserIdRouteImport } from './routes/user.$userId'
+import { Route as VoiceIndexRouteImport } from './routes/voice.index'
+import { Route as VoiceListenRouteImport } from './routes/voice.listen'
+import { Route as VoiceRecordRouteImport } from './routes/voice.record'
 import { Route as AdminLessonsIndexRouteImport } from './routes/admin.lessons.index'
 import { Route as AdminLessonsLessonIdRouteImport } from './routes/admin.lessons.$lessonId'
 
@@ -272,6 +276,11 @@ const AdminVocabularyRoute = AdminVocabularyRouteImport.update({
   path: '/vocabulary',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminVoiceRoute = AdminVoiceRouteImport.update({
+  id: '/voice',
+  path: '/voice',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminForbiddenRoute = AdminForbiddenRouteImport.update({
   id: '/admin_/forbidden',
   path: '/admin/forbidden',
@@ -372,6 +381,21 @@ const UserUserIdRoute = UserUserIdRouteImport.update({
   path: '/user/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VoiceIndexRoute = VoiceIndexRouteImport.update({
+  id: '/voice/',
+  path: '/voice/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VoiceListenRoute = VoiceListenRouteImport.update({
+  id: '/voice/listen',
+  path: '/voice/listen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VoiceRecordRoute = VoiceRecordRouteImport.update({
+  id: '/voice/record',
+  path: '/voice/record',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminLessonsIndexRoute = AdminLessonsIndexRouteImport.update({
   id: '/lessons/',
   path: '/lessons/',
@@ -423,6 +447,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/vocabulary': typeof AdminVocabularyRoute
+  '/admin/voice': typeof AdminVoiceRoute
   '/admin/forbidden': typeof AdminForbiddenRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/session-expired': typeof AdminSessionExpiredRoute
@@ -443,7 +468,10 @@ export interface FileRoutesByFullPath {
   '/sign-in/$': typeof SignInSplatRoute
   '/sign-up/$': typeof SignUpSplatRoute
   '/user/$userId': typeof UserUserIdRoute
+  '/voice/listen': typeof VoiceListenRoute
+  '/voice/record': typeof VoiceRecordRoute
   '/admin/': typeof AdminIndexRoute
+  '/voice/': typeof VoiceIndexRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
   '/admin/lessons/': typeof AdminLessonsIndexRoute
 }
@@ -486,6 +514,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/vocabulary': typeof AdminVocabularyRoute
+  '/admin/voice': typeof AdminVoiceRoute
   '/admin/forbidden': typeof AdminForbiddenRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/session-expired': typeof AdminSessionExpiredRoute
@@ -506,7 +535,10 @@ export interface FileRoutesByTo {
   '/sign-in/$': typeof SignInSplatRoute
   '/sign-up/$': typeof SignUpSplatRoute
   '/user/$userId': typeof UserUserIdRoute
+  '/voice/listen': typeof VoiceListenRoute
+  '/voice/record': typeof VoiceRecordRoute
   '/admin': typeof AdminIndexRoute
+  '/voice': typeof VoiceIndexRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
   '/admin/lessons': typeof AdminLessonsIndexRoute
 }
@@ -551,6 +583,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/vocabulary': typeof AdminVocabularyRoute
+  '/admin/voice': typeof AdminVoiceRoute
   '/admin_/forbidden': typeof AdminForbiddenRoute
   '/admin_/login': typeof AdminLoginRoute
   '/admin_/session-expired': typeof AdminSessionExpiredRoute
@@ -571,7 +604,10 @@ export interface FileRoutesById {
   '/sign-in/$': typeof SignInSplatRoute
   '/sign-up/$': typeof SignUpSplatRoute
   '/user/$userId': typeof UserUserIdRoute
+  '/voice/listen': typeof VoiceListenRoute
+  '/voice/record': typeof VoiceRecordRoute
   '/admin/': typeof AdminIndexRoute
+  '/voice/': typeof VoiceIndexRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
   '/admin/lessons/': typeof AdminLessonsIndexRoute
 }
@@ -617,6 +653,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/vocabulary'
+    | '/admin/voice'
     | '/admin/forbidden'
     | '/admin/login'
     | '/admin/session-expired'
@@ -637,7 +674,10 @@ export interface FileRouteTypes {
     | '/sign-in/$'
     | '/sign-up/$'
     | '/user/$userId'
+    | '/voice/listen'
+    | '/voice/record'
     | '/admin/'
+    | '/voice/'
     | '/admin/lessons/$lessonId'
     | '/admin/lessons/'
   fileRoutesByTo: FileRoutesByTo
@@ -680,6 +720,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/vocabulary'
+    | '/admin/voice'
     | '/admin/forbidden'
     | '/admin/login'
     | '/admin/session-expired'
@@ -700,7 +741,10 @@ export interface FileRouteTypes {
     | '/sign-in/$'
     | '/sign-up/$'
     | '/user/$userId'
+    | '/voice/listen'
+    | '/voice/record'
     | '/admin'
+    | '/voice'
     | '/admin/lessons/$lessonId'
     | '/admin/lessons'
   id:
@@ -744,6 +788,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/vocabulary'
+    | '/admin/voice'
     | '/admin_/forbidden'
     | '/admin_/login'
     | '/admin_/session-expired'
@@ -764,7 +809,10 @@ export interface FileRouteTypes {
     | '/sign-in/$'
     | '/sign-up/$'
     | '/user/$userId'
+    | '/voice/listen'
+    | '/voice/record'
     | '/admin/'
+    | '/voice/'
     | '/admin/lessons/$lessonId'
     | '/admin/lessons/'
   fileRoutesById: FileRoutesById
@@ -810,6 +858,9 @@ export interface RootRouteChildren {
   SignInSplatRoute: typeof SignInSplatRoute
   SignUpSplatRoute: typeof SignUpSplatRoute
   UserUserIdRoute: typeof UserUserIdRoute
+  VoiceListenRoute: typeof VoiceListenRoute
+  VoiceRecordRoute: typeof VoiceRecordRoute
+  VoiceIndexRoute: typeof VoiceIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1094,6 +1145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVocabularyRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/voice': {
+      id: '/admin/voice'
+      path: '/voice'
+      fullPath: '/admin/voice'
+      preLoaderRoute: typeof AdminVoiceRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin_/forbidden': {
       id: '/admin_/forbidden'
       path: '/admin/forbidden'
@@ -1234,6 +1292,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/voice/': {
+      id: '/voice/'
+      path: '/voice'
+      fullPath: '/voice/'
+      preLoaderRoute: typeof VoiceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/voice/listen': {
+      id: '/voice/listen'
+      path: '/voice/listen'
+      fullPath: '/voice/listen'
+      preLoaderRoute: typeof VoiceListenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/voice/record': {
+      id: '/voice/record'
+      path: '/voice/record'
+      fullPath: '/voice/record'
+      preLoaderRoute: typeof VoiceRecordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/lessons/': {
       id: '/admin/lessons/'
       path: '/lessons'
@@ -1271,6 +1350,7 @@ interface AdminRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminVocabularyRoute: typeof AdminVocabularyRoute
+  AdminVoiceRoute: typeof AdminVoiceRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminLessonsLessonIdRoute: typeof AdminLessonsLessonIdRoute
   AdminLessonsIndexRoute: typeof AdminLessonsIndexRoute
@@ -1296,6 +1376,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminVocabularyRoute: AdminVocabularyRoute,
+  AdminVoiceRoute: AdminVoiceRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminLessonsLessonIdRoute: AdminLessonsLessonIdRoute,
   AdminLessonsIndexRoute: AdminLessonsIndexRoute,
@@ -1344,6 +1425,9 @@ const rootRouteChildren: RootRouteChildren = {
   SignInSplatRoute: SignInSplatRoute,
   SignUpSplatRoute: SignUpSplatRoute,
   UserUserIdRoute: UserUserIdRoute,
+  VoiceListenRoute: VoiceListenRoute,
+  VoiceRecordRoute: VoiceRecordRoute,
+  VoiceIndexRoute: VoiceIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

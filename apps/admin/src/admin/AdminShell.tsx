@@ -7,7 +7,7 @@ import { LogoMark } from "@/components/app/Brand";
 import { APP_CONFIG } from "@stp/config";
 import { cn } from "@/lib/utils";
 import { ADMIN_NAV, permissionFor } from "./nav";
-import { can, ROLE_LABEL } from "./permissions";
+import { can, PANEL_ROLES, ROLE_LABEL } from "./permissions";
 import { SERVER_ADMIN_ROUTES, useServerAdmin } from "./server";
 import { adminAuth, useAdminSession } from "./store";
 import type { AdminRole } from "./types";
@@ -148,7 +148,7 @@ export function AdminShell() {
                   value={session.role}
                   onChange={(r) => adminAuth.switchRole(r)}
                   className="h-8 w-44 text-xs"
-                  options={(Object.keys(ROLE_LABEL) as AdminRole[]).map((r) => ({
+                  options={PANEL_ROLES.map((r) => ({
                     value: r,
                     label: ROLE_LABEL[r],
                   }))}

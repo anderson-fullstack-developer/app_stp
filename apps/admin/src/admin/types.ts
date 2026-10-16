@@ -1,4 +1,12 @@
-export type AdminRole = "SUPER_ADMIN" | "ADMIN" | "LINGUIST" | "CONTENT_EDITOR" | "MODERATOR";
+/** Papéis do painel + papéis das gravações (estes não dão acesso ao painel). */
+export type AdminRole =
+  | "SUPER_ADMIN"
+  | "ADMIN"
+  | "LINGUIST"
+  | "CONTENT_EDITOR"
+  | "MODERATOR"
+  | "VOICE_SPEAKER"
+  | "VOICE_LISTENER";
 
 export interface AdminSession {
   id: string;

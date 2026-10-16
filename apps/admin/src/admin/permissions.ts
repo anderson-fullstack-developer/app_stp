@@ -42,6 +42,9 @@ export const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
   LINGUIST: ["dashboard", "content.edit", "content.review", "content.publish"],
   CONTENT_EDITOR: ["dashboard", "content.edit"],
   MODERATOR: ["dashboard", "users.view", "users.moderate", "multiplayer.view", "reports.manage"],
+  // Gravações: usam /voice, não o painel.
+  VOICE_SPEAKER: [],
+  VOICE_LISTENER: [],
 };
 
 export const can = (role: AdminRole | undefined, p: Permission) =>
@@ -53,4 +56,11 @@ export const ROLE_LABEL: Record<AdminRole, string> = {
   LINGUIST: "Linguista",
   CONTENT_EDITOR: "Editor de conteúdo",
   MODERATOR: "Moderador",
+  VOICE_SPEAKER: "Falador (gravações)",
+  VOICE_LISTENER: "Ouvinte (gravações)",
 };
+
+/** Papéis com acesso ao painel (os das gravações ficam de fora). */
+export const PANEL_ROLES = (Object.keys(ROLE_PERMISSIONS) as AdminRole[]).filter(
+  (r) => ROLE_PERMISSIONS[r].length > 0,
+);
