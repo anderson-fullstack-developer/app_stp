@@ -27,6 +27,7 @@ import {
   useNow,
   useUrgencySound,
 } from "@/features/arena/arena";
+import { RevealPronunciation } from "@/features/arena/RevealPronunciation";
 import {
   Chip,
   CountdownOverlay,
@@ -120,6 +121,7 @@ export default function ArenaMatch() {
             hint={`${m.question.mode === "meaning" ? t("arena.hintMeaning") : t("arena.hintWord")}${room.languageId === KRIOLU ? t("arena.krioluBeta") : ""}`}
             onAnswer={(id) => void arena.answer(id)}
           />
+          {m.phase === "reveal" && <RevealPronunciation reveal={m.reveal} />}
           {m.phase === "question" && m.selected && (
             <AppText variant="small" tone="muted" center>
               {t("arena.answerSent", { done: m.answeredCount, total: alive.length })}

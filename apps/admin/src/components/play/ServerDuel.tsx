@@ -31,6 +31,7 @@ import {
 } from "@/components/play/arena-hooks";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { QuestionSpeakButton } from "@/components/app/SpeakButton";
+import { RevealPronunciation } from "@/components/play/RevealPronunciation";
 import { avatarColor } from "@/lib/avatar";
 import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
 import { arena, type ArenaState, useArena } from "@/lib/multiplayer/arena-client";
@@ -306,6 +307,7 @@ function DuelMatch({ s }: { s: ArenaState }) {
             />
           ))}
         </div>
+        {m.phase === "reveal" && <RevealPronunciation reveal={m.reveal} />}
         {m.phase === "question" && m.selected && (
           <p className="text-center text-sm font-semibold text-muted-foreground">
             Resposta enviada · à espera de {other?.name ?? "o adversário"}…

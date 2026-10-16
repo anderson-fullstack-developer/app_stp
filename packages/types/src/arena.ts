@@ -107,6 +107,8 @@ export interface ArenaRevealEvent {
   round: number;
   questionId: string;
   correctOptionId: string;
+  /** Pronúncia real da palavra certa (falante nativo), se existir. */
+  audio: { url: string; speaker: string | null } | null;
   outcomes: Record<string, ArenaOutcome>;
   players: ArenaPlayerDto[];
   summary: ArenaRoundSummaryDto;

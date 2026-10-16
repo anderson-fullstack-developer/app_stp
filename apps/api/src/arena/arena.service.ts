@@ -17,6 +17,7 @@ import type {
   MatchStanding,
   MatchView,
   PlayerView,
+  RevealAudio,
   RoomView,
   RoundQuestion,
 } from "./arena.types.js";
@@ -112,6 +113,8 @@ interface Match {
   scores: Map<string, number>;
   answerMs: Map<string, number>;
   questions: StoredQuestion[];
+  /** Gravações reais (falantes nativos) das palavras da partida, por vocabularyId. */
+  audio: Map<string, RevealAudio>;
   round: number;
   phase: MatchView["phase"];
   players: ArenaPlayer[];
@@ -547,6 +550,7 @@ export class ArenaService implements OnModuleDestroy {
 
   private async createMatch(room: Room, members: Member[]): Promise<void> {
     const questions = await this.loadQuestions(room.languageId, room.locale);
+    const audio = await this.loadAudio(room.languageId, questions);
     if (questions.length < 4) {
       throw new ArenaError("NO_QUESTIONS", "Ainda não há perguntas suficientes nesta língua.");
     }
@@ -585,6 +589,7 @@ export class ArenaService implements OnModuleDestroy {
       scores: new Map(playerIds.map((id) => [id, 0])),
       answerMs: new Map(playerIds.map((id) => [id, 0])),
       questions,
+      audio,
       round: 0,
       phase: "countdown",
       players: createPlayers(playerIds, room.config.lives),
@@ -691,6 +696,8 @@ export class ArenaService implements OnModuleDestroy {
       round: match.round,
       questionId: this.questionId(match),
       correctOptionId: q.correctOptionId,
+      // Pronúncia só na revelação (antes, revelaria a resposta).
+      audio: match.audio.get(q.vocabularyId) ?? null,
       outcomes,
       players: this.playerViews(match),
       summary,
@@ -748,11 +755,13 @@ export class ArenaService implements OnModuleDestroy {
     const counts = Object.values(outcomes);
     match.phase = "reveal";
     match.deadlineAt = null;
+    const vocabularyId = this.currentQuestion(match)?.vocabularyId;
     this.emit({ room: socketRoom(room.code) }, "match:reveal", {
       matchId: match.id,
       round: match.round,
       questionId: this.questionId(match),
       correctOptionId,
+      audio: (vocabularyId && match.audio.get(vocabularyId)) || null,
       outcomes,
       players: this.playerViews(match),
       summary: {
@@ -1019,6 +1028,33 @@ export class ArenaService implements OnModuleDestroy {
     }
     return buildQuestions(chosen.slice(0, ARENA_CONFIG.maxRounds), pool, Math.random).filter(
       (q) => q.options.length >= 2,
+    );
+  }
+
+  /**
+   * Gravações das palavras escolhidas para a partida (uma consulta por partida), com a
+   * mesma regra de visibilidade do conteúdo: língua Beta mostra rascunhos, as outras só
+   * gravações aprovadas.
+   */
+  private async loadAudio(
+    languageId: string,
+    questions: StoredQuestion[],
+  ): Promise<Map<string, RevealAudio>> {
+    const language = await this.prisma.language.findUniqueOrThrow({
+      where: { id: languageId },
+      select: { status: true },
+    });
+    const rows = await this.prisma.vocabulary.findMany({
+      where: {
+        id: { in: [...new Set(questions.map((q) => q.vocabularyId))] },
+        audio: { status: { in: visibleContentStatuses(language.status) } },
+      },
+      select: { id: true, audio: { select: { url: true, speakerName: true } } },
+    });
+    return new Map(
+      rows.flatMap((r) =>
+        r.audio ? [[r.id, { url: r.audio.url, speaker: r.audio.speakerName }] as const] : [],
+      ),
     );
   }
 

@@ -28,6 +28,7 @@ import {
 import { RewardRow, TeamScore } from "@/components/play/ResultUI";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { QuestionSpeakButton } from "@/components/app/SpeakButton";
+import { RevealPronunciation } from "@/components/play/RevealPronunciation";
 import { avatarColor } from "@/lib/avatar";
 import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
 import { arena, type ArenaState, useArena } from "@/lib/multiplayer/arena-client";
@@ -174,6 +175,7 @@ function TeamsMatch({ s }: { s: ArenaState }) {
             />
           ))}
         </div>
+        {m.phase === "reveal" && <RevealPronunciation reveal={m.reveal} />}
         {m.phase === "question" && m.selected && (
           <p className="text-center text-sm font-semibold text-muted-foreground">
             Resposta enviada · {m.answeredCount}/{m.players.length} já responderam

@@ -47,6 +47,12 @@ export interface PlayerView {
   team: "A" | "B" | null;
 }
 
+/** Gravação de um falante nativo (só enviada na revelação da ronda). */
+export interface RevealAudio {
+  url: string;
+  speaker: string | null;
+}
+
 export type MatchPhase = "countdown" | "question" | "reveal" | "final" | "finished";
 
 /** Pergunta da ronda: sem a resposta certa. */
@@ -104,6 +110,8 @@ export interface ArenaServerEvents {
     round: number;
     questionId: string;
     correctOptionId: string;
+    /** Pronúncia real da palavra certa (falante nativo), se existir. */
+    audio: RevealAudio | null;
     outcomes: Record<string, AnswerOutcome>;
     players: PlayerView[];
     summary: RoundSummary;
