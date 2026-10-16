@@ -154,8 +154,7 @@ export interface ArenaInviteEvent {
 }
 
 export type ArenaAck<T = object> =
-  | ({ ok: true } & T)
-  | { ok: false; code: string; message: string };
+  ({ ok: true } & T) | { ok: false; code: string; message: string };
 
 export interface ArenaAnswerAck {
   accepted: boolean;

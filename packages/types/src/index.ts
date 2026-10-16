@@ -106,7 +106,10 @@ export interface UserProgress {
   currentLessonId: string;
 }
 
-export interface Friend extends Pick<User, "id" | "name" | "username" | "avatarColor" | "level" | "streak" | "weeklyXp" | "country"> {
+export interface Friend extends Pick<
+  User,
+  "id" | "name" | "username" | "avatarColor" | "level" | "streak" | "weeklyXp" | "country"
+> {
   status: "friend" | "request" | "suggestion";
 }
 
@@ -197,8 +200,16 @@ export interface FriendRequest {
 }
 
 export type {
-  QuizQuestion, MatchPlayerSeed, SurvivalPlayer, MatchConfig, MatchResult, PrivateRoom, LobbyMember, RoomMode,
-  RoundSummary as GameRound, MatchResult as GameResult,
+  QuizQuestion,
+  MatchPlayerSeed,
+  SurvivalPlayer,
+  MatchConfig,
+  MatchResult,
+  PrivateRoom,
+  LobbyMember,
+  RoomMode,
+  RoundSummary as GameRound,
+  MatchResult as GameResult,
 } from "./multiplayer.js";
 export interface GameAnswer {
   matchId: string;

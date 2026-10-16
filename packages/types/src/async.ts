@@ -12,4 +12,4 @@ export type AsyncState<T> =
 export type Availability =
   | { kind: "available" }
   | { kind: "disabled"; reason: string }
-  | { kind: "locked"; reason: string; unlockHint?: string  | undefined};
+  | { kind: "locked"; reason: string; unlockHint?: string | undefined };

@@ -50,9 +50,19 @@ export interface MatchConfig {
   seconds: number;
 }
 
-export interface Reward { xp: number; coins: number }
+export interface Reward {
+  xp: number;
+  coins: number;
+}
 
-export interface Standing { id: string; name: string; color: AvatarColor; place: number; isMe?: boolean | undefined; detail?: string }
+export interface Standing {
+  id: string;
+  name: string;
+  color: AvatarColor;
+  place: number;
+  isMe?: boolean | undefined;
+  detail?: string;
+}
 
 export interface MatchResult {
   mode: "survival";
@@ -81,5 +91,4 @@ export interface PrivateRoom {
 }
 
 export type JoinRoomResult =
-  | { ok: true; room: PrivateRoom }
-  | { ok: false; reason: "invalid" | "full" | "started" };
+  { ok: true; room: PrivateRoom } | { ok: false; reason: "invalid" | "full" | "started" };

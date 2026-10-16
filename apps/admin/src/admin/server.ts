@@ -287,6 +287,7 @@ export const SERVER_ADMIN_ROUTES = [
   "/admin/lessons",
   "/admin/exercises",
   "/admin/audios",
+  "/admin/voice",
   "/admin/vocabulary",
   "/admin/phrases",
   "/admin/users",

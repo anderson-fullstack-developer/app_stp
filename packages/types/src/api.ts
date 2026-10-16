@@ -278,3 +278,64 @@ export interface ShopPurchaseDto {
   streakFreezes: number;
   charged: number;
 }
+
+// ─────────────────── Gravações de pronúncia (Faladores e Ouvintes) ───────────────────
+
+/** GET /api/v1/voice/me */
+export interface VoiceMeDto {
+  /** false = o servidor ainda não guarda áudio (produção sem R2). */
+  storageEnabled: boolean;
+  speakerLanguages: { id: string; name: string }[];
+  listenerLanguages: { id: string; name: string }[];
+  consentVersion: string;
+  profile: { displayName: string | null; region: string | null; consentCurrent: boolean } | null;
+  last7Days: { recorded: number; approved: number; reviews: number };
+}
+
+/** GET /api/v1/voice/words */
+export interface VoiceWordDto {
+  vocabularyId: string;
+  word: string;
+  gloss: string | null;
+  partOfSpeech: string;
+  inLessons: boolean;
+}
+
+/** GET /api/v1/voice/review/next */
+export interface VoiceReviewItemDto {
+  recordingId: string;
+  word: string;
+  gloss: string | null;
+  partOfSpeech: string;
+  region: string | null;
+  durationMs: number;
+}
+
+export type VoiceRejectReason = "PRONUNCIATION" | "NOISE" | "WRONG_WORD" | "CUT_OFF" | "OTHER";
+
+/** GET /api/v1/admin/voice/overview */
+export interface VoiceOverviewDto {
+  pending: number;
+  approved: number;
+  rejected: number;
+  lessonWords: number;
+  lessonWordsWithAudio: number;
+  contributors: number;
+}
+
+/** GET /api/v1/admin/voice/report */
+export interface VoiceReportDto {
+  from: string;
+  to: string;
+  people: {
+    userId: string;
+    username: string;
+    name: string;
+    email: string;
+    recorded: number;
+    approved: number;
+    reviews: number;
+    controls: number;
+    controlsMatched: number;
+  }[];
+}

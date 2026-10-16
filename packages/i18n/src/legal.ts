@@ -108,8 +108,7 @@ const pt: Record<LegalKind, LegalDoc> = {
   terms: {
     title: "Termos de Utilização",
     updated: "Última atualização: {{date}}",
-    intro:
-      "Ao criar uma conta ou usar o {{app}}, aceitas estes termos. São curtos de propósito.",
+    intro: "Ao criar uma conta ou usar o {{app}}, aceitas estes termos. São curtos de propósito.",
     sections: [
       {
         heading: "1. A tua conta",
@@ -258,7 +257,8 @@ const en: Record<LegalKind, LegalDoc> = {
   terms: {
     title: "Terms of Use",
     updated: "Last updated: {{date}}",
-    intro: "By creating an account or using {{app}}, you accept these terms. They are short on purpose.",
+    intro:
+      "By creating an account or using {{app}}, you accept these terms. They are short on purpose.",
     sections: [
       {
         heading: "1. Your account",

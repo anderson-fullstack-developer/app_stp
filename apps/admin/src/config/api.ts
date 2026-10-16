@@ -35,6 +35,7 @@ export const API_ENDPOINTS = {
   rooms: `${API_PREFIX}/rooms`,
   admin: `${API_PREFIX}/admin`,
   content: `${API_PREFIX}/content`,
+  voice: `${API_PREFIX}/voice`,
 } as const;
 
 export type ApiResource = keyof typeof API_ENDPOINTS;

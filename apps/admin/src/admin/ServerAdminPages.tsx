@@ -626,7 +626,15 @@ const Item = ({ label, value, wide }: { label: string; value: string; wide?: boo
 
 /* --------------------------------- Utilizadores --------------------------------- */
 
-const GRANTABLE: AdminRole[] = ["MODERATOR", "CONTENT_EDITOR", "LINGUIST", "ADMIN", "SUPER_ADMIN"];
+const GRANTABLE: AdminRole[] = [
+  "MODERATOR",
+  "CONTENT_EDITOR",
+  "LINGUIST",
+  "VOICE_SPEAKER",
+  "VOICE_LISTENER",
+  "ADMIN",
+  "SUPER_ADMIN",
+];
 
 export function ServerUsers() {
   const [q, setQ] = useState("");
@@ -700,7 +708,9 @@ function UserDrawer({ user, onClose }: { user: AdminUserRow; onClose: () => void
   const [role, setRole] = useState<AdminRole>("LINGUIST");
   const [languageId, setLanguageId] = useState("");
   const [confirmSuspend, setConfirmSuspend] = useState(false);
-  const perLanguage = role === "LINGUIST" || role === "CONTENT_EDITOR";
+  const perLanguage = ["LINGUIST", "CONTENT_EDITOR", "VOICE_SPEAKER", "VOICE_LISTENER"].includes(
+    role,
+  );
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "users"] });
 
   const grant = useMutation({
