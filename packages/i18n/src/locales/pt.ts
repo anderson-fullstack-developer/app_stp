@@ -567,6 +567,25 @@ export const pt = {
     storageOff:
       "O servidor ainda não guarda áudio neste ambiente. As gravações ficam disponíveis em breve.",
     last7: "Últimos 7 dias: {{recorded}} gravadas · {{approved}} aprovadas · {{reviews}} ouvidas",
+    stats: {
+      today: "Hoje",
+      total: "Total",
+      approved: "Aprovadas",
+      pending: "À espera",
+      rejected: "Rejeitadas",
+      reviewed: "Ouvidas",
+    },
+    mine: {
+      title: "O meu painel",
+      open: "Ver o meu painel",
+      all: "Todas",
+      empty: "Ainda não há gravações aqui.",
+      reasons: "Motivo: {{list}}",
+      play: "Ouvir",
+      status: { PENDING: "À espera", APPROVED: "Aprovada", REJECTED: "Rejeitada" },
+      tipRejected:
+        "Grava outra vez as rejeitadas com mais atenção ao motivo — voltam a aparecer na tua lista de palavras.",
+    },
     recordCard: "Gravar palavras",
     recordCardText: "Lê cada palavra em voz alta, com a pronúncia natural da tua ilha.",
     listenCard: "Ouvir gravações",

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { APP_NAME } from "@stp/config";
-import { Headphones, Mic } from "lucide-react";
+import { BarChart3, Headphones, Mic } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { VoiceGate } from "@/components/voice/VoiceGate";
 import { VoicePage } from "@/components/voice/VoicePage";
@@ -37,6 +37,19 @@ function VoiceHome() {
                   <Mic className="size-8" />
                   <p className="mt-2 font-display text-2xl font-bold">{t("voice.recordCard")}</p>
                   <p className="text-sm opacity-85">{t("voice.recordCardText")}</p>
+                </div>
+              </Link>
+            )}
+            {me.speakerLanguages.length > 0 && (
+              <Link to="/voice/mine" className="block">
+                <div className="pressable card flex items-center gap-3 rounded-[1.75rem] p-4">
+                  <BarChart3 className="size-7 text-primary" />
+                  <div className="flex-1">
+                    <p className="font-display text-lg font-bold">{t("voice.mine.title")}</p>
+                    <p className="text-sm text-muted-foreground">
+                      ✅ {me.speaker.approved} · ⏳ {me.speaker.pending} · ❌ {me.speaker.rejected}
+                    </p>
+                  </div>
                 </div>
               </Link>
             )}

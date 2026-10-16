@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { APP_NAME } from "@stp/config";
 import type { VoiceRejectReason } from "@stp/types/api";
@@ -9,6 +9,7 @@ import { AppButton } from "@/components/app/Buttons";
 import { LoadingState } from "@/components/app/Primitives";
 import { VoiceGate } from "@/components/voice/VoiceGate";
 import { VoicePage } from "@/components/voice/VoicePage";
+import { VoiceStats } from "@/components/voice/VoiceStats";
 import { voiceError } from "@/hooks/use-voice";
 import { cn } from "@/lib/utils";
 import { voiceApi, voiceKeys } from "@/services/voice-api.service";
@@ -29,7 +30,10 @@ function ListenPage() {
       <VoiceGate>
         {(me) =>
           me.listenerLanguages[0] ? (
-            <Listener languageId={me.listenerLanguages[0].id} />
+            <>
+              <VoiceStats kind="listener" />
+              <Listener languageId={me.listenerLanguages[0].id} />
+            </>
           ) : (
             <p className="text-center font-semibold">{t("voice.notInvited")}</p>
           )
@@ -42,6 +46,7 @@ function ListenPage() {
 function Listener({ languageId }: { languageId: string }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === "en" ? "en" : "pt";
+  const qc = useQueryClient();
   const next = useQuery({
     queryKey: voiceKeys.next(languageId, locale),
     queryFn: () => voiceApi.next(languageId, locale),
@@ -81,6 +86,7 @@ function Listener({ languageId }: { languageId: string }) {
     onSettled: () => {
       setRejecting(false);
       void next.refetch();
+      void qc.invalidateQueries({ queryKey: voiceKeys.me });
     },
   });
 

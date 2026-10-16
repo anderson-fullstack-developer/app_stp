@@ -1,6 +1,7 @@
 /** Gravações de pronúncia: Área dos Faladores, dos Ouvintes e relatório (tipos em @stp/types/api). */
 import type {
   VoiceMeDto,
+  VoiceMyRecordingDto,
   VoiceOverviewDto,
   VoiceRejectReason,
   VoiceReportDto,
@@ -12,7 +13,12 @@ import { authService } from "./auth.service";
 import { ApiError, http } from "./http";
 
 export const voiceApi = {
-  me: () => http.get<VoiceMeDto>("voice", "me"),
+  /** "Hoje" conta desde a meia-noite do relógio deste dispositivo. */
+  me: () => {
+    const midnight = new Date();
+    midnight.setHours(0, 0, 0, 0);
+    return http.getQ<VoiceMeDto>("voice", ["me"], { todayFrom: midnight.toISOString() });
+  },
   saveProfile: (body: {
     displayName: string | null;
     region: string | null;
@@ -23,6 +29,11 @@ export const voiceApi = {
     http.getQ<VoiceWordDto[]>("voice", ["words"], { languageId, locale }),
   record: (body: { vocabularyId: string; mimeType: string; durationMs: number; data: string }) =>
     http.post<{ id: string; status: string }>("voice", ["recordings"], body),
+  mine: (locale: string, status?: VoiceMyRecordingDto["status"]) =>
+    http.getQ<VoiceMyRecordingDto[]>("voice", ["recordings", "mine"], {
+      locale,
+      ...(status ? { status } : {}),
+    }),
   next: (languageId: string, locale: string) =>
     http.getQ<{ item: VoiceReviewItemDto | null }>("voice", ["review", "next"], {
       languageId,
@@ -49,6 +60,7 @@ export const voiceKeys = {
   me: ["voice", "me"] as const,
   words: (lang: string, locale: string) => ["voice", "words", lang, locale] as const,
   next: (lang: string, locale: string) => ["voice", "next", lang, locale] as const,
+  mine: (locale: string, status: string) => ["voice", "mine", locale, status] as const,
   overview: (lang: string) => ["voice", "overview", lang] as const,
   report: (from: string, to: string) => ["voice", "report", from, to] as const,
 };

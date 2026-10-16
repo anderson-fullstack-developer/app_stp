@@ -221,6 +221,13 @@ describe.skipIf(!dbUrl)(
       expect(row(speaker.id)).toMatchObject({ recorded: 1, approved: 1 });
       expect(row(l1.id)).toMatchObject({ reviews: 1, controls: 0 });
       expect(row(extra.id)).toMatchObject({ reviews: 0, controls: 1, controlsMatched: 0 });
+
+      // Painel do falador: estado, motivos reais (o controlo não conta) e o próprio áudio.
+      const mine = await voice.myRecordings(speaker, "pt", undefined);
+      expect(mine[0]).toMatchObject({ status: "APPROVED", rejectReasons: ["NOISE"] });
+      expect((await voice.audio(speaker, rec.id)).data.length).toBe(2_000);
+      const me = await voice.me(speaker);
+      expect(me.speaker).toMatchObject({ total: 1, approved: 1, pending: 0, rejected: 0 });
     });
 
     it("pendentes e rejeitadas nunca são públicas", async () => {

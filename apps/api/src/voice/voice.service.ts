@@ -60,7 +60,8 @@ export class VoiceService {
 
   /* ------------------------------ perfil e acesso ------------------------------ */
 
-  async me(user: AuthUser) {
+  /** `todayFrom`: início do dia no relógio da pessoa (o cliente envia; por omissão, UTC). */
+  async me(user: AuthUser, todayFrom?: Date) {
     const [profile, languages] = await Promise.all([
       this.prisma.voiceContributor.findUnique({ where: { userId: user.id } }),
       this.prisma.language.findMany({
@@ -72,15 +73,30 @@ export class VoiceService {
     const langsFor = (role: VoiceRole) =>
       listed.filter((l) => this.hasRole(user, role, l.id)).map((l) => ({ id: l.id, name: l.name }));
     const since = new Date(Date.now() - RANGE_DAYS * 86_400_000);
-    const [recorded, approved, reviews] = await Promise.all([
-      this.prisma.recording.count({ where: { speakerId: user.id, createdAt: { gte: since } } }),
-      this.prisma.recording.count({
-        where: { speakerId: user.id, status: "APPROVED", decidedAt: { gte: since } },
-      }),
-      this.prisma.recordingReview.count({
-        where: { listenerId: user.id, isControl: false, createdAt: { gte: since } },
-      }),
-    ]);
+    const today = todayFrom ?? new Date(new Date().toISOString().slice(0, 10));
+    const [recorded, approved, reviews, byStatus, recordedToday, reviewsTotal, reviewsToday] =
+      await Promise.all([
+        this.prisma.recording.count({ where: { speakerId: user.id, createdAt: { gte: since } } }),
+        this.prisma.recording.count({
+          where: { speakerId: user.id, status: "APPROVED", decidedAt: { gte: since } },
+        }),
+        this.prisma.recordingReview.count({
+          where: { listenerId: user.id, isControl: false, createdAt: { gte: since } },
+        }),
+        this.prisma.recording.groupBy({
+          by: ["status"],
+          where: { speakerId: user.id },
+          _count: true,
+        }),
+        this.prisma.recording.count({ where: { speakerId: user.id, createdAt: { gte: today } } }),
+        // Controlos contam aqui: a pessoa não sabe quais são (e também ouviu).
+        this.prisma.recordingReview.count({ where: { listenerId: user.id } }),
+        this.prisma.recordingReview.count({
+          where: { listenerId: user.id, createdAt: { gte: today } },
+        }),
+      ]);
+    const status = (s: "PENDING" | "APPROVED" | "REJECTED") =>
+      byStatus.find((r) => r.status === s)?._count ?? 0;
     return {
       storageEnabled: this.storage.enabled,
       speakerLanguages: langsFor("VOICE_SPEAKER"),
@@ -94,6 +110,16 @@ export class VoiceService {
           }
         : null,
       last7Days: { recorded, approved, reviews },
+      /** Falador: tudo o que já enviou, por estado. */
+      speaker: {
+        today: recordedToday,
+        total: status("PENDING") + status("APPROVED") + status("REJECTED"),
+        pending: status("PENDING"),
+        approved: status("APPROVED"),
+        rejected: status("REJECTED"),
+      },
+      /** Ouvinte: avaliações feitas. */
+      listener: { today: reviewsToday, total: reviewsTotal },
     };
   }
 
@@ -254,6 +280,47 @@ export class VoiceService {
     return rec;
   }
 
+  /**
+   * O meu painel (falador): as minhas gravações mais recentes, com o estado e, nas
+   * rejeitadas, os motivos dados pelos ouvintes (para melhorar). Nunca mostra quem ouviu.
+   */
+  async myRecordings(
+    user: AuthUser,
+    locale: string,
+    status: "PENDING" | "APPROVED" | "REJECTED" | undefined,
+  ) {
+    const rows = await this.prisma.recording.findMany({
+      where: { speakerId: user.id, ...(status ? { status } : {}) },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        decidedAt: true,
+        vocabulary: {
+          select: {
+            word: true,
+            translations: { where: { locale }, select: { text: true }, take: 1 },
+          },
+        },
+        reviews: {
+          where: { isControl: false, verdict: "REJECT" },
+          select: { reason: true },
+        },
+      },
+    });
+    return rows.map((r) => ({
+      recordingId: r.id,
+      word: r.vocabulary.word,
+      gloss: this.gloss(r.vocabulary.translations[0]?.text, locale),
+      status: r.status,
+      createdAt: r.createdAt.toISOString(),
+      decidedAt: r.decidedAt?.toISOString() ?? null,
+      rejectReasons: [...new Set(r.reviews.flatMap((v) => (v.reason ? [v.reason] : [])))],
+    }));
+  }
+
   /* --------------------------------- ouvintes ---------------------------------- */
 
   /**
@@ -303,11 +370,11 @@ export class VoiceService {
       select: { languageId: true, speakerId: true, storageKey: true, mimeType: true },
     });
     if (!rec) throw new NotFoundException("Gravação não encontrada.");
-    const admin = this.isAdmin(user);
-    if (
-      !admin &&
-      (!this.hasRole(user, "VOICE_LISTENER", rec.languageId) || rec.speakerId === user.id)
-    ) {
+    // Ouvintes da língua (nunca a própria, para avaliar), administradores e o próprio
+    // falador (no seu painel, para ouvir o que gravou).
+    const own = rec.speakerId === user.id;
+    const listener = this.hasRole(user, "VOICE_LISTENER", rec.languageId) && !own;
+    if (!this.isAdmin(user) && !listener && !own) {
       throw new ForbiddenException("Sem acesso a esta gravação.");
     }
     const data = await this.storage.get(rec.storageKey);
