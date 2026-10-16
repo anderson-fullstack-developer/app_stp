@@ -13,6 +13,7 @@ import {
   useServerNotifications,
 } from "@/hooks/use-notifications";
 import { avatarColor } from "@/lib/avatar";
+import { notificationText } from "@/lib/notification-text";
 import { cn } from "@/lib/utils";
 import { socialApi } from "@/services/social-api.service";
 
@@ -37,22 +38,7 @@ export function ServerNotificationsList() {
 
   const when = (iso: string) =>
     new Date(iso).toLocaleDateString(i18n.language, { day: "numeric", month: "short" });
-  const text = (n: NotificationDto) => {
-    if (n.type === "friend_request") return t("social.notifFriendRequest", { name: n.user.name });
-    if (n.type === "friend_accepted") return t("social.notifFriendAccepted", { name: n.user.name });
-    if (n.type === "arena_invite") {
-      return n.mode === "duel"
-        ? t("social.notifDuelInvite", { name: n.user.name })
-        : t("social.notifArenaInvite", { name: n.user.name });
-    }
-    const titles = t("achievementsList", { returnObjects: true }) as Record<
-      string,
-      { title: string }
-    >;
-    return t("social.notifAchievement", {
-      title: titles[n.achievementKey]?.title ?? n.achievementKey,
-    });
-  };
+  const text = (n: NotificationDto) => notificationText(t, n);
 
   return (
     <>

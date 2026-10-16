@@ -24,7 +24,10 @@ export type SoundName =
   | "streak"
   | "coins"
   | "join"
-  | "roomFull";
+  | "roomFull"
+  | "notify"
+  | "accepted"
+  | "challenge";
 
 export interface Note {
   /** Frequência inicial (Hz). */
@@ -134,5 +137,26 @@ export const SOUND_RECIPES: Record<SoundName, Note[]> = {
   coins: [
     { f: G6, d: 0.08, type: "triangle", g: 0.16 },
     { f: C7, t: 0.07, d: 0.26, type: "triangle", g: 0.16 },
+  ],
+  /** Notificação geral (ex.: pedido de amizade): "ding-dong" suave. */
+  notify: [
+    { f: E6, d: 0.2, type: "sine", g: 0.2 },
+    { f: C6, t: 0.15, d: 0.42, type: "sine", g: 0.18 },
+    { f: C7, t: 0.15, d: 0.2, type: "sine", g: 0.03 },
+  ],
+  /** Pedido aceite: três notas a subir, alegre. */
+  accepted: [
+    { f: G5, d: 0.1, type: "triangle", g: 0.2 },
+    { f: C6, t: 0.08, d: 0.1, type: "triangle", g: 0.2 },
+    { f: E6, t: 0.16, d: 0.4, type: "triangle", g: 0.22 },
+    { f: G6, t: 0.24, d: 0.3, type: "sine", g: 0.05 },
+  ],
+  /** Desafio ou convite para a Arena: chamada curta e enérgica. */
+  challenge: [
+    { f: G5, d: 0.07, type: "triangle", g: 0.24 },
+    { f: G5, t: 0.1, d: 0.07, type: "triangle", g: 0.24 },
+    { f: D6, t: 0.2, d: 0.38, type: "triangle", g: 0.26 },
+    { f: G6, t: 0.2, d: 0.3, type: "sine", g: 0.06 },
+    { f: G5 / 2, t: 0.2, d: 0.35, type: "sine", g: 0.12 },
   ],
 };

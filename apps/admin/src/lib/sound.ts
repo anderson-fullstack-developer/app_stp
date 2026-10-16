@@ -35,6 +35,9 @@ const HAPTICS: Partial<Record<SoundName, number | number[]>> = {
   complete: [15, 30, 30],
   join: 12,
   roomFull: [20, 40, 20, 40, 50],
+  notify: 15,
+  accepted: [15, 30, 15],
+  challenge: [30, 40, 30, 40, 60],
 };
 
 let ctx: AudioContext | null = null;

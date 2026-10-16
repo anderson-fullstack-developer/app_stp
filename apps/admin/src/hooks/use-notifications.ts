@@ -28,7 +28,9 @@ export function useServerNotifications() {
     queryKey: socialKeys.notifications,
     queryFn: socialApi.notifications,
     enabled,
-    refetchInterval: 60_000,
+    // Curto o suficiente para o aviso (som + topo do ecrã) chegar quase na hora.
+    refetchInterval: 20_000,
+    refetchIntervalInBackground: true,
   });
 }
 

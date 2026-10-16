@@ -12,6 +12,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { NotificationAlerts } from "../components/app/NotificationAlerts";
 import { RewardLayer } from "../components/app/RewardLayer";
 import { game } from "../hooks/use-game";
 import "../i18n";
@@ -144,6 +145,7 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <RewardLayer />
+      <NotificationAlerts />
     </QueryClientProvider>
   );
 }

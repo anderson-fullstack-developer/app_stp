@@ -21,6 +21,7 @@ import { Platform, StyleSheet, View } from "react-native";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { CLERK_PUBLISHABLE_KEY } from "@/config";
 import { colors } from "@/design";
+import { NotificationAlerts } from "@/features/notifications/NotificationAlerts";
 
 // O ecrã de abertura fica até as fontes estarem prontas (sem "salto" de tipo de letra).
 void SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -85,6 +86,7 @@ export default function RootLayout() {
               />
             </Stack>
             <OfflineBanner />
+            <NotificationAlerts />
           </View>
         </View>
       </QueryClientProvider>
