@@ -31,6 +31,7 @@ import {
 } from "@/components/play/MatchUI";
 import { useJoinSounds } from "@/hooks/use-join-sounds";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
+import { QuestionSpeakButton } from "@/components/app/SpeakButton";
 import { avatarColor } from "@/lib/avatar";
 import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
 import { arena, type ArenaState, useArena } from "@/lib/multiplayer/arena-client";
@@ -775,6 +776,7 @@ export function ServerSurvival() {
             <p className="text-center text-sm font-bold text-muted-foreground">
               {q?.mode === "meaning" ? "O que significa?" : "Como se diz?"}
               {room.languageId === KRIOLU_LANGUAGE_ID && " · Kriolu (Beta)"}
+              {q && <QuestionSpeakButton q={q} />}
             </p>
             <QuestionCard q={quiz} />
             <div className="space-y-3">

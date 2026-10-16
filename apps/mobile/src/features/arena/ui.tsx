@@ -10,10 +10,12 @@ import {
   Card,
   colors,
   haptics,
+  questionSpeech,
   radius,
   shadows,
   sound,
   space,
+  SpeakButton,
 } from "@/design";
 import { QuizOption } from "@/features/lesson/QuizOption";
 import { useTranslation } from "react-i18next";
@@ -127,11 +129,15 @@ export function QuestionView({
   hint: string;
   onAnswer: (optionId: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={{ gap: space.md }}>
-      <AppText variant="caption" tone="muted" center>
-        {hint}
-      </AppText>
+      <View style={styles.hintRow}>
+        <AppText variant="caption" tone="muted" center>
+          {hint}
+        </AppText>
+        <SpeakButton text={questionSpeech(t, question)} autoKey={question.questionId} size={32} />
+      </View>
       <Card style={styles.prompt}>
         <AppText variant="h1" center>
           {question.prompt}
@@ -240,6 +246,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   prompt: { paddingVertical: space.xl, alignItems: "center" },
+  hintRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.sm },
   strip: {
     flexDirection: "row",
     flexWrap: "wrap",

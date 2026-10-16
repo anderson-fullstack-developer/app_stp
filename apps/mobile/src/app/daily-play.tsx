@@ -18,6 +18,8 @@ import {
   ProgressBar,
   sound,
   space,
+  questionSpeech,
+  SpeakButton,
 } from "@/design";
 import { FeedbackSheet } from "@/features/lesson/FeedbackSheet";
 import { CelebrationModal, celebrationsFor } from "@/features/neto/CelebrationModal";
@@ -253,13 +255,24 @@ function DailyRun({ data, lang }: { data: DailyStarted; lang: string }) {
         <AppText variant="overline" tone="muted">
           {t("daily.title")} · {index + 1}/{total}
         </AppText>
-        <AppText variant="h2" style={{ marginTop: space.xs }}>
-          <Trans
-            i18nKey={q.mode === "meaning" ? "preview.whatMeans" : "preview.howToSay"}
-            values={{ word: q.prompt }}
-            components={{ hl: <AppText variant="h2" tone="primary" /> }}
-          />
-        </AppText>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            gap: space.md,
+            marginTop: space.xs,
+          }}
+        >
+          <AppText variant="h2" style={{ flex: 1 }}>
+            <Trans
+              i18nKey={q.mode === "meaning" ? "preview.whatMeans" : "preview.howToSay"}
+              values={{ word: q.prompt }}
+              components={{ hl: <AppText variant="h2" tone="primary" /> }}
+            />
+          </AppText>
+          <SpeakButton text={questionSpeech(t, q)} autoKey={`${q.exerciseId}-${index}`} />
+        </View>
+
         <View style={styles.options}>
           {q.options.map((o, k) => (
             <QuizOption

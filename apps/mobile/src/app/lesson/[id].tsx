@@ -18,6 +18,8 @@ import {
   ProgressBar,
   sound,
   space,
+  questionSpeech,
+  SpeakButton,
 } from "@/design";
 import { FeedbackSheet } from "@/features/lesson/FeedbackSheet";
 import { CelebrationModal, celebrationsFor } from "@/features/neto/CelebrationModal";
@@ -322,13 +324,24 @@ function LessonRun({
             total,
           })}
         </AppText>
-        <AppText variant="h2" style={{ marginTop: space.xs }}>
-          <Trans
-            i18nKey={q.mode === "meaning" ? "preview.whatMeans" : "preview.howToSay"}
-            values={{ word: q.prompt }}
-            components={{ hl: <AppText variant="h2" tone="primary" /> }}
-          />
-        </AppText>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            gap: space.md,
+            marginTop: space.xs,
+          }}
+        >
+          <AppText variant="h2" style={{ flex: 1 }}>
+            <Trans
+              i18nKey={q.mode === "meaning" ? "preview.whatMeans" : "preview.howToSay"}
+              values={{ word: q.prompt }}
+              components={{ hl: <AppText variant="h2" tone="primary" /> }}
+            />
+          </AppText>
+          <SpeakButton text={questionSpeech(t, q)} autoKey={`${q.exerciseId}-${queue.length}`} />
+        </View>
+
         <AppText variant="caption" tone="muted" style={{ marginTop: space.xs }}>
           {hint}
         </AppText>

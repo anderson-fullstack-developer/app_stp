@@ -11,6 +11,8 @@ export interface Settings {
   effects: boolean;
   /** Vibração curta (Android; ignorada onde não existe). */
   haptics: boolean;
+  /** Ler as perguntas em voz alta (só a parte na língua da interface). */
+  voice: boolean;
   notifications: boolean;
   /** Idioma da interface escolhido pelo utilizador; null = usar o idioma do dispositivo. */
   locale: string | null;
@@ -23,6 +25,7 @@ const DEFAULTS: Settings = {
   sound: true,
   effects: true,
   haptics: true,
+  voice: true,
   notifications: true,
   locale: null,
   learning: "forro",

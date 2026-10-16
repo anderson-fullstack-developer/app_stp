@@ -32,7 +32,7 @@ function Toggle({
   k,
 }: {
   label: string;
-  k: "sound" | "effects" | "haptics" | "notifications";
+  k: "sound" | "effects" | "haptics" | "voice" | "notifications";
 }) {
   const prefs = useSettings();
   const on = prefs[k];
@@ -228,6 +228,7 @@ function Settings() {
           <Toggle label={t("settings.sound")} k="sound" />
           <Toggle label={t("settings.effects")} k="effects" />
           <Toggle label={t("settings.haptics")} k="haptics" />
+          <Toggle label={t("settings.voice")} k="voice" />
           <Toggle label={t("settings.notifications")} k="notifications" />
         </Group>
         <Group title={t("settings.support")}>

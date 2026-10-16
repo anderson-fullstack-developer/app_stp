@@ -14,7 +14,9 @@ import { dailyKeys, useDailyLanguage } from "@/hooks/use-daily";
 import { playPronunciation, useMeaningLocale } from "@/hooks/use-kriolu";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
 import { avatarColor } from "@/lib/avatar";
+import { SpeakButton } from "@/components/app/SpeakButton";
 import { sound } from "@/lib/sound";
+import { questionSpeech } from "@/lib/speech";
 import { cn } from "@/lib/utils";
 import { type DailyResult, dailyApi } from "@/services/daily-api.service";
 import type { AnswerResult } from "@/services/lessons-api.service";
@@ -305,13 +307,16 @@ export function ServerDailyPlay() {
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {t("daily.title")} · {index + 1}/{total}
         </p>
-        <h1 className="mt-1 font-display text-2xl font-bold">
-          <Trans
-            i18nKey={q.mode === "meaning" ? "preview.whatMeans" : "preview.howToSay"}
-            values={{ word: q.prompt }}
-            components={{ hl: <span className="text-primary" /> }}
-          />
-        </h1>
+        <div className="mt-1 flex items-start gap-3">
+          <h1 className="flex-1 font-display text-2xl font-bold">
+            <Trans
+              i18nKey={q.mode === "meaning" ? "preview.whatMeans" : "preview.howToSay"}
+              values={{ word: q.prompt }}
+              components={{ hl: <span className="text-primary" /> }}
+            />
+          </h1>
+          <SpeakButton text={questionSpeech(t, q)} autoKey={`${q.exerciseId}-${index}`} />
+        </div>
       </div>
       <div key={q.exerciseId} className="animate-rise flex-1 space-y-3 px-5 pb-48 pt-5">
         {q.options.map((o, k) => (
