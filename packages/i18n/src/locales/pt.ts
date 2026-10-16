@@ -85,6 +85,7 @@ export const pt = {
     sound: "Som",
     effects: "Efeitos sonoros",
     haptics: "Vibração",
+    voice: "Ler as perguntas em voz alta",
     notifications: "Notificações",
     support: "Suporte",
     privacy: "Privacidade",
@@ -133,6 +134,10 @@ export const pt = {
     questionOf: "Kriolu · Pergunta {{n}} de {{total}}",
     whatMeans: "O que significa <hl>«{{word}}»</hl>?",
     howToSay: "Como se diz <hl>«{{word}}»</hl> em Kriolu?",
+    /** Lido em voz alta: a palavra em Kriolu nunca é lida (sem pronúncias inventadas). */
+    speakWhatMeans: "O que significa esta palavra?",
+    speakHowToSay: "Como se diz {{word}} em Kriolu?",
+    listen: "Ouvir a pergunta",
     meaningLang: "significado em português (sugestão automática, por rever)",
     meaningLangEn: "significado em inglês (fonte)",
     variant: "variante {{name}}",

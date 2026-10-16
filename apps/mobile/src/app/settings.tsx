@@ -30,6 +30,8 @@ import {
   Neto,
   setHapticsEnabled,
   setSoundEnabled,
+  setVoiceEnabled,
+  isVoiceEnabled,
   space,
 } from "@/design";
 
@@ -66,6 +68,7 @@ export default function Settings() {
   const languages = useLanguages();
   const [vibration, setVibration] = useState(true);
   const [soundOn, setSoundOn] = useState(isSoundEnabled);
+  const [voiceOn, setVoiceOn] = useState(isVoiceEnabled);
   const [busy, setBusy] = useState<"logout" | "delete" | "language" | null>(null);
   const [picker, setPicker] = useState(false);
   const [netoOpen, setNetoOpen] = useState(false);
@@ -199,6 +202,17 @@ export default function Settings() {
               onValueChange={(v) => {
                 setSoundOn(v);
                 setSoundEnabled(v);
+              }}
+              trackColor={{ true: colors.primary, false: colors.border }}
+            />
+          </Row>
+          <View style={styles.sep} />
+          <Row label={t("settings.voice")}>
+            <Switch
+              value={voiceOn}
+              onValueChange={(v) => {
+                setVoiceOn(v);
+                setVoiceEnabled(v);
               }}
               trackColor={{ true: colors.primary, false: colors.border }}
             />

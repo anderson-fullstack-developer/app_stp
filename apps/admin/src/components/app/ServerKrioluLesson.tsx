@@ -16,6 +16,7 @@ import { useBlockAds } from "@/config/ads";
 import { BackButton } from "@/components/app/BackButton";
 import { AppButton } from "@/components/app/Buttons";
 import { Neto } from "@/components/app/Neto";
+import { SpeakButton } from "@/components/app/SpeakButton";
 import { BottomSheet, ProgressBar } from "@/components/app/Primitives";
 import { QuizOption } from "@/components/exercises/Exercises";
 import { playPronunciation, useMeaningLocale } from "@/hooks/use-kriolu";
@@ -23,6 +24,7 @@ import { serverLessonKeys } from "@/hooks/use-server-lessons";
 import { PhoneFrame } from "@/layouts/AppShell";
 import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
 import { sound } from "@/lib/sound";
+import { questionSpeech } from "@/lib/speech";
 import { ApiError } from "@/services/http";
 import { type AnswerResult, type LessonResult, lessonsApi } from "@/services/lessons-api.service";
 
@@ -267,13 +269,16 @@ export function ServerKrioluLesson({ lessonId }: { lessonId: string }) {
             total,
           })}
         </p>
-        <h1 className="mt-1 font-display text-2xl font-bold">
-          <Trans
-            i18nKey={q.mode === "meaning" ? "preview.whatMeans" : "preview.howToSay"}
-            values={{ word: q.prompt }}
-            components={{ hl: <span className="text-primary" /> }}
-          />
-        </h1>
+        <div className="mt-1 flex items-start gap-3">
+          <h1 className="flex-1 font-display text-2xl font-bold">
+            <Trans
+              i18nKey={q.mode === "meaning" ? "preview.whatMeans" : "preview.howToSay"}
+              values={{ word: q.prompt }}
+              components={{ hl: <span className="text-primary" /> }}
+            />
+          </h1>
+          <SpeakButton text={questionSpeech(t, q)} autoKey={`${q.exerciseId}-${queue.length}`} />
+        </div>
         <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
       </div>
 

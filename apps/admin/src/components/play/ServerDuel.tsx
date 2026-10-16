@@ -30,6 +30,7 @@ import {
   useUrgencySound,
 } from "@/components/play/arena-hooks";
 import { AppHeader, PhoneFrame } from "@/layouts/AppShell";
+import { QuestionSpeakButton } from "@/components/app/SpeakButton";
 import { avatarColor } from "@/lib/avatar";
 import { KRIOLU_LANGUAGE_ID } from "@/lib/kriolu-course";
 import { arena, type ArenaState, useArena } from "@/lib/multiplayer/arena-client";
@@ -288,6 +289,7 @@ function DuelMatch({ s }: { s: ArenaState }) {
         <p className="text-center text-sm font-bold text-muted-foreground">
           {q.mode === "meaning" ? "O que significa?" : "Como se diz?"}
           {room.languageId === KRIOLU_LANGUAGE_ID && " · Kriolu (Beta)"}
+          <QuestionSpeakButton q={q} />
         </p>
         <QuestionCard q={quiz} />
         <div className="space-y-3">
