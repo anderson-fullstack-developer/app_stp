@@ -40,6 +40,7 @@ import { AudioStorage } from "./voice/audio-storage.js";
 import { MediaController } from "./voice/media.controller.js";
 import { MediaUrls } from "./voice/media-urls.js";
 import { VoiceController } from "./voice/voice.controller.js";
+import { VoiceAdminService } from "./voice/voice-admin.service.js";
 import { VoiceService } from "./voice/voice.service.js";
 
 /**
@@ -107,6 +108,7 @@ export class AppModule {
         AudioStorage,
         MediaUrls,
         VoiceService,
+        VoiceAdminService,
         { provide: ARENA_TIMINGS, useValue: DEFAULT_ARENA_TIMINGS },
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_FILTER, useClass: AllExceptionsFilter },

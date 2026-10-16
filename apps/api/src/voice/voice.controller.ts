@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -17,38 +18,40 @@ import { CurrentUser, Roles } from "../auth/auth.decorators.js";
 import { ClerkAuthGuard } from "../auth/clerk-auth.guard.js";
 import { ZodPipe } from "../common/zod.pipe.js";
 import type { AuthUser } from "../users/users.service.js";
+import { VoiceAdminService } from "./voice-admin.service.js";
 import { VOICE_RULES } from "./voice-rules.js";
-import { VoiceService } from "./voice.service.js";
+import { PAYOUT_METHODS, VoiceService } from "./voice.service.js";
 
 const LanguageId = z.string().regex(/^[a-z][a-z0-9_-]{1,40}$/);
 const Locale = z.enum(["pt", "en"]).default("pt");
 const Id = z.uuid();
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .nullable()
+    .default(null)
+    .transform((v) => v || null);
 
+const MeQuery = z.object({ todayFrom: z.iso.datetime({ offset: true }).optional() });
 const ProfileBody = z.object({
-  displayName: z
-    .string()
-    .trim()
-    .max(60)
-    .nullable()
-    .default(null)
-    .transform((v) => v || null),
-  region: z
-    .string()
-    .trim()
-    .max(60)
-    .nullable()
-    .default(null)
-    .transform((v) => v || null),
+  displayName: optionalText(60),
+  region: optionalText(60),
   adultConfirmed: z.boolean(),
   consentAccepted: z.boolean(),
 });
-const MeQuery = z.object({ todayFrom: z.iso.datetime({ offset: true }).optional() });
+const PayoutDetailsBody = z.object({
+  method: z.enum(PAYOUT_METHODS),
+  details: z.string().trim().min(3).max(120),
+});
+const LocaleQuery = z.object({ locale: Locale });
 const MineQuery = z.object({
   locale: Locale,
   status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
 });
-const WordsQuery = z.object({ languageId: LanguageId, locale: Locale });
 const RecordBody = z.object({
+  taskId: Id,
   vocabularyId: Id,
   mimeType: z.string().max(60),
   durationMs: z.number().int().min(0).max(60_000),
@@ -59,28 +62,65 @@ const RecordBody = z.object({
     .regex(/^[A-Za-z0-9+/=]+$/),
 });
 const ReviewBody = z.object({
+  taskId: Id,
   verdict: z.enum(["APPROVE", "REJECT"]),
   reason: z
     .enum(["PRONUNCIATION", "NOISE", "WRONG_WORD", "CUT_OFF", "OTHER"])
     .nullable()
     .default(null),
 });
+const TaskStatus = z.enum(["ACTIVE", "PAUSED", "COMPLETED", "CANCELLED"]);
+const TasksQuery = z.object({ status: TaskStatus.optional(), assigneeId: Id.optional() });
+const CreateTaskBody = z.object({
+  kind: z.enum(["RECORD", "REVIEW"]),
+  assigneeId: Id,
+  languageId: LanguageId,
+  title: z.string().trim().min(3).max(120),
+  notes: optionalText(1000),
+  target: z.number().int().min(1).max(10_000),
+  /** Cêntimos: 1 cêntimo a 100 € por unidade. */
+  rateCents: z.number().int().min(1).max(10_000),
+  unitId: Id.nullable().default(null),
+  dueAt: z.iso.datetime({ offset: true }).nullable().default(null),
+});
+const UpdateTaskBody = z.object({
+  status: TaskStatus.optional(),
+  target: z.number().int().min(1).max(10_000).optional(),
+  dueAt: z.iso.datetime({ offset: true }).nullable().optional(),
+  notes: z.string().trim().max(1000).nullable().optional(),
+  title: z.string().trim().min(3).max(120).optional(),
+});
+const PauseBody = z.object({ paused: z.boolean() });
+const PayoutBody = z.object({
+  userId: Id,
+  amountCents: z.number().int().min(1).max(10_000_000),
+  method: z.enum(PAYOUT_METHODS),
+  reference: optionalText(120),
+  note: optionalText(500),
+});
+const PayoutsQuery = z.object({ userId: Id.optional() });
 const ReportQuery = z.object({ from: z.iso.date(), to: z.iso.date() });
 const OverviewQuery = z.object({ languageId: LanguageId });
 
 /**
- * Área dos Faladores e dos Ouvintes (gravações de pronúncia). O acesso fino (papel por
- * língua, consentimento, nunca avaliar a própria gravação) está no serviço.
+ * Área dos Faladores e dos Ouvintes (trabalho pago por tarefas) e o painel de gestão.
+ * O acesso fino (tarefa minha e ativa, papel por língua, consentimento, pausa, nunca
+ * avaliar a própria gravação) está nos serviços.
  */
 @ApiTags("voice")
 @ApiBearerAuth()
 @UseGuards(ClerkAuthGuard)
 @Controller()
 export class VoiceController {
-  constructor(private readonly voice: VoiceService) {}
+  constructor(
+    private readonly voice: VoiceService,
+    private readonly admin: VoiceAdminService,
+  ) {}
+
+  /* ------------------------------ quem trabalha ------------------------------ */
 
   @Get("voice/me")
-  @ApiOkResponse({ description: "Papéis, consentimento e números dos últimos 7 dias." })
+  @ApiOkResponse({ description: "Papéis, consentimento, dados de pagamento e progresso." })
   me(@CurrentUser() user: AuthUser, @Query(new ZodPipe(MeQuery)) q: z.infer<typeof MeQuery>) {
     return this.voice.me(user, q.todayFrom ? new Date(q.todayFrom) : undefined);
   }
@@ -94,13 +134,45 @@ export class VoiceController {
     return this.voice.saveProfile(user, body);
   }
 
-  @Get("voice/words")
-  @ApiOkResponse({ description: "Próximas palavras para gravar." })
+  @Put("voice/payout-details")
+  @ApiOkResponse({ description: "Como quero receber (SEPA, MB WAY, Stripe, outro)." })
+  payoutDetails(
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodPipe(PayoutDetailsBody)) body: z.infer<typeof PayoutDetailsBody>,
+  ) {
+    return this.voice.savePayoutDetails(user, body);
+  }
+
+  @Get("voice/tasks")
+  @ApiOkResponse({ description: "As minhas tarefas, com progresso e valores." })
+  tasks(@CurrentUser() user: AuthUser) {
+    return this.voice.myTasks(user);
+  }
+
+  @Get("voice/earnings")
+  @ApiOkResponse({ description: "Ganhos, à espera, recebido, saldo e pagamentos." })
+  earnings(@CurrentUser() user: AuthUser) {
+    return this.voice.earnings(user);
+  }
+
+  @Get("voice/tasks/:id/words")
+  @ApiOkResponse({ description: "Próximas palavras para gravar nesta tarefa." })
   words(
     @CurrentUser() user: AuthUser,
-    @Query(new ZodPipe(WordsQuery)) q: z.infer<typeof WordsQuery>,
+    @Param("id", new ZodPipe(Id)) id: string,
+    @Query(new ZodPipe(LocaleQuery)) q: z.infer<typeof LocaleQuery>,
   ) {
-    return this.voice.wordsToRecord(user, q.languageId, q.locale);
+    return this.voice.wordsToRecord(user, id, q.locale);
+  }
+
+  @Get("voice/tasks/:id/review/next")
+  @ApiOkResponse({ description: "Próxima gravação para ouvir nesta tarefa (null = acabou)." })
+  async next(
+    @CurrentUser() user: AuthUser,
+    @Param("id", new ZodPipe(Id)) id: string,
+    @Query(new ZodPipe(LocaleQuery)) q: z.infer<typeof LocaleQuery>,
+  ) {
+    return { item: await this.voice.nextReview(user, id, q.locale) };
   }
 
   @Post("voice/recordings")
@@ -118,15 +190,6 @@ export class VoiceController {
     return this.voice.myRecordings(user, q.locale, q.status);
   }
 
-  @Get("voice/review/next")
-  @ApiOkResponse({ description: "Próxima gravação para ouvir (null = não há mais)." })
-  async next(
-    @CurrentUser() user: AuthUser,
-    @Query(new ZodPipe(WordsQuery)) q: z.infer<typeof WordsQuery>,
-  ) {
-    return { item: await this.voice.nextReview(user, q.languageId, q.locale) };
-  }
-
   @Get("voice/recordings/:id/audio")
   async audio(
     @CurrentUser() user: AuthUser,
@@ -141,7 +204,7 @@ export class VoiceController {
 
   @Post("voice/recordings/:id/review")
   @HttpCode(200)
-  @ApiOkResponse({ description: "Aprovar ou rejeitar (com motivo)." })
+  @ApiOkResponse({ description: "Aprovar ou rejeitar (com motivo), dentro de uma tarefa." })
   review(
     @CurrentUser() user: AuthUser,
     @Param("id", new ZodPipe(Id)) id: string,
@@ -150,16 +213,78 @@ export class VoiceController {
     return this.voice.review(user, id, body);
   }
 
+  /* -------------------------------- administração -------------------------------- */
+
   @Get("admin/voice/overview")
   @Roles(["ADMIN"])
   overview(@Query(new ZodPipe(OverviewQuery)) q: z.infer<typeof OverviewQuery>) {
-    return this.voice.overview(q.languageId);
+    return this.admin.overview(q.languageId);
+  }
+
+  @Get("admin/voice/tasks")
+  @Roles(["ADMIN"])
+  adminTasks(@Query(new ZodPipe(TasksQuery)) q: z.infer<typeof TasksQuery>) {
+    return this.admin.tasks(q);
+  }
+
+  @Post("admin/voice/tasks")
+  @Roles(["ADMIN"])
+  @ApiOkResponse({ description: "Atribuir uma tarefa paga a uma pessoa." })
+  createTask(
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodPipe(CreateTaskBody)) body: z.infer<typeof CreateTaskBody>,
+  ) {
+    return this.admin.createTask(user, body);
+  }
+
+  @Patch("admin/voice/tasks/:id")
+  @Roles(["ADMIN"])
+  updateTask(
+    @CurrentUser() user: AuthUser,
+    @Param("id", new ZodPipe(Id)) id: string,
+    @Body(new ZodPipe(UpdateTaskBody)) body: z.infer<typeof UpdateTaskBody>,
+  ) {
+    return this.admin.updateTask(user, id, body);
+  }
+
+  @Get("admin/voice/people")
+  @Roles(["ADMIN"])
+  @ApiOkResponse({ description: "Faladores e ouvintes: qualidade, saldo e dados de pagamento." })
+  people() {
+    return this.admin.people();
+  }
+
+  @Post("admin/voice/people/:id/pause")
+  @Roles(["ADMIN"])
+  @HttpCode(200)
+  pause(
+    @CurrentUser() user: AuthUser,
+    @Param("id", new ZodPipe(Id)) id: string,
+    @Body(new ZodPipe(PauseBody)) body: z.infer<typeof PauseBody>,
+  ) {
+    return this.admin.setPaused(user, id, body.paused);
+  }
+
+  @Get("admin/voice/payouts")
+  @Roles(["ADMIN"])
+  payouts(@Query(new ZodPipe(PayoutsQuery)) q: z.infer<typeof PayoutsQuery>) {
+    return this.admin.payouts(q.userId);
+  }
+
+  @Post("admin/voice/payouts")
+  @Roles(["ADMIN"])
+  @ApiOkResponse({ description: "Registar um pagamento feito por fora." })
+  createPayout(
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodPipe(PayoutBody)) body: z.infer<typeof PayoutBody>,
+  ) {
+    return this.admin.createPayout(user, body);
   }
 
   @Get("admin/voice/report")
   @Roles(["ADMIN"])
-  @ApiOkResponse({ description: "Contas por pessoa no período [from, to)." })
+  @ApiOkResponse({ description: "Trabalho e valores por pessoa no período [from, to)." })
   report(@Query(new ZodPipe(ReportQuery)) q: z.infer<typeof ReportQuery>) {
-    return this.voice.report(new Date(`${q.from}T00:00:00Z`), new Date(`${q.to}T00:00:00Z`));
+    return this.admin.report(new Date(`${q.from}T00:00:00Z`), new Date(`${q.to}T00:00:00Z`));
   }
 }

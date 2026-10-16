@@ -167,13 +167,12 @@ export const VOICE_CONFIG = {
   /** Versão do texto de consentimento: mudar obriga a aceitar outra vez. */
   consentVersion: "2026-10-16",
   /**
-   * ⚠️ Decisão do dono: valores a pagar. null = o relatório mostra só as contagens.
-   * Ex.: { currency: "EUR", perApprovedRecording: 0.1, perReview: 0.02 }
+   * Pagamentos: o preço é definido em cada tarefa (pelo administrador). Quem trabalha está
+   * em Portugal (decisão do dono, 2026-10-16): euro; SEPA, MB WAY ou, mais tarde, Stripe.
    */
-  pay: { currency: null, perApprovedRecording: null, perReview: null } as {
-    currency: string | null;
-    perApprovedRecording: number | null;
-    perReview: number | null;
+  pay: {
+    currency: "EUR",
+    methods: ["SEPA", "MBWAY", "STRIPE", "OTHER"],
   },
   /** Ilhas/regiões por língua (variante de quem grava). */
   regions: {
