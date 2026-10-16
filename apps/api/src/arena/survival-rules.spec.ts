@@ -25,6 +25,7 @@ describe("Regras da Sobrevivência no servidor", () => {
     expect(ARENA_CONFIG.survivalRewards).toEqual(MULTIPLAYER_CONFIG.survivalRewards);
     expect(ARENA_CONFIG.participationReward).toEqual(MULTIPLAYER_CONFIG.participationReward);
     expect(ARENA_CONFIG.duel).toEqual(MULTIPLAYER_CONFIG.duel);
+    expect(ARENA_CONFIG.matchmaking).toEqual(MULTIPLAYER_CONFIG.matchmaking);
     expect(ARENA_CONFIG.teams).toEqual(MULTIPLAYER_CONFIG.teams);
     expect(ARENA_CONFIG.scoring).toEqual(MULTIPLAYER_CONFIG.scoring);
     expect(ARENA_CONFIG.matchRewards).toEqual(MULTIPLAYER_CONFIG.matchRewards);

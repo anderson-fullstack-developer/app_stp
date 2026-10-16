@@ -40,6 +40,7 @@ describe.skipIf(!dbUrl)(
           finalMs: 30,
           lateGraceMs: 100,
           lobbyGraceMs: 200,
+          matchmakingWaitMs: 300,
         })
         .compile();
       app = moduleRef.createNestApplication();
@@ -453,6 +454,70 @@ describe.skipIf(!dbUrl)(
         s!.off("match:question");
         await ack(s!, "room:leave");
       }
+    });
+
+    it("procurar partida (duelo): junta dois desconhecidos e começa sozinho", async () => {
+      const a = await connect(ids["ana"]!);
+      const b = await connect(ids["caio"]!); // não são amigos
+      const first = await ack(a, "queue:join", { mode: "duel" });
+      expect(first).toMatchObject({
+        ok: true,
+        room: { mode: "duel", isPublic: true, status: "WAITING" },
+      });
+      // Pedir outra vez não abre outra sala.
+      expect((await ack(a, "queue:join", { mode: "duel" }))["room"].code).toBe(
+        first["room"].code,
+      );
+      const started = next(a, "match:question");
+      const second = await ack(b, "queue:join", { mode: "duel" });
+      expect(second["room"].code).toBe(first["room"].code);
+      expect((await started)["round"]).toBe(1);
+      const finished = next(a, "match:finished");
+      await ack(b, "room:leave");
+      await finished;
+      // A sala pública acaba com a partida: procurar outra vez abre uma nova.
+      const again = await ack(a, "queue:join", { mode: "duel" });
+      expect(again["room"].code).not.toBe(first["room"].code);
+      await ack(a, "room:leave");
+    });
+
+    it("procurar partida (Sobrevivência): com 4 começa sozinha após a espera, sem 'pronto'", async () => {
+      const players = await Promise.all(
+        ["ana", "bia", "caio", "duda"].map((n) => connect(ids[n]!)),
+      );
+      const rooms: Payload[] = [];
+      for (const s of players.slice(0, 3)) rooms.push(await ack(s, "queue:join", { mode: "survival" }));
+      expect(new Set(rooms.map((r) => r["room"].code)).size).toBe(1);
+      expect(rooms[2]!["room"]).toMatchObject({ isPublic: true, autoStartAt: null });
+      expect(await ack(players[0]!, "room:start")).toMatchObject({ ok: false, code: "NOT_HOST" });
+
+      // O 4.º jogador marca a hora de começar (o servidor avisa a sala).
+      const timed = new Promise<Payload>((resolve) => {
+        const on = (p: Payload) => {
+          if (p["autoStartAt"] === null) return;
+          players[0]!.off("room:state", on);
+          resolve(p);
+        };
+        players[0]!.on("room:state", on);
+      });
+      const started = next(players[0]!, "match:countdown");
+      await ack(players[3]!, "queue:join", { mode: "survival" });
+      expect((await timed)["autoStartAt"]).toEqual(expect.any(Number));
+      await started;
+      // Os outros 3 saem; a Ana responde sempre certo até eles ficarem sem vidas.
+      const finished = next(players[0]!, "match:finished");
+      players[0]!.on("match:question", (p: Payload) => {
+        void ack(players[0]!, "match:answer", {
+          questionId: p["question"].questionId,
+          optionId: correctOption(rooms[0]!["room"].code),
+        });
+      });
+      for (const s of players.slice(1)) await ack(s, "room:leave");
+      const result = await finished;
+      players[0]!.off("match:question");
+      expect(result["rewarded"]).toBe(true);
+      expect(result["standings"][0]).toMatchObject({ userId: ids["ana"], place: 1 });
+      await ack(players[0]!, "room:leave");
     });
 
     it("2 contra 2: se uma equipa sai toda, a outra ganha logo", async () => {
