@@ -23,6 +23,10 @@ enum Role {
   LINGUIST
   ADMIN
   SUPER_ADMIN
+  /// Área dos Faladores: grava pronúncias (pago por gravação aprovada).
+  VOICE_SPEAKER
+  /// Área dos Ouvintes: aprova ou rejeita gravações de outras pessoas.
+  VOICE_LISTENER
 }
 
 enum AccountStatus {
@@ -140,6 +144,7 @@ model Language {
   audio           AudioAsset[]
   roles           UserRole[]
   learners        User[]            @relation("LearningLanguage")
+  recordings      Recording[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
@@ -215,6 +220,9 @@ model User {
   blockedBy              UserBlock[]             @relation("Blocked")
   arenaMatchesHosted     ArenaMatch[]            @relation("ArenaHost")
   arenaResults           ArenaMatchPlayer[]
+  voiceProfile           VoiceContributor?
+  recordings             Recording[]             @relation("RecordingSpeaker")
+  recordingReviews       RecordingReview[]
 
   @@index([status])
   @@map("users")
@@ -406,6 +414,7 @@ model Vocabulary {
   reviewedBy   User?                   @relation("VocabReviewedBy", fields: [reviewedById], references: [id])
   translations VocabularyTranslation[]
   exercises    Exercise[]
+  recordings   Recording[]
   createdAt    DateTime                @default(now())
   updatedAt    DateTime                @updatedAt
 
@@ -503,11 +512,101 @@ model AudioAsset {
   source          Source?          @relation(fields: [sourceId], references: [id])
   vocabulary      Vocabulary[]
   phrases         Phrase[]
+  recording       Recording?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
   @@index([languageId, status])
   @@map("audio_assets")
+}
+
+// ─────────────────── Gravações de pronúncia (Faladores e Ouvintes) ───────────────────
+
+enum RecordingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReviewVerdict {
+  APPROVE
+  REJECT
+}
+
+enum RejectReason {
+  PRONUNCIATION
+  NOISE
+  WRONG_WORD
+  CUT_OFF
+  OTHER
+}
+
+/// Quem contribui com a voz (falador e/ou ouvinte): consentimento, maioridade e variante.
+model VoiceContributor {
+  userId         String   @id @db.Uuid
+  /// Nome mostrado na app junto da gravação; null = anónimo.
+  displayName    String?
+  /// Ilha / região da variante falada (ex.: "Santiago").
+  region         String?
+  /// Confirmou ter a idade mínima (VOICE_CONFIG.minimumAge).
+  adultConfirmed Boolean
+  /// Versão do texto de consentimento aceite (muda quando o texto muda).
+  consentVersion String
+  consentAt      DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("voice_contributors")
+}
+
+/// Gravação de uma palavra. Fica PENDING até os ouvintes decidirem (2 iguais).
+model Recording {
+  id           String            @id @default(uuid(7)) @db.Uuid
+  vocabularyId String            @db.Uuid
+  languageId   String
+  speakerId    String            @db.Uuid
+  region       String?
+  storageKey   String            @unique
+  mimeType     String
+  sizeBytes    Int
+  durationMs   Int
+  status       RecordingStatus   @default(PENDING)
+  approvals    Int               @default(0)
+  rejections   Int               @default(0)
+  /// Áudio criado na aprovação (é o que a app toca).
+  audioId      String?           @unique @db.Uuid
+  decidedAt    DateTime?
+  createdAt    DateTime          @default(now())
+  vocabulary   Vocabulary        @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+  language     Language          @relation(fields: [languageId], references: [id])
+  speaker      User              @relation("RecordingSpeaker", fields: [speakerId], references: [id])
+  audio        AudioAsset?       @relation(fields: [audioId], references: [id])
+  reviews      RecordingReview[]
+
+  @@index([status, languageId, createdAt])
+  @@index([speakerId, createdAt])
+  @@index([vocabularyId])
+  @@map("recordings")
+}
+
+/// Voto de um ouvinte. Controlo = gravação já decidida (mede a atenção; não decide nem paga).
+model RecordingReview {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  recordingId String         @db.Uuid
+  listenerId  String         @db.Uuid
+  verdict     ReviewVerdict
+  reason      RejectReason?
+  isControl   Boolean        @default(false)
+  /// Controlo: o voto coincidiu com a decisão final?
+  matched     Boolean?
+  createdAt   DateTime       @default(now())
+  recording   Recording      @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  listener    User           @relation(fields: [listenerId], references: [id])
+
+  @@unique([recordingId, listenerId])
+  @@index([listenerId, createdAt])
+  @@map("recording_reviews")
 }
 
 // ─────────────────── Revisão e auditoria ───────────────────

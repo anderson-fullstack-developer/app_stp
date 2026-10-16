@@ -36,6 +36,11 @@ import { ProgressService } from "./progress/progress.service.js";
 import { MeController } from "./users/me.controller.js";
 import { UsersService } from "./users/users.service.js";
 import { ClerkWebhookController } from "./webhooks/clerk-webhook.controller.js";
+import { AudioStorage } from "./voice/audio-storage.js";
+import { MediaController } from "./voice/media.controller.js";
+import { MediaUrls } from "./voice/media-urls.js";
+import { VoiceController } from "./voice/voice.controller.js";
+import { VoiceService } from "./voice/voice.service.js";
 
 /**
  * Módulo raiz. Recebe a configuração já validada (main.ts ou testes), para que cada
@@ -76,6 +81,8 @@ export class AppModule {
         AdminController,
         AdminCoursesController,
         ArenaController,
+        VoiceController,
+        MediaController,
       ],
       providers: [
         { provide: ENV, useValue: env },
@@ -97,6 +104,9 @@ export class AppModule {
         ArenaService,
         ArenaAuthService,
         ArenaGateway,
+        AudioStorage,
+        MediaUrls,
+        VoiceService,
         { provide: ARENA_TIMINGS, useValue: DEFAULT_ARENA_TIMINGS },
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_FILTER, useClass: AllExceptionsFilter },

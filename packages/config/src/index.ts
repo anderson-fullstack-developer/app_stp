@@ -150,6 +150,49 @@ export const MULTIPLAYER_CONFIG = {
 } as const;
 
 /**
+ * Gravações de pronúncia (Área dos Faladores e dos Ouvintes). Pessoas pagas gravam
+ * palavras; outras ouvem e aprovam ou rejeitam. Só gravações aprovadas chegam à app.
+ * O servidor tem uma cópia (apps/api/src/voice/voice-rules.ts) verificada por teste.
+ */
+export const VOICE_CONFIG = {
+  /** Idade mínima para gravar ou ouvir (contrato e consentimento). */
+  minimumAge: 18,
+  /** Votos iguais necessários para decidir (2 aprovações = aprovada; 2 rejeições = rejeitada). */
+  votesToDecide: 2,
+  /** Vozes por palavra (aprovadas + pendentes) antes de a palavra sair da fila de gravação. */
+  voicesPerWord: 2,
+  /** Fração de "perguntas de controlo" (gravações já decididas) na fila dos ouvintes. */
+  controlRate: 0.1,
+  recording: { minMs: 400, maxMs: 5000, maxBytes: 200_000 },
+  /** Versão do texto de consentimento: mudar obriga a aceitar outra vez. */
+  consentVersion: "2026-10-16",
+  /**
+   * ⚠️ Decisão do dono: valores a pagar. null = o relatório mostra só as contagens.
+   * Ex.: { currency: "EUR", perApprovedRecording: 0.1, perReview: 0.02 }
+   */
+  pay: { currency: null, perApprovedRecording: null, perReview: null } as {
+    currency: string | null;
+    perApprovedRecording: number | null;
+    perReview: number | null;
+  },
+  /** Ilhas/regiões por língua (variante de quem grava). */
+  regions: {
+    kabuverdianu: [
+      "Santiago",
+      "Fogo",
+      "Brava",
+      "Maio",
+      "São Vicente",
+      "Santo Antão",
+      "São Nicolau",
+      "Sal",
+      "Boa Vista",
+      "Diáspora",
+    ],
+  } as Record<string, readonly string[]>,
+} as const;
+
+/**
  * Dados usados na Política de Privacidade e nos Termos (web e app).
  * ⚠️ Decisões pendentes: idade mínima (D-05, recomendado 13) e email público de suporte.
  * Enquanto `supportEmail` for null, os textos mostram um aviso em vez de um contacto inventado.

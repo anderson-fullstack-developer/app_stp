@@ -60,6 +60,8 @@ Os valores **nunca** vão para o repositório — só para o painel da Railway.
 | `LOG_LEVEL` | `info` | Opcional |
 | `SENTRY_DSN` | — | Opcional, quando houver Sentry |
 | `APP_VERSION` | ex.: `1.0.0` | Opcional, aparece no `/health` |
+| `PUBLIC_API_URL` | URL pública da API, ex.: `https://stpapi-production.up.railway.app` | Links dos áudios gravados na app |
+| `AUDIO_STORAGE` | (não definir por agora) | Gravações de pronúncia: `none` por omissão em produção (o disco da Railway apaga-se a cada deploy). Cloudflare R2 a seguir |
 
 ## 3b. Serviço da web
 

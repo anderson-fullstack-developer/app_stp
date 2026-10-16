@@ -17,11 +17,13 @@ export const GRANTABLE_ROLES = [
   "LINGUIST",
   "ADMIN",
   "SUPER_ADMIN",
+  "VOICE_SPEAKER",
+  "VOICE_LISTENER",
 ] as const;
 export type GrantableRole = (typeof GRANTABLE_ROLES)[number];
 
 /** Papéis que podem ficar presos a uma língua. */
-const PER_LANGUAGE: Role[] = ["CONTENT_EDITOR", "LINGUIST"];
+const PER_LANGUAGE: Role[] = ["CONTENT_EDITOR", "LINGUIST", "VOICE_SPEAKER", "VOICE_LISTENER"];
 const ADMIN_ROLES: Role[] = ["ADMIN", "SUPER_ADMIN"];
 
 const isSuper = (a: AuthUser) => a.roles.some((r) => r.role === "SUPER_ADMIN");

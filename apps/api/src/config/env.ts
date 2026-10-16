@@ -36,6 +36,15 @@ export const envSchema = z
       emptyToUndefined,
       z.string().startsWith("whsec_").optional(),
     ),
+    /**
+     * Onde guardar as gravações de pronúncia: "local" (pasta no servidor — desenvolvimento)
+     * ou "none" (desligado). Por omissão: local fora de produção, none em produção (o disco
+     * da Railway apaga-se a cada deploy). O Cloudflare R2 entra aqui mais tarde.
+     */
+    AUDIO_STORAGE: z.enum(["local", "none"]).optional(),
+    AUDIO_STORAGE_DIR: z.string().default("storage/audio"),
+    /** Endereço público da API, para os links dos áudios (ex.: https://api.falaneto.app). */
+    PUBLIC_API_URL: z.preprocess(emptyToUndefined, z.url().optional()),
     /** Origens cujos tokens de sessão aceitamos (claim azp), separadas por vírgula. */
     CLERK_AUTHORIZED_PARTIES: z
       .string()

@@ -47,3 +47,6 @@ apps/api/src/generated/
 
 # Ficheiros locais com segredos (variáveis para colar na Railway)
 *-variaveis.txt
+
+# Gravações de pronúncia guardadas localmente (desenvolvimento)
+apps/api/storage/

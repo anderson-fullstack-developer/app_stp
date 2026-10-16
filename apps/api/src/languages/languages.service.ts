@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
 import { PrismaService } from "../database/prisma.service.js";
+import { MediaUrls } from "../voice/media-urls.js";
 import { isPubliclyListed, visibleContentStatuses } from "./visibility.js";
 
 export interface VocabularyQuery {
@@ -10,7 +11,10 @@ export interface VocabularyQuery {
 
 @Injectable()
 export class LanguagesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly media: MediaUrls,
+  ) {}
 
   private ensureDb() {
     if (!this.prisma.configured)
@@ -89,7 +93,11 @@ export class LanguagesService {
           reviewed: v.status === "APPROVED",
           sourceUrl: v.sourceRef,
           audio: v.audio
-            ? { url: v.audio.url, speaker: v.audio.speakerName, sourceUrl: v.audio.sourceRef }
+            ? {
+                url: this.media.abs(v.audio.url),
+                speaker: v.audio.speakerName,
+                sourceUrl: v.audio.sourceRef,
+              }
             : null,
         };
       }),

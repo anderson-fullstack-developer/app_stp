@@ -6,6 +6,7 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common";
 import { PrismaService } from "../database/prisma.service.js";
+import { MediaUrls } from "../voice/media-urls.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import { isPubliclyListed, visibleContentStatuses } from "../languages/visibility.js";
 import { buildQuestions, type StoredQuestion, toPublicQuestion } from "../lessons/lesson-rules.js";
@@ -46,7 +47,10 @@ export interface DailyResult extends GrantResult {
  */
 @Injectable()
 export class DailyService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly media: MediaUrls,
+  ) {}
 
   private async language(languageId: string) {
     const language = await this.prisma.language.findUnique({ where: { id: languageId } });
@@ -287,7 +291,9 @@ export class DailyService {
       correctOptionId: outcome.q.correctOptionId,
       correctLabel: outcome.q.options.find((o) => o.id === outcome.q.correctOptionId)!.label,
       word: vocab?.word ?? null,
-      audio: vocab?.audio ? { url: vocab.audio.url, speaker: vocab.audio.speakerName } : null,
+      audio: vocab?.audio
+        ? { url: this.media.abs(vocab.audio.url), speaker: vocab.audio.speakerName }
+        : null,
       sourceUrl: vocab?.sourceRef ?? null,
     };
   }
