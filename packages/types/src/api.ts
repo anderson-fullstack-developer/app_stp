@@ -281,6 +281,8 @@ export interface ShopPurchaseDto {
 
 // ─────────────────── Gravações de pronúncia (Faladores e Ouvintes) ───────────────────
 
+export type VoicePayoutMethod = "SEPA" | "MBWAY" | "STRIPE" | "OTHER";
+
 /** GET /api/v1/voice/me */
 export interface VoiceMeDto {
   /** false = o servidor ainda não guarda áudio (produção sem R2). */
@@ -288,7 +290,15 @@ export interface VoiceMeDto {
   speakerLanguages: { id: string; name: string }[];
   listenerLanguages: { id: string; name: string }[];
   consentVersion: string;
-  profile: { displayName: string | null; region: string | null; consentCurrent: boolean } | null;
+  profile: {
+    displayName: string | null;
+    region: string | null;
+    consentCurrent: boolean;
+    paused: boolean;
+    payoutMethod: VoicePayoutMethod | null;
+    payoutDetails: string | null;
+  } | null;
+  activeTasks: number;
   last7Days: { recorded: number; approved: number; reviews: number };
   /** Falador: tudo o que já enviou, por estado ("today" = desde o início do dia local). */
   speaker: { today: number; total: number; pending: number; approved: number; rejected: number };
@@ -296,7 +306,60 @@ export interface VoiceMeDto {
   listener: { today: number; total: number };
 }
 
-/** GET /api/v1/voice/words */
+export type VoiceTaskKind = "RECORD" | "REVIEW";
+export type VoiceTaskStatus = "ACTIVE" | "PAUSED" | "COMPLETED" | "CANCELLED";
+
+export interface VoiceTaskProgressDto {
+  pending: number;
+  approved: number;
+  rejected: number;
+  reviews: number;
+  controls: number;
+  controlsMatched: number;
+  remaining: number;
+}
+
+/** GET /api/v1/voice/tasks */
+export interface VoiceTaskDto {
+  id: string;
+  kind: VoiceTaskKind;
+  title: string;
+  notes: string | null;
+  languageId: string;
+  languageName: string;
+  unitTitle: string | null;
+  target: number;
+  /** Preço por unidade, em cêntimos. */
+  rateCents: number;
+  currency: string;
+  dueAt: string | null;
+  status: VoiceTaskStatus;
+  createdAt: string;
+  progress: VoiceTaskProgressDto;
+  earnedCents: number;
+  pendingCents: number;
+}
+
+/** GET /api/v1/voice/earnings */
+export interface VoiceEarningsDto {
+  currency: string;
+  earnedCents: number;
+  pendingCents: number;
+  thisWeekCents: number;
+  paidCents: number;
+  balanceCents: number;
+  payouts: {
+    id: string;
+    amountCents: number;
+    currency: string;
+    method: string;
+    reference: string | null;
+    note: string | null;
+    paidAt: string;
+  }[];
+}
+
+/** GET /api/v1/voice/tasks/:id/words */
 export interface VoiceWordDto {
   vocabularyId: string;
   word: string;
@@ -305,7 +368,7 @@ export interface VoiceWordDto {
   inLessons: boolean;
 }
 
-/** GET /api/v1/voice/review/next */
+/** GET /api/v1/voice/tasks/:id/review/next */
 export interface VoiceReviewItemDto {
   recordingId: string;
   word: string;
@@ -321,6 +384,7 @@ export interface VoiceMyRecordingDto {
   word: string;
   gloss: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
+  taskTitle: string | null;
   createdAt: string;
   decidedAt: string | null;
   /** Motivos dados pelos ouvintes (sem dizer quem). */
@@ -337,6 +401,58 @@ export interface VoiceOverviewDto {
   lessonWords: number;
   lessonWordsWithAudio: number;
   contributors: number;
+  activeTasks: number;
+}
+
+/** GET /api/v1/admin/voice/tasks */
+export interface VoiceAdminTaskDto extends Omit<VoiceTaskDto, "languageName"> {
+  languageName: string;
+  assignee: { id: string; name: string; username: string };
+  unitId: string | null;
+  completedAt: string | null;
+}
+
+/** GET /api/v1/admin/voice/people */
+export interface VoicePersonDto {
+  userId: string;
+  name: string;
+  username: string;
+  email: string;
+  roles: { role: "VOICE_SPEAKER" | "VOICE_LISTENER"; languageId: string | null }[];
+  displayName: string | null;
+  region: string | null;
+  consented: boolean;
+  paused: boolean;
+  payoutMethod: VoicePayoutMethod | null;
+  payoutDetails: string | null;
+  activeTasks: number;
+  approved: number;
+  rejected: number;
+  pending: number;
+  reviews: number;
+  controls: number;
+  controlsMatched: number;
+  approvalRate: number | null;
+  controlAccuracy: number | null;
+  earnedCents: number;
+  pendingCents: number;
+  paidCents: number;
+  balanceCents: number;
+}
+
+/** GET /api/v1/admin/voice/payouts */
+export interface VoicePayoutDto {
+  id: string;
+  userId: string;
+  name: string;
+  username: string;
+  amountCents: number;
+  currency: string;
+  method: string;
+  reference: string | null;
+  note: string | null;
+  paidAt: string;
+  createdBy: string;
 }
 
 /** GET /api/v1/admin/voice/report */
@@ -353,5 +469,6 @@ export interface VoiceReportDto {
     reviews: number;
     controls: number;
     controlsMatched: number;
+    earnedCents: number;
   }[];
 }

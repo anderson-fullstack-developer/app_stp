@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useNow } from "@/components/play/arena-hooks";
 import { AppButton } from "@/components/app/Buttons";
 import { LoadingState } from "@/components/app/Primitives";
+import { TaskHeader } from "@/components/voice/TaskHeader";
 import { VoiceGate } from "@/components/voice/VoiceGate";
 import { VoicePage } from "@/components/voice/VoicePage";
 import { VoiceStats } from "@/components/voice/VoiceStats";
@@ -20,6 +21,9 @@ export const Route = createFileRoute("/voice/record")({
   head: () => ({
     meta: [{ title: `Gravar palavras — ${APP_NAME}` }, { name: "robots", content: "noindex" }],
   }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    task: typeof s["task"] === "string" ? s["task"] : "",
+  }),
   component: RecordPage,
 });
 
@@ -28,31 +32,30 @@ const BLOCKING: RecordingIssue[] = ["too_short", "too_long", "silent"];
 
 function RecordPage() {
   const { t } = useTranslation();
+  const { task } = Route.useSearch();
   return (
     <VoicePage title={t("voice.recordCard")}>
       <VoiceGate>
-        {(me) =>
-          me.speakerLanguages[0] ? (
-            <>
-              <VoiceStats kind="speaker" />
-              <Recorder languageId={me.speakerLanguages[0].id} storage={me.storageEnabled} />
-            </>
-          ) : (
-            <p className="text-center font-semibold">{t("voice.notInvited")}</p>
-          )
-        }
+        {(me) => (
+          <>
+            <TaskHeader taskId={task} />
+            <VoiceStats kind="speaker" />
+            <Recorder taskId={task} storage={me.storageEnabled} />
+          </>
+        )}
       </VoiceGate>
     </VoicePage>
   );
 }
 
-function Recorder({ languageId, storage }: { languageId: string; storage: boolean }) {
+function Recorder({ taskId, storage }: { taskId: string; storage: boolean }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === "en" ? "en" : "pt";
   const qc = useQueryClient();
   const words = useQuery({
-    queryKey: voiceKeys.words(languageId, locale),
-    queryFn: () => voiceApi.words(languageId, locale),
+    queryKey: voiceKeys.words(taskId, locale),
+    queryFn: () => voiceApi.words(taskId, locale),
+    enabled: Boolean(taskId),
   });
   const [gone, setGone] = useState<string[]>([]);
   const [flash, setFlash] = useState<string | null>(null);
@@ -78,6 +81,7 @@ function Recorder({ languageId, storage }: { languageId: string; storage: boolea
     mutationFn: async () => {
       const take = rec.take!;
       return voiceApi.record({
+        taskId,
         vocabularyId: word!.vocabularyId,
         mimeType: take.mimeType,
         durationMs: take.durationMs,
@@ -89,6 +93,8 @@ function Recorder({ languageId, storage }: { languageId: string; storage: boolea
       setFlash(t("voice.sent"));
       next(word!.vocabularyId);
       void qc.invalidateQueries({ queryKey: voiceKeys.me });
+      void qc.invalidateQueries({ queryKey: voiceKeys.tasks });
+      void qc.invalidateQueries({ queryKey: voiceKeys.earnings });
     },
   });
   useEffect(() => {
@@ -124,12 +130,16 @@ function Recorder({ languageId, storage }: { languageId: string; storage: boolea
         {t("voice.storageOff")}
       </p>
     );
+  if (!taskId)
+    return (
+      <p className="card rounded-2xl p-6 text-center font-semibold">{t("voice.tasks.none")}</p>
+    );
   if (words.isPending) return <LoadingState />;
   if (!word) {
     return words.isFetching ? (
       <LoadingState />
     ) : (
-      <p className="card rounded-2xl p-6 text-center font-semibold">{t("voice.noWords")}</p>
+      <p className="card rounded-2xl p-6 text-center font-semibold">{t("voice.tasks.allSent")}</p>
     );
   }
 

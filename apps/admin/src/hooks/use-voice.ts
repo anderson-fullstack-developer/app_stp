@@ -13,6 +13,11 @@ const KNOWN = [
   "ALREADY_RECORDED",
   "ALREADY_REVIEWED",
   "STORAGE_DISABLED",
+  "TASK_FULL",
+  "TASK_NOT_ACTIVE",
+  "TASK_NOT_FOUND",
+  "PAUSED",
+  "WORD_NOT_FOUND",
 ] as const;
 
 /** Mensagem traduzida para um erro da API das gravações. */
