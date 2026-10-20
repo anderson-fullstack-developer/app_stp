@@ -575,6 +575,36 @@ export const pt = {
       rejected: "Rejeitadas",
       reviewed: "Ouvidas",
     },
+    guide: {
+      title: "Guia",
+      open: "Como gravar e avaliar bem",
+      recordTitle: "Como gravar bem",
+      record: {
+        room: "Grava num sítio silencioso: sem televisão, rádio, vento ou pessoas a falar.",
+        distance: "Fica a um palmo do microfone (15–20 cm) e fala para ele, não para o lado.",
+        natural: "Diz a palavra como a dizes no dia a dia — nem devagar demais, nem a soletrar.",
+        once: "Diz só a palavra, uma vez. Sem «é…», sem repetir, sem explicar.",
+        variant: "Usa a pronúncia da tua ilha. Se não conheces a palavra, salta-a.",
+        listen: "Ouve sempre antes de enviar. Se cortou o início ou o fim, grava outra vez.",
+      },
+      reviewTitle: "Como avaliar",
+      review: {
+        approve: "Aprova quando a palavra está certa, se ouve bem e soa natural.",
+        accent: "Uma pronúncia de outra ilha não é erro: aprova se estiver certa nessa variante.",
+        pronunciation: "Rejeita «Pronúncia errada» se a palavra soa diferente do que deve.",
+        noise: "Rejeita «Ruído» se há barulho que atrapalha ou o som está muito fraco/distorcido.",
+        wrongWord: "Rejeita «Palavra errada» se disse outra palavra.",
+        cutOff: "Rejeita «Cortada» se falta o início ou o fim.",
+        doubt:
+          "Na dúvida, ouve outra vez. Avalia com atenção: a qualidade das tuas avaliações é verificada.",
+      },
+      payTitle: "Como és pago",
+      pay: {
+        record: "Falador: recebes por cada gravação aprovada pelos ouvintes.",
+        review: "Ouvinte: recebes por cada avaliação.",
+        when: "A equipa paga por transferência; vês cada pagamento em «Ganhos».",
+      },
+    },
     tasks: {
       title: "As minhas tarefas",
       none: "Ainda não tens tarefas. A equipa vai atribuir-te trabalho em breve.",

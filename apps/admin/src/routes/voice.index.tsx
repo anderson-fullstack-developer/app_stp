@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { APP_NAME } from "@stp/config";
-import { BarChart3, ChevronRight, Wallet } from "lucide-react";
+import { BarChart3, BookOpen, ChevronRight, Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LoadingState } from "@/components/app/Primitives";
 import { TaskCard } from "@/components/voice/TaskCard";
@@ -38,6 +38,13 @@ function VoiceHome() {
               </p>
             )}
             <EarningsCard missingPayout={!me.profile?.payoutDetails} />
+            <Link to="/voice/guide" className="block">
+              <div className="pressable card flex items-center gap-3 rounded-[1.5rem] p-4">
+                <BookOpen className="size-6 text-primary" />
+                <p className="flex-1 font-display font-bold">{t("voice.guide.open")}</p>
+                <ChevronRight className="size-5 text-muted-foreground" />
+              </div>
+            </Link>
             {me.speakerLanguages.length > 0 && (
               <Link to="/voice/mine" className="block">
                 <div className="pressable card flex items-center gap-3 rounded-[1.5rem] p-4">

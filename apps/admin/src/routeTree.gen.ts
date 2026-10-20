@@ -72,6 +72,7 @@ import { Route as SignUpSplatRouteImport } from './routes/sign-up.$'
 import { Route as UserUserIdRouteImport } from './routes/user.$userId'
 import { Route as VoiceIndexRouteImport } from './routes/voice.index'
 import { Route as VoiceEarningsRouteImport } from './routes/voice.earnings'
+import { Route as VoiceGuideRouteImport } from './routes/voice.guide'
 import { Route as VoiceListenRouteImport } from './routes/voice.listen'
 import { Route as VoiceMineRouteImport } from './routes/voice.mine'
 import { Route as VoiceRecordRouteImport } from './routes/voice.record'
@@ -393,6 +394,11 @@ const VoiceEarningsRoute = VoiceEarningsRouteImport.update({
   path: '/voice/earnings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VoiceGuideRoute = VoiceGuideRouteImport.update({
+  id: '/voice/guide',
+  path: '/voice/guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VoiceListenRoute = VoiceListenRouteImport.update({
   id: '/voice/listen',
   path: '/voice/listen',
@@ -481,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/sign-up/$': typeof SignUpSplatRoute
   '/user/$userId': typeof UserUserIdRoute
   '/voice/earnings': typeof VoiceEarningsRoute
+  '/voice/guide': typeof VoiceGuideRoute
   '/voice/listen': typeof VoiceListenRoute
   '/voice/mine': typeof VoiceMineRoute
   '/voice/record': typeof VoiceRecordRoute
@@ -550,6 +557,7 @@ export interface FileRoutesByTo {
   '/sign-up/$': typeof SignUpSplatRoute
   '/user/$userId': typeof UserUserIdRoute
   '/voice/earnings': typeof VoiceEarningsRoute
+  '/voice/guide': typeof VoiceGuideRoute
   '/voice/listen': typeof VoiceListenRoute
   '/voice/mine': typeof VoiceMineRoute
   '/voice/record': typeof VoiceRecordRoute
@@ -621,6 +629,7 @@ export interface FileRoutesById {
   '/sign-up/$': typeof SignUpSplatRoute
   '/user/$userId': typeof UserUserIdRoute
   '/voice/earnings': typeof VoiceEarningsRoute
+  '/voice/guide': typeof VoiceGuideRoute
   '/voice/listen': typeof VoiceListenRoute
   '/voice/mine': typeof VoiceMineRoute
   '/voice/record': typeof VoiceRecordRoute
@@ -693,6 +702,7 @@ export interface FileRouteTypes {
     | '/sign-up/$'
     | '/user/$userId'
     | '/voice/earnings'
+    | '/voice/guide'
     | '/voice/listen'
     | '/voice/mine'
     | '/voice/record'
@@ -762,6 +772,7 @@ export interface FileRouteTypes {
     | '/sign-up/$'
     | '/user/$userId'
     | '/voice/earnings'
+    | '/voice/guide'
     | '/voice/listen'
     | '/voice/mine'
     | '/voice/record'
@@ -832,6 +843,7 @@ export interface FileRouteTypes {
     | '/sign-up/$'
     | '/user/$userId'
     | '/voice/earnings'
+    | '/voice/guide'
     | '/voice/listen'
     | '/voice/mine'
     | '/voice/record'
@@ -883,6 +895,7 @@ export interface RootRouteChildren {
   SignUpSplatRoute: typeof SignUpSplatRoute
   UserUserIdRoute: typeof UserUserIdRoute
   VoiceEarningsRoute: typeof VoiceEarningsRoute
+  VoiceGuideRoute: typeof VoiceGuideRoute
   VoiceListenRoute: typeof VoiceListenRoute
   VoiceMineRoute: typeof VoiceMineRoute
   VoiceRecordRoute: typeof VoiceRecordRoute
@@ -1332,6 +1345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VoiceEarningsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/voice/guide': {
+      id: '/voice/guide'
+      path: '/voice/guide'
+      fullPath: '/voice/guide'
+      preLoaderRoute: typeof VoiceGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/voice/listen': {
       id: '/voice/listen'
       path: '/voice/listen'
@@ -1466,6 +1486,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignUpSplatRoute: SignUpSplatRoute,
   UserUserIdRoute: UserUserIdRoute,
   VoiceEarningsRoute: VoiceEarningsRoute,
+  VoiceGuideRoute: VoiceGuideRoute,
   VoiceListenRoute: VoiceListenRoute,
   VoiceMineRoute: VoiceMineRoute,
   VoiceRecordRoute: VoiceRecordRoute,

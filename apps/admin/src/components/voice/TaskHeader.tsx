@@ -12,10 +12,18 @@ export function TaskHeader({ taskId }: { taskId: string }) {
   );
   return (
     <div className="space-y-2">
-      <Link to="/voice" className="inline-flex items-center gap-1 text-sm font-bold text-primary">
-        <ArrowLeft className="size-4" />
-        {t("voice.tasks.back")}
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link to="/voice" className="inline-flex items-center gap-1 text-sm font-bold text-primary">
+          <ArrowLeft className="size-4" />
+          {t("voice.tasks.back")}
+        </Link>
+        <Link
+          to="/voice/guide"
+          className="text-sm font-bold text-muted-foreground underline-offset-2 hover:underline"
+        >
+          {t("voice.guide.title")}
+        </Link>
+      </div>
       {task && (
         <div className="card rounded-2xl p-3">
           <div className="flex items-baseline justify-between gap-2">

@@ -573,6 +573,38 @@ export const en: Messages = {
       rejected: "Rejected",
       reviewed: "Reviewed",
     },
+    guide: {
+      title: "Guide",
+      open: "How to record and review well",
+      recordTitle: "How to record well",
+      record: {
+        room: "Record somewhere quiet: no TV, radio, wind or people talking.",
+        distance: "Stay a hand's width from the microphone (15–20 cm) and speak towards it.",
+        natural: "Say the word as you say it every day — not too slowly, not spelling it out.",
+        once: "Say only the word, once. No «um…», no repeating, no explaining.",
+        variant: "Use your island's pronunciation. If you don't know the word, skip it.",
+        listen: "Always listen before sending. If the start or the end is cut off, record again.",
+      },
+      reviewTitle: "How to review",
+      review: {
+        approve: "Approve when the word is right, clear and sounds natural.",
+        accent:
+          "Another island's pronunciation is not a mistake: approve it if it's right in that variety.",
+        pronunciation:
+          "Reject «Wrong pronunciation» if the word sounds different from how it should.",
+        noise: "Reject «Noise» if there's distracting noise or the sound is too quiet/distorted.",
+        wrongWord: "Reject «Wrong word» if a different word was said.",
+        cutOff: "Reject «Cut off» if the start or the end is missing.",
+        doubt:
+          "When in doubt, listen again. Review carefully: the quality of your reviews is checked.",
+      },
+      payTitle: "How you get paid",
+      pay: {
+        record: "Speaker: you're paid for each recording the listeners approve.",
+        review: "Listener: you're paid for each review.",
+        when: "The team pays by transfer; you see each payment in «Earnings».",
+      },
+    },
     tasks: {
       title: "My tasks",
       none: "You don't have tasks yet. The team will assign you work soon.",
