@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerLanguages } from "@/admin/ServerInsightPages";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -24,7 +26,7 @@ export const Route = createFileRoute("/admin/languages")({
       { name: "description", content: "Gestão das línguas ensinadas na app." },
     ],
   }),
-  component: Languages,
+  component: LanguagesPage,
 });
 
 function Languages() {
@@ -133,4 +135,10 @@ function LangDrawer({ l, onClose }: { l: AdminLanguage; onClose: () => void }) {
       </Field>
     </Drawer>
   );
+}
+
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
+function LanguagesPage() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerLanguages /> : <Languages />;
 }

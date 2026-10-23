@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerNotYet } from "@/admin/ServerInsightPages";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -24,7 +26,7 @@ export const Route = createFileRoute("/admin/reports")({
       { name: "description", content: "Gestão de denúncias de utilizadores e conteúdo." },
     ],
   }),
-  component: Reports,
+  component: ReportsPage,
 });
 
 function Reports() {
@@ -81,5 +83,18 @@ function Reports() {
         </Drawer>
       )}
     </>
+  );
+}
+
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
+function ReportsPage() {
+  const server = useServerAdmin();
+  return server.enabled ? (
+    <ServerNotYet
+      title="Denúncias"
+      text="Ainda não há botão de denúncia na app, por isso não há denúncias. Quando existir, a fila aparece aqui."
+    />
+  ) : (
+    <Reports />
   );
 }

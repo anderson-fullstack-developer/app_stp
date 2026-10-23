@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerAnalytics } from "@/admin/ServerInsightPages";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAdminDB } from "@/services/admin";
@@ -12,7 +14,7 @@ export const Route = createFileRoute("/admin/analytics")({
       { name: "description", content: "Métricas de uso (futuro PostHog)." },
     ],
   }),
-  component: Analytics,
+  component: AnalyticsPage,
 });
 
 function Analytics() {
@@ -76,4 +78,10 @@ function Analytics() {
       </div>
     </>
   );
+}
+
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
+function AnalyticsPage() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerAnalytics /> : <Analytics />;
 }

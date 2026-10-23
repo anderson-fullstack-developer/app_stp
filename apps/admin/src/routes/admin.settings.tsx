@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerSettings } from "@/admin/ServerInsightPages";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -14,7 +16,7 @@ export const Route = createFileRoute("/admin/settings")({
       { name: "description", content: "Configuração de XP, moedas, vidas e tempos." },
     ],
   }),
-  component: Settings,
+  component: SettingsPage,
 });
 
 function Num({
@@ -161,4 +163,10 @@ function Settings() {
       </div>
     </>
   );
+}
+
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
+function SettingsPage() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerSettings /> : <Settings />;
 }

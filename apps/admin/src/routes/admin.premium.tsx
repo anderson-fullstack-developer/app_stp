@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerNotYet } from "@/admin/ServerInsightPages";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -17,7 +19,7 @@ export const Route = createFileRoute("/admin/premium")({
       },
     ],
   }),
-  component: Premium,
+  component: PremiumPage,
 });
 
 function Premium() {
@@ -80,5 +82,18 @@ function ProductCard({ p }: { p: PremiumProduct }) {
         </Field>
       </div>
     </Panel>
+  );
+}
+
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
+function PremiumPage() {
+  const server = useServerAdmin();
+  return server.enabled ? (
+    <ServerNotYet
+      title="Premium"
+      text="Ainda não há assinaturas: os pagamentos (Google Play) ficam para o fim. Quando existirem, aparecem aqui os assinantes e as receitas."
+    />
+  ) : (
+    <Premium />
   );
 }

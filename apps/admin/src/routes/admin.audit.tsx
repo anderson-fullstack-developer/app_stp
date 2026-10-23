@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerAudit } from "@/admin/ServerInsightPages";
 import { createFileRoute } from "@tanstack/react-router";
 import { ROLE_LABEL } from "@/admin/permissions";
 import { useAdminDB } from "@/services/admin";
@@ -13,7 +15,7 @@ export const Route = createFileRoute("/admin/audit")({
       { name: "description", content: "Histórico de ações administrativas." },
     ],
   }),
-  component: Audit,
+  component: AuditPage,
 });
 
 function Audit() {
@@ -34,4 +36,10 @@ function Audit() {
       <DataTable rows={db.audit} columns={columns} pageSize={15} />
     </>
   );
+}
+
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
+function AuditPage() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerAudit /> : <Audit />;
 }

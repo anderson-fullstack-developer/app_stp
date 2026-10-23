@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerAdminSearch } from "@/admin/ServerInsightPages";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useAdminDB } from "@/services/admin";
@@ -14,7 +16,7 @@ export const Route = createFileRoute("/admin/search")({
       { name: "description", content: "Pesquisa global no painel." },
     ],
   }),
-  component: SearchPage,
+  component: SearchRoute,
 });
 
 function SearchPage() {
@@ -104,4 +106,11 @@ function SearchPage() {
       {total === 0 && <p className="text-sm text-muted-foreground">Sem resultados.</p>}
     </>
   );
+}
+
+/** Com sessão, pesquisa real no servidor; sem sessão, a demonstração. */
+function SearchRoute() {
+  const server = useServerAdmin();
+  const { q } = Route.useSearch();
+  return server.enabled ? <ServerAdminSearch q={q} /> : <SearchPage />;
 }

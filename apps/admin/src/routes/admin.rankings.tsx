@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerRankings } from "@/admin/ServerInsightPages";
 import { createFileRoute } from "@tanstack/react-router";
 import { useAdminDB } from "@/services/admin";
 import type { AdminUser } from "@/admin/types";
@@ -11,7 +13,7 @@ export const Route = createFileRoute("/admin/rankings")({
       { name: "description", content: "Classificação global por XP." },
     ],
   }),
-  component: Rankings,
+  component: RankingsPage,
 });
 
 function Rankings() {
@@ -30,4 +32,10 @@ function Rankings() {
       <DataTable rows={rows} columns={columns} pageSize={15} />
     </>
   );
+}
+
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
+function RankingsPage() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerRankings /> : <Rankings />;
 }

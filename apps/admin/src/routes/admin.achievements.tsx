@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerAchievements } from "@/admin/ServerInsightPages";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -15,7 +17,7 @@ export const Route = createFileRoute("/admin/achievements")({
       { name: "description", content: "Criar e gerir conquistas." },
     ],
   }),
-  component: Achievements,
+  component: AchievementsPage,
 });
 
 const TYPES: AchievementType[] = ["Lições", "Streak", "Respostas", "Vitórias", "Top 3", "Nível"];
@@ -139,4 +141,10 @@ function AchDrawer({ a, onClose }: { a: AdminAchievement; onClose: () => void })
       </Field>
     </Drawer>
   );
+}
+
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
+function AchievementsPage() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerAchievements /> : <Achievements />;
 }

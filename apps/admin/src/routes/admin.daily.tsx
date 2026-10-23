@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerDailyAdmin } from "@/admin/ServerInsightPages";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Wand2 } from "lucide-react";
 import { useState } from "react";
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/admin/daily")({
       { name: "description", content: "Agendar desafios diários com perguntas aprovadas." },
     ],
   }),
-  component: Daily,
+  component: DailyPage,
 });
 
 function Daily() {
@@ -164,4 +166,10 @@ function DailyDrawer({ c, onClose }: { c: DailyChallenge; onClose: () => void })
       </ul>
     </Drawer>
   );
+}
+
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
+function DailyPage() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerDailyAdmin /> : <Daily />;
 }

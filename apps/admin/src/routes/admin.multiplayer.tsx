@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerMultiplayer } from "@/admin/ServerInsightPages";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAdminDB } from "@/services/admin";
@@ -25,7 +27,7 @@ export const Route = createFileRoute("/admin/multiplayer")({
       { name: "description", content: "Partidas, modos e histórico do multiplayer." },
     ],
   }),
-  component: Multiplayer,
+  component: MultiplayerPage,
 });
 
 function Multiplayer() {
@@ -128,4 +130,10 @@ function Multiplayer() {
       )}
     </>
   );
+}
+
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
+function MultiplayerPage() {
+  const server = useServerAdmin();
+  return server.enabled ? <ServerMultiplayer /> : <Multiplayer />;
 }

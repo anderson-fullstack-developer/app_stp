@@ -1,3 +1,5 @@
+import { useServerAdmin } from "@/admin/server";
+import { ServerNotYet } from "@/admin/ServerInsightPages";
 import { createFileRoute } from "@tanstack/react-router";
 import { Ban } from "lucide-react";
 import { useState } from "react";
@@ -15,7 +17,7 @@ export const Route = createFileRoute("/admin/ads")({
       { name: "description", content: "Locais permitidos para publicidade (futuro AdMob)." },
     ],
   }),
-  component: Ads,
+  component: AdsPage,
 });
 
 const NEVER = ["Perguntas", "Lição ativa", "Matchmaking", "Partida multiplayer", "Countdown"];
@@ -85,5 +87,18 @@ function Ads() {
         </Panel>
       </div>
     </>
+  );
+}
+
+/** Com sessão, dados reais do servidor; sem sessão, a demonstração. */
+function AdsPage() {
+  const server = useServerAdmin();
+  return server.enabled ? (
+    <ServerNotYet
+      title="Anúncios"
+      text="Os anúncios estão desligados (AdMob fica para o fim). Nunca aparecem em perguntas, lições nem partidas."
+    />
+  ) : (
+    <Ads />
   );
 }
