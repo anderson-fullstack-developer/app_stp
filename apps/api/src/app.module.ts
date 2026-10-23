@@ -12,6 +12,8 @@ import { DailyService } from "./daily/daily.service.js";
 import { NotificationsService } from "./social/notifications.service.js";
 import { RankingService } from "./social/ranking.service.js";
 import { AdminContentService } from "./admin/admin-content.service.js";
+import { AdminInsightsController } from "./admin/admin-insights.controller.js";
+import { AdminInsightsService } from "./admin/admin-insights.service.js";
 import { AdminCoursesController } from "./admin/admin-courses.controller.js";
 import { AdminCoursesService } from "./admin/admin-courses.service.js";
 import { ArenaAuthService } from "./arena/arena-auth.service.js";
@@ -81,6 +83,7 @@ export class AppModule {
         ShopController,
         AdminController,
         AdminCoursesController,
+        AdminInsightsController,
         ArenaController,
         VoiceController,
         MediaController,
@@ -102,6 +105,7 @@ export class AppModule {
         AdminContentService,
         AdminUsersService,
         AdminCoursesService,
+        AdminInsightsService,
         ArenaService,
         ArenaAuthService,
         ArenaGateway,
