@@ -1,6 +1,8 @@
 # Fala Neto — "Aprende. Joga. Preserva."
 
-Aplicação mobile para aprender as línguas de São Tomé e Príncipe (Forro/Santomé primeiro; depois Angolar e Lung'Ie/Principense), com gamificação, cultura, amigos e competição.
+Aplicação mobile para aprender línguas africanas, com gamificação, cultura, amigos e competição. Começa pelas línguas de São Tomé e Príncipe (Forro/Santomé; depois Angolar e Lung'Ie/Principense) e pelo Kriolu de Cabo Verde (em beta), e foi pensada para acrescentar novas línguas sem mudar a app nem a API.
+
+![Fala Neto](docs/screenshots/capa.webp)
 
 > **Regra de conteúdo:** nenhuma palavra, tradução ou pronúncia é inventada. Todo o conteúdo de exemplo é um placeholder rotulado até ser aprovado por falantes nativos no painel admin.
 
